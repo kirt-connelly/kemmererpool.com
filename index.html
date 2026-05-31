@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.52
+  &nbsp;·&nbsp; v1.53
 </footer>
 
 <script>
@@ -702,7 +702,8 @@ function renderMatchResult(html, title) {
 
   let out = '';
   let matchTotal1 = 0, matchTotal2 = 0;   // raw point totals for final card
-  let matchWins1  = 0, matchWins2  = 0;   // game wins for round totals
+  let matchWins1  = 0, matchWins2  = 0;   // total individual game wins
+  let matchRoundWins1 = 0, matchRoundWins2 = 0; // rounds won (0.5 for tie)
 
   roundNums.forEach(rn => {
     const games = [...d.querySelectorAll(`.game-container[data-round="${rn}"]`)];
@@ -833,8 +834,12 @@ function renderMatchResult(html, title) {
     const tot2 = use8BallScoring ? roundPts2 : roundWins2;
     matchTotal1 += roundPts1;
     matchTotal2 += roundPts2;
-    matchWins1  += Math.floor(roundWins1);  // always integer
-    matchWins2  += Math.floor(roundWins2);  // always integer
+    matchWins1  += Math.floor(roundWins1);  // total game wins
+    matchWins2  += Math.floor(roundWins2);  // total game wins
+    // Round win: winner gets 1, loser gets 0, tie = 0.5 each
+    if (roundWins1 > roundWins2)       { matchRoundWins1 += 1; }
+    else if (roundWins2 > roundWins1)  { matchRoundWins2 += 1; }
+    else                               { matchRoundWins1 += 0.5; matchRoundWins2 += 0.5; }
     const totW1 = Number(tot1) > Number(tot2);
     const totW2 = Number(tot2) > Number(tot1);
 
@@ -880,22 +885,50 @@ function renderMatchResult(html, title) {
   // 10-ball: wins determine outcome, show game win count
   // 8-ball:  total points (ball count) determine outcome
   const use8BallFinal = maxScore > 1;
+  // For 10-ball: winner determined by total game wins; show round wins + total game wins
+  // For 8-ball: winner determined by total ball points
   const fin1 = use8BallFinal ? matchTotal1 : matchWins1;
   const fin2 = use8BallFinal ? matchTotal2 : matchWins2;
   const mw1 = fin1 > fin2;
   const mw2 = fin2 > fin1;
   const matchResult = mw1 ? `${team1} wins` : mw2 ? `${team2} wins` : 'Tie';
-  const finLabel = use8BallFinal ? 'pts' : 'games';
+
+  // 10-ball final card shows TWO rows: round wins (0.5–3.5) and total game wins (4–12)
+  // 8-ball final card shows total ball points
+  const rw1str = matchRoundWins1 % 1 === 0 ? matchRoundWins1 : matchRoundWins1.toFixed(1);
+  const rw2str = matchRoundWins2 % 1 === 0 ? matchRoundWins2 : matchRoundWins2.toFixed(1);
+  const rwWin1 = matchRoundWins1 > matchRoundWins2;
+  const rwWin2 = matchRoundWins2 > matchRoundWins1;
+
   out += `<div class="card" style="margin-top:4px">
+    ${!use8BallFinal ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px">
+      <span style="font-weight:700;color:var(--cream);font-size:15px">${team1}</span>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="font-size:26px;font-weight:800;color:${rwWin1?'var(--green2)':rwWin2?'#cc4444':'var(--text2)'}">${rw1str}</span>
+        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">ROUNDS<br>WON</span>
+        <span style="font-size:26px;font-weight:800;color:${rwWin2?'var(--green2)':rwWin1?'#cc4444':'var(--text2)'}">${rw2str}</span>
+      </div>
+      <span style="font-weight:700;color:var(--cream);font-size:15px">${team2}</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;border-top:1px solid var(--border)">
+      <span style="font-size:12px;color:var(--text3)"></span>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="font-size:26px;font-weight:800;color:${mw1?'var(--green2)':mw2?'#cc4444':'var(--text2)'}">${fin1}</span>
+        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">TOTAL<br>GAMES</span>
+        <span style="font-size:26px;font-weight:800;color:${mw2?'var(--green2)':mw1?'#cc4444':'var(--text2)'}">${fin2}</span>
+      </div>
+      <span style="font-size:12px;color:var(--text3)"></span>
+    </div>` : `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px">
       <span style="font-weight:700;color:var(--cream);font-size:15px">${team1}</span>
       <div style="display:flex;align-items:center;gap:20px">
         <span style="font-size:28px;font-weight:800;color:${mw1?'var(--green2)':mw2?'#cc4444':'var(--text2)'}">${fin1}</span>
-        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center">TOTAL<br>${use8BallFinal?'PTS':'GAMES'}</span>
+        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">TOTAL<br>PTS</span>
         <span style="font-size:28px;font-weight:800;color:${mw2?'var(--green2)':mw1?'#cc4444':'var(--text2)'}">${fin2}</span>
       </div>
       <span style="font-weight:700;color:var(--cream);font-size:15px">${team2}</span>
-    </div>
+    </div>`}
     <div style="padding:0 20px 14px;text-align:center;font-size:12px;color:${mw1||mw2?'var(--green2)':'var(--text3)'};font-weight:600;letter-spacing:.05em;text-transform:uppercase">
       ${matchResult}
     </div>
