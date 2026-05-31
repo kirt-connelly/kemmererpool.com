@@ -108,7 +108,7 @@
     .match-card:hover { background: var(--bg3); }
     .match-home { text-align: right; }
     .match-away { text-align: left; }
-    .match-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .match-name { font-size: 14px; font-weight: 600; color: var(--cream); }
     .match-label { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
     .vs-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .vs-chip { background: var(--bg4); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: .05em; }
@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.18
+  &nbsp;·&nbsp; v1.19
 </footer>
 
 <script>
@@ -453,7 +453,7 @@ function renderSchedule(data) {
           ${block.matches.map(m => `
             <div class="match-card">
               <div class="match-home">
-                <div class="match-name">${m.home}</div>
+                <div class="match-name" style="color:var(--cream)">${m.home}</div>
                 <div class="match-label">Home</div>
               </div>
               <div class="vs-col">
@@ -461,7 +461,7 @@ function renderSchedule(data) {
                 ${m.venue ? `<div class="venue-label">${m.venue}</div>` : ''}
               </div>
               <div class="match-away">
-                <div class="match-name">${m.away}</div>
+                <div class="match-name" style="color:var(--cream)">${m.away}</div>
                 <div class="match-label">Away</div>
               </div>
             </div>`).join('')}
