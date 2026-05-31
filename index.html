@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.47
+  &nbsp;·&nbsp; v1.48
 </footer>
 
 <script>
@@ -729,12 +729,19 @@ function renderMatchResult(html, title) {
       const sv2 = parseInt(s2) || 0;
       const hasScore = s1inp !== null;
 
-      if (hasScore) { roundWins1 += sv1; roundWins2 += sv2; }
-
-      // Winner highlight
-      // Winner = whoever reached maxScore (in 8-ball/handicap), or just higher score (10-ball)
+      // Winner = whoever reached maxScore or scored higher
       const w1 = hasScore && (sv1 >= maxScore || (sv1 > sv2 && sv2 < maxScore));
       const w2 = hasScore && (sv2 >= maxScore || (sv2 > sv1 && sv1 < maxScore));
+      // Also check for adornment codes in raw value (TR, BR, WZ, WF = automatic win)
+      const rawS1 = (s1||'').toString().toUpperCase().trim();
+      const rawS2 = (s2||'').toString().toUpperCase().trim();
+      const adornWin1 = ['TR','BR','WZ','WF'].includes(rawS1);
+      const adornWin2 = ['TR','BR','WZ','WF'].includes(rawS2);
+
+      if (hasScore) {
+        if (adornWin1 || w1) roundWins1 += 1;
+        else if (adornWin2 || w2) roundWins2 += 1;
+      }
 
       // Break indicator — active chip = who broke
       const broke1 = game.querySelector('.break-container-1 .game-chip.break-active') !== null;
@@ -780,28 +787,19 @@ function renderMatchResult(html, title) {
           </td>
         </tr>`;
       } else {
-        // Handicap values — input has no value in static HTML (Angular fills it)
-      // Use data-handicap from the selected player option instead
-      const h1sel = game.querySelector('select.team-one-player');
-      const h2sel = game.querySelector('select.team-two-player');
-      const h1rating = parseInt(h1sel?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-      const h2rating = parseInt(h2sel?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-      // FargoRate handicap = difference in ratings, capped at MaximumAllowedHandicap
-      const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
-      const hdcpDiff = Math.abs(h1rating - h2rating);
-      const hdcpVal = Math.min(Math.round(hdcpDiff / 100 * (parseInt(gi('HandicapPercentage'))||1)), maxHdcp);
-      const h1 = h1rating < h2rating ? hdcpVal.toString() : '';
-      const h2 = h2rating < h1rating ? hdcpVal.toString() : '';
+        // Display adornment codes as green badges
+      const displayS1 = adornWin1 ? `<span style="font-size:11px;background:var(--green);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700">${s1}</span>` : s1;
+      const displayS2 = adornWin2 ? `<span style="font-size:11px;background:var(--green);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700">${s2}</span>` : s2;
+      const aw1 = adornWin1 || w1;
+      const aw2 = adornWin2 || w2;
 
       rows += `<tr>
           <td style="color:var(--cream);font-weight:600">
             <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${p1}
           </td>
-          ${useHandicap ? `<td class="num" style="text-align:center;color:var(--text3);font-size:13px">${h1||'—'}</td>` : ''}
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'#cc4444':'var(--text2)'}">${s1}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw1?'var(--green2)':aw2?'#cc4444':'var(--text2)'}">${displayS1}</td>
           <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'#cc4444':'var(--text2)'}">${s2}</td>
-          ${useHandicap ? `<td class="num" style="text-align:center;color:var(--text3);font-size:13px">${h2||'—'}</td>` : ''}
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw2?'var(--green2)':aw1?'#cc4444':'var(--text2)'}">${displayS2}</td>
           <td style="text-align:right;color:var(--cream);font-weight:600">
             ${p2}<span style="color:${broke2?'var(--green2)':'var(--border2)'};font-size:9px;margin-left:5px">●</span>
           </td>
@@ -820,11 +818,9 @@ function renderMatchResult(html, title) {
     const colCount = isDoubles ? 5 : 5;
     rows += `<tr style="background:var(--bg3);border-top:2px solid var(--border)">
       <td style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
-      ${useHandicap && !isDoubles ? '<td></td>' : ''}
       <td class="num" style="text-align:center;font-weight:700;font-size:16px;color:${totW1?'var(--green2)':totW2?'#cc4444':'var(--text2)'}">${tot1}</td>
       <td></td>
       <td class="num" style="text-align:center;font-weight:700;font-size:16px;color:${totW2?'var(--green2)':totW1?'#cc4444':'var(--text2)'}">${tot2}</td>
-      ${useHandicap && !isDoubles ? '<td></td>' : ''}
       <td style="font-size:11px;color:var(--text3);text-align:right">${isDoubles?'Doubles':'Singles'}</td>
     </tr>`;
 
@@ -836,11 +832,9 @@ function renderMatchResult(html, title) {
       <div style="overflow-x:auto"><table class="tbl">
         <thead><tr>
           <th>${team1}</th>
-          ${useHandicap ? '<th style="text-align:center">HDCP</th>' : ''}
           <th style="text-align:center">Score</th>
           <th style="text-align:center;width:30px"></th>
           <th style="text-align:center">Score</th>
-          ${useHandicap ? '<th style="text-align:center">HDCP</th>' : ''}
           <th style="text-align:right">${team2}</th>
         </tr></thead>
         <tbody>${rows}</tbody>
