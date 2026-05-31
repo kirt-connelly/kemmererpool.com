@@ -82,7 +82,7 @@
     .tbl tbody tr:last-child td { border-bottom: none; }
     .tbl tbody tr:hover td { background: var(--bg3); }
     .num { font-variant-numeric: tabular-nums; }
-    .rank-num { font-size: 13px; font-weight: 600; color: var(--text3); width: 24px; display: inline-block; text-align: right; }
+    .rank-num { font-size: 12px; font-weight: 500; color: var(--text3); width: 24px; display: inline-block; text-align: right; }
 
     /* ── Bar ── */
     .bar-wrap { display: flex; align-items: center; gap: 10px; }
@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.16
+  &nbsp;·&nbsp; v1.17
 </footer>
 
 <script>
@@ -286,12 +286,12 @@ function renderTeams(data) {
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:500;color:var(--text)">${cell}</td>`;
+          if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
           if (ci===pctIdx && pctIdx>0) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
               <div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pv}%;background:${winColor(cell)}"></div></div>
-              <span class="num" style="font-size:13px;color:var(--text2)">${cell}</span>
+              <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
             </div></td>`;
           }
           return `<td class="num" style="color:var(--text2)">${cell}</td>`;
@@ -316,12 +316,12 @@ function renderPlayers(data) {
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:500;color:var(--text)">${cell}</td>`;
+          if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
           if (ci===winIdx && winIdx>0) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
               <div class="bar-track" style="width:65px"><div class="bar-fill" style="width:${pv}%;background:${winColor(cell)}"></div></div>
-              <span class="num" style="font-size:13px;color:var(--text2)">${cell}</span>
+              <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
             </div></td>`;
           }
           return `<td class="num" style="color:var(--text2)">${cell}</td>`;
@@ -362,7 +362,7 @@ function renderByTeam(data) {
       html += `<tr>${cells.map((c,ci) => {
         const cell = c.textContent.trim();
         if (ci===0) return `<td class="num" style="color:var(--text3);font-size:13px">${cell}</td>`;
-        if (ci===1) return `<td style="font-weight:500;color:var(--text)">${cell}</td>`;
+        if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
         return `<td class="num" style="color:var(--text2)">${cell}</td>`;
       }).join('')}</tr>`;
     }
@@ -393,7 +393,7 @@ function renderList(data) {
         return `<tr>
           <td><span class="rank-num">${i+1}</span></td>
           ${r.map((cell,ci) => {
-            if (ci===1) return `<td style="font-weight:500;color:var(--text)">${cell}</td>`;
+            if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
             if (ci===ratingIdx && ratingIdx>=0) return `<td>
               <div class="fargo-wrap">
                 <div class="fargo-track"><div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div></div>
