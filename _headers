@@ -1,0 +1,11 @@
+/*
+  /
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/*
+  Cache-Control: public, max-age=300
+
+/*.html
+  Cache-Control: public, max-age=60
