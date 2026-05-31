@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.59
+  &nbsp;·&nbsp; v1.60
 </footer>
 
 <script>
@@ -868,12 +868,16 @@ function renderMatchResult(html, title) {
     }
 
     // Round total row
+    const roundWinner = totW1 ? team1 : totW2 ? team2 : null;
+    const roundLabel = roundWinner
+      ? `<span style="color:var(--green2);font-weight:700">${roundWinner} wins</span>`
+      : `<span style="color:var(--text3)">Tie</span>`;
     rows += `<tr style="background:var(--bg);border-top:2px solid var(--accent)">
       <td style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
       <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW1?'var(--green2)':totW2?'#cc4444':'var(--text2)'}">${tot1}</td>
       <td></td>
       <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW2?'var(--green2)':totW1?'#cc4444':'var(--text2)'}">${tot2}</td>
-      <td style="font-size:11px;color:var(--text3);text-align:right">${isDoubles?'Doubles':'Singles'}</td>
+      <td style="font-size:11px;color:var(--text3);text-align:right">${roundLabel}</td>
     </tr>`;
 
     out += `<div class="card" style="margin-bottom:12px">
