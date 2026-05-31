@@ -213,7 +213,7 @@
 
 <script>
 /* ─── Config ─────────────────────────────────────────────────────────────── */
-const PROXY = '/proxy?url=';   // Cloudflare Pages Function at /functions/proxy.js
+const PROXY = '/proxy?url=';   // Cloudflare Pages Function — /functions/proxy.js
 const BASE  = 'https://lms.fargorate.com/PublicReport';
 
 const DIVISIONS = {
@@ -222,11 +222,11 @@ const DIVISIONS = {
 };
 
 const VIEWS = {
-  teams:    id => `${BASE}/GenerateTeamStandingsReport/${id}`,
-  players:  id => `${BASE}/GeneratePlayerStandingsReport/${id}`,
-  byteam:   id => `${BASE}/GeneratePlayerStandingsReportByTeam/${id}`,
-  list:     id => `${BASE}/GeneratePlayerListReport/${id}`,
-  schedule: id => `${BASE}/GenerateDivisionScheduleReport/${id}`,
+  teams:    { url: id => `${BASE}/GenerateTeamStandingsReport/${id}`, method: 'GET' },
+  players:  { url: id => `${BASE}/GeneratePlayerStandingsReport/${id}`, method: 'GET' },
+  byteam:   { url: id => `${BASE}/GeneratePlayerStandingsReportByTeam/${id}`, method: 'POST', body: id => `divisionId=${id}` },
+  list:     { url: id => `${BASE}/GeneratePlayerListReport/${id}`, method: 'GET' },
+  schedule: { url: () => `${BASE}/GenerateDivisionScheduleReport`, method: 'POST', body: id => `divisionId=${id}` },
 };
 
 /* ─── State ──────────────────────────────────────────────────────────────── */
@@ -270,12 +270,26 @@ async function fetchSection(lg, vw) {
   const key = `${lg}__${vw}`;
   if (cache[key]) return cache[key];
   const divId = DIVISIONS[lg].id;
-  const url   = VIEWS[vw](divId);
+  const view = VIEWS[vw];
+  const url = view.url(divId);
+  const method = view.method || 'GET';
+  const body = view.body ? view.body(divId) : undefined;
+
   try {
-    const r = await fetch(PROXY + encodeURIComponent(url));
+    const opts = {
+      method: method,
+      headers: { 'Accept': 'text/html' },
+    };
+    if (method === 'POST') {
+      opts.method = 'POST';
+      opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      opts.body = body;
+    }
+    const proxyUrl = PROXY + encodeURIComponent(url);
+    const r = await fetch(proxyUrl, opts);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const html = await r.text();
-    if (!html || html.trim().length < 30) throw new Error('empty');
+    if (!html || html.trim().length < 30) throw new Error('empty response');
     cache[key] = { html, live: true };
     setStatus(true);
     return cache[key];
