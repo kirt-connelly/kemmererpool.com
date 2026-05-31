@@ -181,7 +181,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE · JENKINS MUSIC &amp; VENDING · KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.5</span>
+  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.6</span>
 </footer>
 
 <script>
@@ -456,44 +456,23 @@ function renderSchedule(data) {
   const d = document.createElement('div');
   d.innerHTML = data.html;
 
-  // Parse the schedule — FargoRate uses date headers + match entries
+  // Walk ALL text lines and group by date
+  const text = (d.innerText || d.textContent || '');
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const dateRe = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+
   const blocks = [];
   let current = null;
-
-  const allEls = d.querySelectorAll('*');
-  allEls.forEach(el => {
-    const text = el.textContent.trim();
-    // Date headers like "10/22/2025"
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text) && el.children.length === 0) {
-      current = { date: text, matches: [] };
+  lines.forEach(line => {
+    if (dateRe.test(line)) {
+      current = { date: line, lines: [] };
       blocks.push(current);
+    } else if (current) {
+      current.lines.push(line);
     }
   });
 
-  // If no date blocks found, walk text nodes
   if (!blocks.length) {
-    const text = d.innerText || d.textContent || '';
-    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
-    const dateRe = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-    lines.forEach(line => {
-      if (dateRe.test(line)) { current = {date:line, matches:[]}; blocks.push(current); }
-      else if (current) current.matches.push(line);
-    });
-  } else {
-    // Get all text content and parse into matches
-    const text = d.innerText || d.textContent || '';
-    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
-    const dateRe = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-    let cur = null;
-    lines.forEach(line => {
-      if (dateRe.test(line)) { cur = blocks.find(b=>b.date===line); }
-      else if (cur) cur.matches.push(line);
-    });
-  }
-
-  if (!blocks.length) {
-    // Fallback: just show raw text nicely
-    const lines = (d.innerText||d.textContent||'').split('\n').map(l=>l.trim()).filter(Boolean);
     return `<div class="card">
       <div class="card-header"><span class="card-title">Schedule</span></div>
       <div style="padding:16px">
@@ -502,22 +481,28 @@ function renderSchedule(data) {
     </div>`;
   }
 
-  // Group matches into Home/Away pairs
+  // Parse ALL Home/Away pairs from a date's lines
   function parseMatches(lines) {
     const matches = [];
     let i = 0;
     while (i < lines.length) {
-      const line = lines[i];
-      // Home team starts with (H)
-      if (line.startsWith('(H)')) {
-        const home = line.replace(/^\(H\)\s*/, '');
-        // skip "vs" line
-        let j = i+1;
-        while (j < lines.length && lines[j].toLowerCase() === 'vs') j++;
-        const away = j < lines.length && lines[j].startsWith('(A)') ? lines[j].replace(/^\(A\)\s*/,'') : '';
-        const venue = (j+1) < lines.length && !lines[j+1].startsWith('(H)') && !lines[j+1].startsWith('(A)') ? lines[j+1] : '';
+      if (lines[i].startsWith('(H)')) {
+        const home = lines[i].replace(/^\(H\)\s*/,'');
+        let away = '', venue = '';
+        // skip optional "vs" line
+        let j = i + 1;
+        if (j < lines.length && lines[j].toLowerCase() === 'vs') j++;
+        if (j < lines.length && lines[j].startsWith('(A)')) {
+          away = lines[j].replace(/^\(A\)\s*/,'');
+          j++;
+        }
+        // next line that isn't a new match is the venue
+        if (j < lines.length && !lines[j].startsWith('(H)') && !lines[j].startsWith('(A)') && !dateRe.test(lines[j])) {
+          venue = lines[j];
+          j++;
+        }
         matches.push({ home, away, venue });
-        i = venue ? j+2 : j+1;
+        i = j;
       } else {
         i++;
       }
@@ -525,25 +510,40 @@ function renderSchedule(data) {
     return matches;
   }
 
-  return `<div style="display:flex;flex-direction:column;gap:10px">
+  // Format date nicely
+  function fmtDate(str) {
+    try {
+      const d = new Date(str);
+      return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    } catch(e) { return str; }
+  }
+
+  return `<div style="display:flex;flex-direction:column;gap:12px">
     ${blocks.map(block => {
-      const matches = parseMatches(block.matches);
+      const matches = parseMatches(block.lines);
       if (!matches.length) return '';
       return `<div class="sched-block">
-        <div class="sched-date-header">${block.date}</div>
-        ${matches.map(m => `
-          <div class="match-card">
-            <div class="match-home">
-              <div style="font-weight:600;color:var(--text)">${m.home}</div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
-              <div class="vs-chip">VS</div>
-              ${m.venue ? `<div class="match-venue">${m.venue}</div>` : ''}
-            </div>
-            <div class="match-away">
-              <div style="font-weight:600;color:var(--text)">${m.away}</div>
-            </div>
-          </div>`).join('')}
+        <div class="sched-date-header">
+          ${fmtDate(block.date)}
+          <span style="font-weight:400;color:var(--text3);margin-left:8px;font-size:11px">${matches.length} match${matches.length>1?'es':''}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--border)">
+          ${matches.map(m => `
+            <div class="match-card" style="background:var(--bg2)">
+              <div class="match-home">
+                <div style="font-weight:600;color:var(--text);font-size:14px">${m.home}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">Home</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                <div class="vs-chip">VS</div>
+                ${m.venue ? `<div style="font-size:10px;color:var(--text3);text-align:center;white-space:nowrap">${m.venue}</div>` : ''}
+              </div>
+              <div class="match-away">
+                <div style="font-weight:600;color:var(--text);font-size:14px">${m.away}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">Away</div>
+              </div>
+            </div>`).join('')}
+        </div>
       </div>`;
     }).join('')}
   </div>`;
