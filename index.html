@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.70
+  &nbsp;·&nbsp; v1.71
 </footer>
 
 <script>
@@ -705,6 +705,48 @@ function renderMatchResult(html, title) {
   let matchWins1  = 0, matchWins2  = 0;   // total individual game wins
   let matchRoundWins1 = 0, matchRoundWins2 = 0; // rounds won (0.5 for tie)
 
+  // Pre-calculate exact FargoRate handicap distribution across rounds
+  const use8BallFargoHdcp = maxScore > 1;
+  let matchHdcpByRound = {};  // rn → balls for that round
+  let matchHdcpTeam = 0;      // which team receives handicap (1 or 2)
+  if (use8BallFargoHdcp) {
+    const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
+    // Collect all per-game expectations across all rounds
+    let totalV1 = 0.0, totalV2 = 0.0;
+    roundNums.forEach(rn => {
+      const games = [...d.querySelectorAll(`.game-container[data-round="${rn}"]`)];
+      games.forEach(game => {
+        const r1 = parseInt(game.querySelector('select.team-one-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
+        const r2 = parseInt(game.querySelector('select.team-two-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
+        if (r1 > 0 && r2 > 0) {
+          const p = 1.0 / (1 + Math.pow(2, (r2 - r1) / 100.0));
+          totalV1 += p * 10.0 + (1.0 - p) * (7.4 - 0.0062 * r2);
+          totalV2 += (1.0 - p) * 10.0 + p * (7.4 - 0.0062 * r1);
+        }
+      });
+    });
+    // Floor of difference = total match handicap
+    let totalHdcp = 0;
+    if (totalV2 > totalV1) {
+      matchHdcpTeam = 1;  // team 1 gets handicap
+      totalHdcp = Math.min(Math.floor(totalV2 - totalV1), maxHdcp);
+    } else if (totalV1 > totalV2) {
+      matchHdcpTeam = 2;  // team 2 gets handicap
+      totalHdcp = Math.min(Math.floor(totalV1 - totalV2), maxHdcp);
+    }
+    // Distribute last-to-first
+    let remaining = totalHdcp;
+    let currentRound = roundNums.length - 1;
+    const rnArr = [...roundNums];
+    while (remaining > 0) {
+      const rn = rnArr[currentRound];
+      matchHdcpByRound[rn] = (matchHdcpByRound[rn] || 0) + 1;
+      remaining--;
+      currentRound--;
+      if (currentRound < 0) currentRound = rnArr.length - 1;
+    }
+  }
+
   roundNums.forEach(rn => {
     const games = [...d.querySelectorAll(`.game-container[data-round="${rn}"]`)];
     if (!games.length) return;
@@ -715,7 +757,7 @@ function renderMatchResult(html, title) {
     let rows = '';
     let roundWins1 = 0, roundWins2 = 0;
     let roundPts1  = 0, roundPts2  = 0;
-    let roundRatingSum1 = 0, roundRatingSum2 = 0;  // to determine which team gets handicap
+
 
 
 
@@ -806,8 +848,7 @@ function renderMatchResult(html, title) {
       // Accumulate ratings and per-game handicap (floor(|diff|/50) per matchup)
       const pgR1 = parseInt(game.querySelector('select.team-one-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
       const pgR2 = parseInt(game.querySelector('select.team-two-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-      roundRatingSum1 += pgR1;
-      roundRatingSum2 += pgR2;
+
 
 
       rows += `<tr>
@@ -832,9 +873,9 @@ function renderMatchResult(html, title) {
     // 8-ball: FargoRate HandicapMode=2 uses floor(diff/50) per game, summed for the round
     // The lower-rated team accumulates handicap balls across all games in the round
     const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
-    const roundHdcpAmt = use8BallScoring ? Math.min(Math.floor(Math.abs(roundRatingSum1 - roundRatingSum2) / 50), 5) : 0;
-    const team1GetsHdcp = use8BallScoring && roundRatingSum2 > roundRatingSum1 && roundHdcpAmt > 0;
-    const team2GetsHdcp = use8BallScoring && roundRatingSum1 > roundRatingSum2 && roundHdcpAmt > 0;
+    const roundHdcpAmt = use8BallScoring ? (matchHdcpByRound[rn] || 0) : 0;
+    const team1GetsHdcp = use8BallScoring && matchHdcpTeam === 1 && roundHdcpAmt > 0;
+    const team2GetsHdcp = use8BallScoring && matchHdcpTeam === 2 && roundHdcpAmt > 0;
     const adjPts1 = roundPts1 + (team1GetsHdcp ? roundHdcpAmt : 0);
     const adjPts2 = roundPts2 + (team2GetsHdcp ? roundHdcpAmt : 0);
 
