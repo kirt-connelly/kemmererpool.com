@@ -9,20 +9,20 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:      #1c2030;
-      --bg2:     #242838;
-      --bg3:     #2c3248;
-      --bg4:     #323850;
-      --border:  #3a4260;
-      --border2: #4a5478;
-      --text:    #f0f4ff;
-      --text2:   #9aa8cc;
-      --text3:   #5a6888;
-      --accent:  #4d8fcc;
-      --accent2: #6aaee8;
-      --green:   #2a9d6f;
-      --green2:  #34c487;
-      --red:     #c45a5a;
+      --bg:      #1a1a1a;
+      --bg2:     #222222;
+      --bg3:     #2a2a2a;
+      --bg4:     #333333;
+      --border:  #3a3a3a;
+      --border2: #4a4a4a;
+      --text:    #f5f0eb;
+      --text2:   #a09890;
+      --text3:   #5a5450;
+      --accent:  #cc2222;
+      --accent2: #e63333;
+      --green:   #2a7a4a;
+      --green2:  #34a060;
+      --red:     #cc2222;
       --felt:    repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 3px,#1a5c32 6px);
       --radius:  10px;
       --radius-sm: 6px;
@@ -181,7 +181,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE · JENKINS MUSIC &amp; VENDING · KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.7</span>
+  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.8</span>
 </footer>
 
 <script>
@@ -481,38 +481,51 @@ function renderSchedule(data) {
     </div>`;
   }
 
-  // Parse ALL matches from a date's lines - handles both (H)/(A) and plain "Team vs Team"
+  // Parse ALL matches - FargoRate puts "(H) Home vs (A) Away" on ONE line
   function parseMatches(lines) {
     const matches = [];
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
-      // Format 1: starts with (H)
-      if (line.startsWith('(H)')) {
-        const home = line.replace(/^\(H\)\s*/,'');
+      let home = '', away = '', venue = '';
+
+      // Format 1: "(H) Team vs (A) Team" all on one line
+      if (line.startsWith('(H)') && line.toLowerCase().includes(' vs ')) {
+        const clean = line.replace(/^\(H\)\s*/,'');
+        const parts = clean.split(/ vs (?:\(A\)\s*)?/i);
+        home = parts[0].trim();
+        away = parts[1] ? parts[1].replace(/^\(A\)\s*/i,'').trim() : '';
+        i++;
+        // next non-match line is venue
+        if (i < lines.length && !lines[i].startsWith('(H)') && !lines[i].toLowerCase().includes(' vs ') && !dateRe.test(lines[i])) {
+          venue = lines[i]; i++;
+        }
+        matches.push({ home, away, venue });
+      }
+      // Format 2: "(H) Team" on its own line, "(A) Team" on next
+      else if (line.startsWith('(H)')) {
+        home = line.replace(/^\(H\)\s*/,'');
         let j = i + 1;
         if (j < lines.length && lines[j].toLowerCase() === 'vs') j++;
-        let away = '', venue = '';
         if (j < lines.length && lines[j].startsWith('(A)')) {
           away = lines[j].replace(/^\(A\)\s*/,''); j++;
         }
-        if (j < lines.length && !lines[j].startsWith('(H)') && !lines[j].startsWith('(A)') && !dateRe.test(lines[j]) && lines[j].toLowerCase() !== 'vs') {
+        if (j < lines.length && !lines[j].startsWith('(H)') && !lines[j].toLowerCase().includes(' vs ') && !dateRe.test(lines[j])) {
           venue = lines[j]; j++;
         }
         matches.push({ home, away, venue });
         i = j;
       }
-      // Format 2: "Team A vs Team B" on one line
+      // Format 3: "Team A vs Team B" plain
       else if (line.toLowerCase().includes(' vs ') && !line.startsWith('(A)')) {
         const parts = line.split(/ vs /i);
-        const home = parts[0].trim();
-        const away = parts[1] ? parts[1].trim() : '';
-        let venue = '';
-        if (i+1 < lines.length && !lines[i+1].startsWith('(H)') && !lines[i+1].toLowerCase().includes(' vs ') && !dateRe.test(lines[i+1])) {
-          venue = lines[i+1]; i++;
+        home = parts[0].trim();
+        away = parts[1] ? parts[1].trim() : '';
+        i++;
+        if (i < lines.length && !lines[i].startsWith('(H)') && !lines[i].toLowerCase().includes(' vs ') && !dateRe.test(lines[i])) {
+          venue = lines[i]; i++;
         }
         matches.push({ home, away, venue });
-        i++;
       } else {
         i++;
       }
