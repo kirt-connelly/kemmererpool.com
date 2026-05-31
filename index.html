@@ -185,7 +185,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.9
+  &nbsp;·&nbsp; v2.0
 </footer>
 
 <script>
@@ -404,68 +404,44 @@ function renderSchedule(data) {
   const d = document.createElement('div');
   d.innerHTML = data.html;
 
-  // Get raw text and split into lines
-  const raw = d.innerText || d.textContent || '';
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  const dateRe = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-
-  // Group lines by date
+  // FargoRate returns structured HTML with classes:
+  // .schedule-date, .schedule-team-block, .schedule-team, .schedule-location
   const blocks = [];
   let cur = null;
-  lines.forEach(line => {
-    if (dateRe.test(line)) { cur = { date: line, lines: [] }; blocks.push(cur); }
-    else if (cur) cur.lines.push(line);
+
+  const container = d.querySelector('#schedule-list') || d;
+  [...container.children].forEach(node => {
+    if (node.classList.contains('schedule-date')) {
+      cur = { date: node.textContent.trim(), matches: [] };
+      blocks.push(cur);
+    } else if (node.classList.contains('schedule-team-block') && cur) {
+      const teams = [...node.querySelectorAll('.schedule-team')]
+        .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
+      const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
+      if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue });
+    }
   });
 
   if (!blocks.length) return notice('No schedule data found.');
 
-  // Parse matches from a block's lines
-  // FargoRate format: "(H) TeamA vs (A) TeamB" on ONE line, then venue on next line
-  // OR plain "TeamA vs TeamB" then venue
-  function parseMatches(lines) {
-    const matches = [];
-    let i = 0;
-    while (i < lines.length) {
-      const line = lines[i];
-      let home = '', away = '', venue = '';
-
-      if (line.toLowerCase().includes(' vs ')) {
-        // Split on " vs " — handle (H)/(A) prefixes
-        const vsIdx = line.toLowerCase().indexOf(' vs ');
-        home = line.slice(0, vsIdx).trim().replace(/^\(H\)\s*/i, '');
-        away = line.slice(vsIdx + 4).trim().replace(/^\(A\)\s*/i, '');
-        i++;
-        // Next line is venue if it's not a match or date
-        if (i < lines.length && !lines[i].toLowerCase().includes(' vs ') && !dateRe.test(lines[i])) {
-          venue = lines[i]; i++;
-        }
-        if (home && away) matches.push({ home, away, venue });
-      } else {
-        i++;
-      }
-    }
-    return matches;
-  }
-
   function fmtDate(str) {
     try {
-      const parts = str.split('/');
-      const d = new Date(parts[2], parts[0]-1, parts[1]);
-      return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+      const p = str.split('/');
+      return new Date(p[2], p[0]-1, p[1]).toLocaleDateString('en-US',
+        { weekday:'long', month:'long', day:'numeric', year:'numeric' });
     } catch(e) { return str; }
   }
 
   return `<div style="display:flex;flex-direction:column;gap:10px">
     ${blocks.map(block => {
-      const matches = parseMatches(block.lines);
-      if (!matches.length) return '';
+      if (!block.matches.length) return '';
       return `<div class="sched-block">
         <div class="sched-date-hdr">
           <span>${fmtDate(block.date)}</span>
-          <span class="sched-count">${matches.length} match${matches.length!==1?'es':''}</span>
+          <span class="sched-count">${block.matches.length} match${block.matches.length!==1?'es':''}</span>
         </div>
         <div class="match-grid">
-          ${matches.map(m => `
+          ${block.matches.map(m => `
             <div class="match-card">
               <div class="match-home">
                 <div class="match-name">${m.home}</div>
