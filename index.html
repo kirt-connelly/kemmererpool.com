@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.39
+  &nbsp;·&nbsp; v1.40
 </footer>
 
 <script>
@@ -714,30 +714,43 @@ function renderMatchResult(html, title) {
       const hdcp1 = chips[0] || '—';
       const hdcp2 = chips[1] || '—';
 
-      // Scores — look for inputs or displayed values
-      const scoreEls = [...game.querySelectorAll('input[type="number"], input[type="text"], .score-value, .score-display')];
-      const s1 = scoreEls[0]?.value || scoreEls[0]?.textContent.trim() || '—';
-      const s2 = scoreEls[1]?.value || scoreEls[1]?.textContent.trim() || '—';
+      // Scores from .scoresheet-input inputs with data-team
+      const score1Input = game.querySelector('.scoresheet-input[data-team="1"], input.row-score[data-team="1"]');
+      const score2Input = game.querySelector('.scoresheet-input[data-team="2"], input.row-score[data-team="2"]');
+      const s1 = score1Input?.value || '—';
+      const s2 = score2Input?.value || '—';
 
-      // Win indicators
-      const win1 = game.querySelector('.game-result-1.active, .win-indicator-1.active, [class*="winner-1"]') ? '✓' : '';
-      const win2 = game.querySelector('.game-result-2.active, .win-indicator-2.active, [class*="winner-2"]') ? '✓' : '';
+      // Running totals — "10 (10)" format, shown in .running-total-1 / .running-total-2
+      const rt1El = game.querySelector('.running-total-1, [class*="running-total-1"]');
+      const rt2El = game.querySelector('.running-total-2, [class*="running-total-2"]');
+      const rt1 = rt1El?.textContent.trim() || '';
+      const rt2 = rt2El?.textContent.trim() || '';
 
-      // Adornments (BR, TR, WZ)
-      const adn1 = [...game.querySelectorAll('.adornment-1.active, [data-team="1"] .adornment.active')]
-        .map(a => a.textContent.trim()).join(' ');
-      const adn2 = [...game.querySelectorAll('.adornment-2.active, [data-team="2"] .adornment.active')]
-        .map(a => a.textContent.trim()).join(' ');
+      // Win = higher running total (or check for win chip)
+      const winChip1 = game.querySelector('.break-container-1 .game-chip.break-active, .break-container-1 .win-chip');
+      const winChip2 = game.querySelector('.break-container-2 .game-chip.break-active, .break-container-2 .win-chip');
+      // Determine winner from score
+      const sv1 = parseInt(s1) || 0;
+      const sv2 = parseInt(s2) || 0;
+      const hasScores = sv1 > 0 || sv2 > 0;
+      const win1 = hasScores && sv1 > sv2 ? '✓' : '';
+      const win2 = hasScores && sv2 > sv1 ? '✓' : '';
+
+      // Adornments (BR, TR, WZ) — active chips in break containers
+      const adn1 = [...game.querySelectorAll('.adornment[data-team="1"].active, .break-container-1 .adornment.active, .adornment-1.active')]
+        .map(a => a.textContent.trim()).filter(Boolean).join(' ');
+      const adn2 = [...game.querySelectorAll('.adornment[data-team="2"].active, .break-container-2 .adornment.active, .adornment-2.active')]
+        .map(a => a.textContent.trim()).filter(Boolean).join(' ');
 
       rows += `<tr>
-        <td style="color:var(--cream);font-weight:600">${p1}${adn1 ? ` <span style="color:var(--green2);font-size:11px">${adn1}</span>` : ''}</td>
+        <td style="color:var(--cream);font-weight:600">${p1}${adn1 ? ` <span style="color:var(--green2);font-size:11px"> ${adn1}</span>` : ''}</td>
         <td class="num" style="text-align:center;color:var(--text3)">${hdcp1}</td>
-        <td class="num" style="text-align:center;color:var(--text2)">${s1}</td>
-        <td style="text-align:center;width:30px;color:${win1?'var(--green2)':'var(--text3)'};font-weight:700">${win1||'·'}</td>
-        <td style="text-align:center;width:30px;color:${win2?'var(--green2)':'var(--text3)'};font-weight:700">${win2||'·'}</td>
-        <td class="num" style="text-align:center;color:var(--text2)">${s2}</td>
+        <td class="num" style="text-align:center;color:var(--text2);font-weight:600">${s1}</td>
+        <td style="text-align:center;color:var(--text3);font-size:12px">${rt1}</td>
+        <td style="text-align:center;color:var(--text3);font-size:12px">${rt2}</td>
+        <td class="num" style="text-align:center;color:var(--text2);font-weight:600">${s2}</td>
         <td class="num" style="text-align:center;color:var(--text3)">${hdcp2}</td>
-        <td style="text-align:right;color:var(--cream);font-weight:600">${p2}${adn2 ? ` <span style="color:var(--green2);font-size:11px">${adn2}</span>` : ''}</td>
+        <td style="text-align:right;color:var(--cream);font-weight:600">${p2}${adn2 ? ` <span style="color:var(--green2);font-size:11px"> ${adn2}</span>` : ''}</td>
       </tr>`;
     });
 
@@ -750,7 +763,8 @@ function renderMatchResult(html, title) {
           <th>${team1}</th>
           <th style="text-align:center">HDCP</th>
           <th style="text-align:center">Score</th>
-          <th style="text-align:center" colspan="2">Result</th>
+          <th style="text-align:center">H Total</th>
+          <th style="text-align:center">A Total</th>
           <th style="text-align:center">Score</th>
           <th style="text-align:center">HDCP</th>
           <th style="text-align:right">${team2}</th>
