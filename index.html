@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.58
+  &nbsp;·&nbsp; v1.59
 </footer>
 
 <script>
@@ -852,15 +852,27 @@ function renderMatchResult(html, title) {
     const totW1 = Number(tot1) > Number(tot2);
     const totW2 = Number(tot2) > Number(tot1);
 
-    // Build round total row — show handicap adjustment if applicable
-    const hdcpLabel1 = team1GetsHdcp ? ` <span style="font-size:11px;color:var(--green2)">(+${roundHdcpAmt})</span>` : '';
-    const hdcpLabel2 = team2GetsHdcp ? ` <span style="font-size:11px;color:var(--green2)">(+${roundHdcpAmt})</span>` : '';
+    // Handicap row (8-ball only, when there's an actual handicap)
+    if (use8BallScoring && roundHdcpAmt > 0) {
+      rows += `<tr style="background:var(--bg3);border-top:1px solid var(--border)">
+        <td style="font-weight:600;color:var(--green2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Handicap</td>
+        <td class="num" style="text-align:center;font-weight:700;font-size:15px;color:${team1GetsHdcp?'var(--green2)':'var(--text3)'}">
+          ${team1GetsHdcp ? '+' + roundHdcpAmt : '—'}
+        </td>
+        <td></td>
+        <td class="num" style="text-align:center;font-weight:700;font-size:15px;color:${team2GetsHdcp?'var(--green2)':'var(--text3)'}">
+          ${team2GetsHdcp ? '+' + roundHdcpAmt : '—'}
+        </td>
+        <td></td>
+      </tr>`;
+    }
 
-    rows += `<tr style="background:var(--bg3);border-top:2px solid var(--border)">
+    // Round total row
+    rows += `<tr style="background:var(--bg);border-top:2px solid var(--accent)">
       <td style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
-      <td class="num" style="text-align:center;font-weight:700;font-size:16px;color:${totW1?'var(--green2)':totW2?'#cc4444':'var(--text2)'}">${tot1}${hdcpLabel1}</td>
+      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW1?'var(--green2)':totW2?'#cc4444':'var(--text2)'}">${tot1}</td>
       <td></td>
-      <td class="num" style="text-align:center;font-weight:700;font-size:16px;color:${totW2?'var(--green2)':totW1?'#cc4444':'var(--text2)'}">${tot2}${hdcpLabel2}</td>
+      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW2?'var(--green2)':totW1?'#cc4444':'var(--text2)'}">${tot2}</td>
       <td style="font-size:11px;color:var(--text3);text-align:right">${isDoubles?'Doubles':'Singles'}</td>
     </tr>`;
 
