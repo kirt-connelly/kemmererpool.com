@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.23
+  &nbsp;·&nbsp; v1.24
 </footer>
 
 <script>
@@ -598,16 +598,19 @@ function renderTeamDetail(html, teamName) {
   const playerRows = [];
   const statRows   = [];
 
+  // Player name pattern: "Last, First" or "Last Name, First" — any text with a comma
+  const isPlayerName = s => /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ '\-]*,\s*\S/.test(s);
+
   allRows.forEach((row, ri) => {
-    if (ri === playerHeaderRowIdx) return; // skip the header row itself
+    // Skip the detected header row, but always process if no header was found
+    if (playerHeaderRowIdx >= 0 && ri === playerHeaderRowIdx) return;
     const cells = [...row.querySelectorAll('td,th')];
     if (!cells.length) return;
     const first = cells[0]?.textContent.trim();
     if (!first) return;
 
     if (statLabelRe.test(first)) {
-      // Stat row: grab just the week-column values if we found them,
-      // otherwise grab everything after col 0
+      // Stat row: grab week-column values
       let values;
       if (weekColStart >= 0) {
         values = cells.slice(weekColStart, weekColEnd + 1).map(c => c.textContent.trim());
@@ -616,8 +619,8 @@ function renderTeamDetail(html, teamName) {
       }
       statRows.push({ label: first, values });
 
-    } else if (/^[A-Za-zÀ-ÖØ-öø-ÿ][-A-Za-zÀ-ÖØ-öø-ÿ']+,\s/.test(first)) {
-      // Player name "Last, First" — pick columns by header map or fallback
+    } else if (isPlayerName(first)) {
+      // Player row — map by header names when available, fallback to end-offsets
       const vals = cells.map(c => c.textContent.trim());
       const len  = vals.length;
       const get  = (key, fallbackOffset) =>
@@ -676,7 +679,10 @@ function renderTeamDetail(html, teamName) {
             </tr>`;
           }).join('')}
         </tbody>
-      </table></div>` : '<div style="padding:20px;color:var(--text3);font-size:13px">No player data detected.</div>'}
+      </table></div>` : `<div style="padding:20px;color:var(--text3);font-size:13px">
+        No player data detected. (${allRows.length} rows scanned, header row: ${playerHeaderRowIdx}, colMap: ${JSON.stringify(colMap)},
+        first cells: ${allRows.slice(0,6).map(r=>r.cells[0]?.textContent.trim()||'').filter(Boolean).join(' | ')})
+      </div>`}
     </div>
 
     ${statRows.length ? `
