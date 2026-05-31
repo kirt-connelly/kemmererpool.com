@@ -100,7 +100,8 @@
     .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
     .sched-count { font-weight: 400; color: var(--text3); font-size: 11px; }
-    .match-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 600px) { .match-grid { grid-template-columns: 1fr; } }
     .match-card { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--bg2); }
     .match-card:hover { background: var(--bg3); }
     .match-home { text-align: right; }
@@ -179,7 +180,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.10
+  &nbsp;·&nbsp; v1.11
 </footer>
 
 <script>
