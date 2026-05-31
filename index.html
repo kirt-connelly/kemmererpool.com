@@ -181,7 +181,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE · JENKINS MUSIC &amp; VENDING · KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.6</span>
+  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.7</span>
 </footer>
 
 <script>
@@ -481,28 +481,38 @@ function renderSchedule(data) {
     </div>`;
   }
 
-  // Parse ALL Home/Away pairs from a date's lines
+  // Parse ALL matches from a date's lines - handles both (H)/(A) and plain "Team vs Team"
   function parseMatches(lines) {
     const matches = [];
     let i = 0;
     while (i < lines.length) {
-      if (lines[i].startsWith('(H)')) {
-        const home = lines[i].replace(/^\(H\)\s*/,'');
-        let away = '', venue = '';
-        // skip optional "vs" line
+      const line = lines[i];
+      // Format 1: starts with (H)
+      if (line.startsWith('(H)')) {
+        const home = line.replace(/^\(H\)\s*/,'');
         let j = i + 1;
         if (j < lines.length && lines[j].toLowerCase() === 'vs') j++;
+        let away = '', venue = '';
         if (j < lines.length && lines[j].startsWith('(A)')) {
-          away = lines[j].replace(/^\(A\)\s*/,'');
-          j++;
+          away = lines[j].replace(/^\(A\)\s*/,''); j++;
         }
-        // next line that isn't a new match is the venue
-        if (j < lines.length && !lines[j].startsWith('(H)') && !lines[j].startsWith('(A)') && !dateRe.test(lines[j])) {
-          venue = lines[j];
-          j++;
+        if (j < lines.length && !lines[j].startsWith('(H)') && !lines[j].startsWith('(A)') && !dateRe.test(lines[j]) && lines[j].toLowerCase() !== 'vs') {
+          venue = lines[j]; j++;
         }
         matches.push({ home, away, venue });
         i = j;
+      }
+      // Format 2: "Team A vs Team B" on one line
+      else if (line.toLowerCase().includes(' vs ') && !line.startsWith('(A)')) {
+        const parts = line.split(/ vs /i);
+        const home = parts[0].trim();
+        const away = parts[1] ? parts[1].trim() : '';
+        let venue = '';
+        if (i+1 < lines.length && !lines[i+1].startsWith('(H)') && !lines[i+1].toLowerCase().includes(' vs ') && !dateRe.test(lines[i+1])) {
+          venue = lines[i+1]; i++;
+        }
+        matches.push({ home, away, venue });
+        i++;
       } else {
         i++;
       }
