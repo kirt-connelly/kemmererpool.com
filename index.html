@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.24
+  &nbsp;·&nbsp; v1.25
 </footer>
 
 <script>
@@ -598,8 +598,15 @@ function renderTeamDetail(html, teamName) {
   const playerRows = [];
   const statRows   = [];
 
-  // Player name pattern: "Last, First" or "Last Name, First" — any text with a comma
-  const isPlayerName = s => /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ '\-]*,\s*\S/.test(s);
+  // Player name pattern: "First Last" or "First Last" (no comma needed)
+  // Skip known non-player labels
+  const skipRowLabels = /^(week|location|name|date|home|away|bye|stat|team|round|division)$/i;
+  const isPlayerName = s => {
+    if (!s || skipRowLabels.test(s.trim())) return false;
+    if (statLabelRe.test(s)) return false;
+    // Must contain at least one space (two words) and only name-like chars
+    return /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ'\-]+([ ,][A-Za-zÀ-ÖØ-öø-ÿ'\-]+)+$/.test(s.trim());
+  };
 
   allRows.forEach((row, ri) => {
     // Skip the detected header row, but always process if no header was found
@@ -679,10 +686,7 @@ function renderTeamDetail(html, teamName) {
             </tr>`;
           }).join('')}
         </tbody>
-      </table></div>` : `<div style="padding:20px;color:var(--text3);font-size:13px">
-        No player data detected. (${allRows.length} rows scanned, header row: ${playerHeaderRowIdx}, colMap: ${JSON.stringify(colMap)},
-        first cells: ${allRows.slice(0,6).map(r=>r.cells[0]?.textContent.trim()||'').filter(Boolean).join(' | ')})
-      </div>`}
+      </table></div>` : '<div style="padding:20px;color:var(--text3);font-size:13px">No player data detected.</div>'}
     </div>
 
     ${statRows.length ? `
