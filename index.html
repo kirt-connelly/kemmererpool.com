@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.66
+  &nbsp;·&nbsp; v1.67
 </footer>
 
 <script>
@@ -832,7 +832,7 @@ function renderMatchResult(html, title) {
     // 8-ball: FargoRate HandicapMode=2 uses floor(diff/50) per game, summed for the round
     // The lower-rated team accumulates handicap balls across all games in the round
     const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
-    const roundHdcpAmt = use8BallScoring ? Math.min(Math.floor(Math.abs(roundRatingSum1 - roundRatingSum2) / 50), 5) : 0;
+    const roundHdcpAmt = use8BallScoring ? Math.min(Math.round(Math.abs(roundRatingSum1 - roundRatingSum2) / 50), 5) : 0;
     const team1GetsHdcp = use8BallScoring && roundRatingSum2 > roundRatingSum1 && roundHdcpAmt > 0;
     const team2GetsHdcp = use8BallScoring && roundRatingSum1 > roundRatingSum2 && roundHdcpAmt > 0;
     const adjPts1 = roundPts1 + (team1GetsHdcp ? roundHdcpAmt : 0);
