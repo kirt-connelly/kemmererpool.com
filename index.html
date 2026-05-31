@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.27
+  &nbsp;·&nbsp; v1.28
 </footer>
 
 <script>
@@ -453,9 +453,14 @@ function renderByTeam(data) {
   dataRows.forEach(row => {
     const cells = [...row.querySelectorAll('td')];
     if (!cells.length) return;
+    // A team header row has either: only 1 cell, or a colspan > 1 on the first cell,
+    // or ALL non-first cells are empty/dash (but NOT just zeros — players can have 0 wins)
     const isTeamHdr = cells.length === 1
       || (cells[0] && cells[0].colSpan > 1)
-      || (cells.length > 1 && cells.slice(1).every(c => !c.textContent.trim() || c.textContent.trim() === '-' || c.textContent.trim() === '0'));
+      || (cells.length > 1 && cells.slice(1).every(c => {
+            const t = c.textContent.trim();
+            return t === '' || t === '-';
+          }));
     if (isTeamHdr) {
       flushTeam();
       currentTeam = cells[0]?.textContent.trim();
