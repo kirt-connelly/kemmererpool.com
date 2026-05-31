@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.13
+  &nbsp;·&nbsp; v1.14
 </footer>
 
 <script>
@@ -286,7 +286,7 @@ function renderTeams(data) {
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
+          if (ci===1) return `<td style="font-weight:500;color:var(--text2)">${cell}</td>`;
           if (ci===pctIdx && pctIdx>0) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
@@ -316,7 +316,7 @@ function renderPlayers(data) {
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
+          if (ci===1) return `<td style="font-weight:500;color:var(--text2)">${cell}</td>`;
           if (ci===winIdx && winIdx>0) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
@@ -362,7 +362,7 @@ function renderByTeam(data) {
       html += `<tr>${cells.map((c,ci) => {
         const cell = c.textContent.trim();
         if (ci===0) return `<td class="num" style="color:var(--text3);font-size:13px">${cell}</td>`;
-        if (ci===1) return `<td style="font-weight:500;color:var(--text)">${cell}</td>`;
+        if (ci===1) return `<td style="font-weight:500;color:var(--text2)">${cell}</td>`;
         return `<td class="num" style="color:var(--text2)">${cell}</td>`;
       }).join('')}</tr>`;
     }
@@ -393,7 +393,7 @@ function renderList(data) {
         return `<tr>
           <td><span class="rank-num">${i+1}</span></td>
           ${r.map((cell,ci) => {
-            if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
+            if (ci===1) return `<td style="font-weight:500;color:var(--text2)">${cell}</td>`;
             if (ci===ratingIdx && ratingIdx>=0) return `<td>
               <div class="fargo-wrap">
                 <div class="fargo-track"><div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div></div>
