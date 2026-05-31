@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.28
+  &nbsp;·&nbsp; v1.29
 </footer>
 
 <script>
@@ -419,7 +419,7 @@ function renderByTeam(data) {
         </tr></thead>
         <tbody>
           ${currentPlayers.map(cells => {
-            const name = cells[0] || '';
+            const name = (cells[0] || '').replace(/\s+/g, ' ').trim();
             // Format name: "Last, First" → "First Last", or leave as-is
             const displayName = /,\s/.test(name)
               ? name.replace(/^([^,]+),\s*(.+)$/, '$2 $1')
@@ -662,14 +662,24 @@ function renderTeamDetail(html, teamName) {
   const playerRows = [];
   const statRows   = [];
 
-  // Player name pattern: "First Last" or "First Last" (no comma needed)
-  // Skip known non-player labels
-  const skipRowLabels = /^(week|location|name|date|home|away|bye|stat|team|round|division)$/i;
-  const isPlayerName = s => {
-    if (!s || skipRowLabels.test(s.trim())) return false;
-    if (statLabelRe.test(s)) return false;
-    // Must contain at least one space (two words) and only name-like chars
-    return /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ'\-]+([ ,][A-Za-zÀ-ÖØ-öø-ÿ'\-]+)+$/.test(s.trim());
+  // Skip known non-player row labels
+  const skipRowLabels = /^(week|location|name|date|home|away|bye|stat|team|round|division|points?)$/i;
+
+  // Player detection: primary signal is <td class="heavy"> on the name cell
+  // Fallback: two+ word name-like string not matching stat labels
+  const isPlayerRow = (row, firstText) => {
+    const nameCell = row.querySelector('td.heavy, th.heavy');
+    if (nameCell) {
+      const t = nameCell.textContent.trim();
+      // Exclude known stat/section labels
+      if (skipRowLabels.test(t) || statLabelRe.test(t)) return false;
+      // Must look like a name (letters, spaces, hyphens, apostrophes)
+      if (/^[A-Za-zÀ-ÖØ-öø-ÿ'][\w\sÀ-ÖØ-öø-ÿ'\-]{1,}$/.test(t)) return true;
+    }
+    // Fallback: two+ word string
+    if (!firstText || skipRowLabels.test(firstText) || statLabelRe.test(firstText)) return false;
+    return /^[A-Za-zÀ-ÖØ-öø-ÿ][\w\sÀ-ÖØ-öø-ÿ'\-,]{2,}$/.test(firstText.trim()) &&
+           /\s/.test(firstText.trim());
   };
 
   allRows.forEach((row, ri) => {
@@ -677,7 +687,8 @@ function renderTeamDetail(html, teamName) {
     if (playerHeaderRowIdx >= 0 && ri === playerHeaderRowIdx) return;
     const cells = [...row.querySelectorAll('td,th')];
     if (!cells.length) return;
-    const first = cells[0]?.textContent.trim();
+    // Normalize whitespace in first cell (FargoRate uses double spaces)
+    const first = cells[0]?.textContent.replace(/\s+/g, ' ').trim();
     if (!first) return;
 
     if (statLabelRe.test(first)) {
@@ -690,7 +701,7 @@ function renderTeamDetail(html, teamName) {
       }
       statRows.push({ label: first, values });
 
-    } else if (isPlayerName(first)) {
+    } else if (isPlayerRow(row, first)) {
       // Player row — map by header names when available, fallback to end-offsets
       const vals = cells.map(c => c.textContent.trim());
       const len  = vals.length;
@@ -698,7 +709,7 @@ function renderTeamDetail(html, teamName) {
         colMap[key] !== undefined ? (vals[colMap[key]] || '-') : (vals[len + fallbackOffset] || '-');
 
       playerRows.push({
-        name:    vals[0],
+        name:    vals[0].replace(/\s+/g, ' ').trim(),
         gPlayed: get('played', -8),
         gWon:    get('won',    -7),
         winPct:  get('winPct', -6),
