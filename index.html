@@ -102,16 +102,17 @@
     .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
     .sched-count { font-weight: 400; color: var(--text3); font-size: 11px; }
-    .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
-    @media (max-width: 600px) { .match-grid { grid-template-columns: 1fr; } }
-    .match-card { display: grid; grid-template-columns: 1fr 80px 1fr; align-items: center; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--bg2); }
+    .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); }
+    @media (max-width: 700px) { .match-grid { grid-template-columns: 1fr; } }
+    .match-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px 16px; background: var(--bg2); min-height: 110px; }
     .match-card:hover { background: var(--bg3); }
-    .match-home { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
-    .match-away { text-align: left; display: flex; flex-direction: column; align-items: flex-start; }
-    .match-name { font-size: 14px; font-weight: 600; color: var(--cream); }
-    .match-label { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
-    .vs-col { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-    .vs-chip { background: var(--bg4); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: .05em; }
+    .match-teams-row { display: flex; align-items: center; justify-content: center; gap: 0; width: 100%; }
+    .match-home { flex: 1; text-align: right; padding-right: 14px; display: flex; flex-direction: column; align-items: flex-end; }
+    .match-away { flex: 1; text-align: left; padding-left: 14px; display: flex; flex-direction: column; align-items: flex-start; }
+    .match-name { font-size: 14px; font-weight: 700; color: var(--cream); line-height: 1.2; }
+    .match-label { font-size: 10px; color: var(--text3); margin-top: 3px; letter-spacing: .06em; text-transform: uppercase; }
+    .vs-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; color: #fff; letter-spacing: .08em; }
     .result-btn {
       background: var(--bg3);
       border: 1px solid var(--accent);
@@ -212,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.35
+  &nbsp;·&nbsp; v1.36
 </footer>
 
 <script>
@@ -608,21 +609,25 @@ function renderSchedule(data) {
         <div class="match-grid">
           ${block.matches.map(m => `
             <div class="match-card">
-              <div class="match-home">
-                <div class="match-name" style="color:var(--cream)">${m.home}</div>
-                <div class="match-label">Home</div>
+              <div class="match-teams-row">
+                <div class="match-home">
+                  <div class="match-name">${m.home}</div>
+                  <div class="match-label">Home</div>
+                </div>
+                <div class="vs-col">
+                  <div class="vs-chip">VS</div>
+                </div>
+                <div class="match-away">
+                  <div class="match-name">${m.away}</div>
+                  <div class="match-label">Away</div>
+                </div>
               </div>
-              <div class="vs-col">
-                <div class="vs-chip">VS</div>
+              ${m.venue || isPast ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                 ${m.venue ? `<div class="venue-label">${m.venue}</div>` : ''}
                 ${isPast && m.matchId
                   ? `<button class="result-btn" onclick="loadMatchResult('${m.matchId}','${m.home} vs ${m.away}')">📋 Results</button>`
-                  : isPast ? `<div class="venue-label" style="color:var(--text3);font-style:italic">No results</div>` : ''}
-              </div>
-              <div class="match-away">
-                <div class="match-name" style="color:var(--cream)">${m.away}</div>
-                <div class="match-label">Away</div>
-              </div>
+                  : isPast ? `<div class="venue-label" style="font-style:italic">No results</div>` : ''}
+              </div>` : ''}
             </div>`).join('')}
         </div>
       </div>`;
