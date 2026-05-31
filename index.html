@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.71
+  &nbsp;·&nbsp; v1.72
 </footer>
 
 <script>
@@ -637,7 +637,7 @@ function renderSchedule(data) {
               ${m.venue || isPast ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                 ${m.venue ? `<div class="venue-label">${m.venue}</div>` : ''}
                 ${isPast && m.matchId
-                  ? `<button class="result-btn" onclick="loadMatchResult('${m.matchId}','${m.home} vs ${m.away}')">📋 Results</button>`
+                  ? `<button class="result-btn" onclick="loadMatchResult('${m.matchId}',this.dataset.title)" data-title="${m.home} vs ${m.away}">📋 Results</button>`
                   : isPast ? `<div class="venue-label" style="font-style:italic">No results</div>` : ''}
               </div>` : ''}
             </div>`).join('')}
