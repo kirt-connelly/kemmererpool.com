@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.45
+  &nbsp;·&nbsp; v1.46
 </footer>
 
 <script>
@@ -578,10 +578,16 @@ function renderSchedule(data) {
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
       const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
       // matchId is in data-url attribute on the schedule-team-block div
+      // Also check child elements in case the attribute is nested
       let matchId = null;
-      const dataUrl = node.getAttribute('data-url') || '';
+      const dataUrl = node.getAttribute('data-url') || 
+                      node.querySelector('[data-url]')?.getAttribute('data-url') || '';
       const mu = dataUrl.match(/matchId=([a-f0-9-]{36})/i);
       if (mu) matchId = mu[1];
+      // Fallback to sequential list if still not found
+      if (!matchId && allMatchLinks.length > matchLinkIdx) {
+        matchId = allMatchLinks[matchLinkIdx++] || null;
+      }
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
@@ -672,8 +678,12 @@ function renderMatchResult(html, title) {
   const matchDate = dateStr ? new Date(dateStr).toLocaleDateString('en-US',
     { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '';
 
-  // Clean player name — strip trailing "()" and extra whitespace
-  const cleanName = s => (s||'').replace(/\s*\(\s*\)\s*$/, '').replace(/\s+/g,' ').trim();
+  // Clean player name — strip trailing "()" or "(328)" ratings and extra whitespace
+  const cleanName = s => (s||'').replace(/\s*\(\s*[^)]*\s*\)\s*$/, '').replace(/\s+/g,' ').trim();
+
+  // Match settings from hidden inputs
+  const useHandicap = gi('UseHandicapScoring') === 'True';
+  const maxScore    = parseInt(gi('MaxScore')) || 1;
 
   // Get unique round numbers in order
   const roundNums = [...new Set(
@@ -713,8 +723,9 @@ function renderMatchResult(html, title) {
       if (hasScore) { roundWins1 += sv1; roundWins2 += sv2; }
 
       // Winner highlight
-      const w1 = hasScore && sv1 > sv2;
-      const w2 = hasScore && sv2 > sv1;
+      // Winner = whoever reached maxScore (in 8-ball/handicap), or just higher score (10-ball)
+      const w1 = hasScore && (sv1 >= maxScore || (sv1 > sv2 && sv2 < maxScore));
+      const w2 = hasScore && (sv2 >= maxScore || (sv2 > sv1 && sv1 < maxScore));
 
       // Break indicator — active chip = who broke
       const broke1 = game.querySelector('.break-container-1 .game-chip.break-active') !== null;
@@ -760,13 +771,21 @@ function renderMatchResult(html, title) {
           </td>
         </tr>`;
       } else {
-        rows += `<tr>
+        // Handicap values
+      const h1inp = game.querySelector('input.row-handicap[data-team="1"]');
+      const h2inp = game.querySelector('input.row-handicap[data-team="2"]');
+      const h1 = h1inp?.value || '';
+      const h2 = h2inp?.value || '';
+
+      rows += `<tr>
           <td style="color:var(--cream);font-weight:600">
             <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${p1}
           </td>
+          ${useHandicap ? `<td class="num" style="text-align:center;color:var(--text3);font-size:13px">${h1||'—'}</td>` : ''}
           <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'#cc4444':'var(--text2)'}">${s1}</td>
           <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
           <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'#cc4444':'var(--text2)'}">${s2}</td>
+          ${useHandicap ? `<td class="num" style="text-align:center;color:var(--text3);font-size:13px">${h2||'—'}</td>` : ''}
           <td style="text-align:right;color:var(--cream);font-weight:600">
             ${p2}<span style="color:${broke2?'var(--green2)':'var(--border2)'};font-size:9px;margin-left:5px">●</span>
           </td>
@@ -799,9 +818,11 @@ function renderMatchResult(html, title) {
       <div style="overflow-x:auto"><table class="tbl">
         <thead><tr>
           <th>${team1}</th>
+          ${useHandicap ? '<th style="text-align:center">HDCP</th>' : ''}
           <th style="text-align:center">Score</th>
           <th style="text-align:center;width:30px"></th>
           <th style="text-align:center">Score</th>
+          ${useHandicap ? '<th style="text-align:center">HDCP</th>' : ''}
           <th style="text-align:right">${team2}</th>
         </tr></thead>
         <tbody>${rows}</tbody>
