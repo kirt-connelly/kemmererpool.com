@@ -212,7 +212,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.30
+  &nbsp;·&nbsp; v1.31
 </footer>
 
 <script>
@@ -374,7 +374,10 @@ function renderPlayers(data) {
       <span class="card-meta">${t.rows.length} players</span>
     </div>
     <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <thead><tr>${t.headers.map(h=>{
+          const label = h.replace(/^GMS WON$/i,'W/L').replace(/^WIN PCT$/i,'WIN %');
+          return `<th>${label}</th>`;
+        }).join('')}</tr></thead>
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
@@ -433,7 +436,10 @@ function renderByTeam(data) {
       <div style="overflow-x:auto"><table class="tbl">
         <thead><tr>
           <th>Player</th>
-          ${headers.slice(1).map(h => `<th style="text-align:${h==='NAME'?'left':'center'}">${h}</th>`).join('')}
+          ${headers.slice(1).map(h => {
+            const label = h.replace(/^GMS WON$/i,'W/L').replace(/^WIN PCT$/i,'WIN %');
+            return `<th style="text-align:${h==='NAME'?'left':'center'}">${label}</th>`;
+          }).join('')}
         </tr></thead>
         <tbody>
           ${currentPlayers.map(cells => {
@@ -887,7 +893,7 @@ function renderTeamDetail(html, teamName) {
       ${playerRows.length ? `
       <div style="overflow-x:auto"><table class="tbl">
         <thead><tr>
-          <th>Player</th><th>Played</th><th>W/L</th><th>Win %</th>
+          <th>Player</th><th>Played</th><th>GMS WON</th><th>Win %</th>
           <th>Pts</th><th>Opp Pts</th><th>BR</th><th>TR</th><th>Wks</th>
         </tr></thead>
         <tbody>
