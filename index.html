@@ -212,7 +212,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.32
+  &nbsp;·&nbsp; v1.33
 </footer>
 
 <script>
@@ -611,6 +611,11 @@ function renderSchedule(data) {
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
+
+  // DEBUG — remove after confirming
+  const debugInfo = `allMatchLinks found: ${allMatchLinks.length} | blocks: ${blocks.length} | ` +
+    [...d.querySelectorAll('a')].slice(0,5).map(a=>a.getAttribute('href')||'').join(' | ');
+  console.log('SCHEDULE DEBUG:', debugInfo);
 
   if (!blocks.length) return notice('No schedule data found.');
 
