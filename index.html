@@ -621,7 +621,7 @@ function renderTeamDetail(html, teamName) {
   `;
 }
 
-
+function switchLeague(lg) {
   league = lg;
   ['10ball','8ball'].forEach(k => document.getElementById(`ltab-${k}`).classList.toggle('active', k===lg));
   cache = {};
