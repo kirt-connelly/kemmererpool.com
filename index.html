@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.43
+  &nbsp;·&nbsp; v1.45
 </footer>
 
 <script>
@@ -721,27 +721,42 @@ function renderMatchResult(html, title) {
       const broke2 = game.querySelector('.break-container-2 .game-chip.break-active') !== null;
 
       if (isDoubles) {
-        // Doubles: two players per team — use same style as singles with dots
-        const p1sels = [...game.querySelectorAll('select.team-one-player')];
-        const p2sels = [...game.querySelectorAll('select.team-two-player')];
-        const dp1a = cleanName(p1sels[0]?.querySelector('option[selected]')?.textContent);
-        const dp1b = cleanName(p1sels[1]?.querySelector('option[selected]')?.textContent);
-        const dp2a = cleanName(p2sels[0]?.querySelector('option[selected]')?.textContent);
-        const dp2b = cleanName(p2sels[1]?.querySelector('option[selected]')?.textContent);
-        // Break: check both break containers
-        const dBroke1 = game.querySelector('.break-container-1 .game-chip.break-active') !== null;
-        const dBroke2 = game.querySelector('.break-container-2 .game-chip.break-active') !== null;
+        // Doubles: each game-container has 2 player-containers per side
+        // Render as two sub-rows (one per player pair), score only on first row spanning both
+        const p1containers = [...game.querySelectorAll('.player-container-1')];
+        const p2containers = [...game.querySelectorAll('.player-container-2')];
+        const p1breaks = [...game.querySelectorAll('.break-container-1 .game-chip')];
+        const p2breaks = [...game.querySelectorAll('.break-container-2 .game-chip')];
+
+        const getPlayer = (containers, idx) => {
+          const sel = containers[idx]?.querySelector('select');
+          return cleanName(sel?.querySelector('option[selected]')?.textContent || sel?.options?.[sel?.selectedIndex||0]?.textContent);
+        };
+        const getBroke = (chips, idx) => chips[idx]?.classList.contains('break-active') || false;
+
+        const dp1a = getPlayer(p1containers, 0);
+        const dp1b = getPlayer(p1containers, 1);
+        const dp2a = getPlayer(p2containers, 0);
+        const dp2b = getPlayer(p2containers, 1);
+        const db1a = getBroke(p1breaks, 0);
+        const db1b = getBroke(p1breaks, 1);
+        const db2a = getBroke(p2breaks, 0);
+        const db2b = getBroke(p2breaks, 1);
+
+        const nameStyle = 'color:var(--cream);font-weight:600;font-size:14px';
+        const dotStyle = (active) => `color:${active?'var(--green2)':'var(--border2)'};font-size:9px`;
+
         rows += `<tr>
-          <td style="color:var(--cream);font-weight:600">
-            <span style="color:${dBroke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${dp1a}
-            ${dp1b&&dp1b!==dp1a?`<br><span style="color:var(--text2);font-size:13px;font-weight:400;padding-left:14px">${dp1b}</span>`:''}
+          <td style="padding-bottom:2px">
+            <div style="${nameStyle}"><span style="${dotStyle(db1a)};margin-right:5px">●</span>${dp1a}</div>
+            <div style="${nameStyle}"><span style="${dotStyle(db1b)};margin-right:5px">●</span>${dp1b}</div>
           </td>
           <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'#cc4444':'var(--text2)'}">${s1}</td>
           <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
           <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'#cc4444':'var(--text2)'}">${s2}</td>
-          <td style="text-align:right;color:var(--cream);font-weight:600">
-            ${dp2a}${dp2b&&dp2b!==dp2a?`<br><span style="color:var(--text2);font-size:13px;font-weight:400;padding-right:14px">${dp2b}</span>`:''}
-            <span style="color:${dBroke2?'var(--green2)':'var(--border2)'};font-size:9px;margin-left:5px">●</span>
+          <td style="text-align:right;padding-bottom:2px">
+            <div style="${nameStyle}">${dp2a}<span style="${dotStyle(db2a)};margin-left:5px">●</span></div>
+            <div style="${nameStyle}">${dp2b}<span style="${dotStyle(db2b)};margin-left:5px">●</span></div>
           </td>
         </tr>`;
       } else {
