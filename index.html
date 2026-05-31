@@ -209,6 +209,8 @@
   KEMMERER POOL LEAGUE · JENKINS MUSIC &amp; VENDING · KEMMERER, WY
   <br style="margin:4px 0" />
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
+  <br style="margin:4px 0" />
+  <span style="color:var(--text3);font-size:10px">v1.4</span>
 </footer>
 
 <script>
@@ -224,7 +226,7 @@ const DIVISIONS = {
 const VIEWS = {
   teams:    { url: id => `${BASE}/GenerateTeamStandingsReport/${id}`, method: 'GET' },
   players:  { url: id => `${BASE}/GeneratePlayerStandingsReport/${id}`, method: 'GET' },
-  byteam:   { url: id => `${BASE}/GeneratePlayerStandingsReportByTeam/${id}`, method: 'POST', body: id => `divisionId=${id}` },
+  byteam:   { url: id => `${BASE}/GeneratePlayerStandingsByTeamReport/${id}`, method: 'GET' },
   list:     { url: id => `${BASE}/GeneratePlayerListReport/${id}`, method: 'GET' },
   schedule: { url: () => `${BASE}/GenerateDivisionScheduleReport`, method: 'POST', body: id => `divisionId=${id}` },
 };
@@ -432,64 +434,69 @@ function renderList(data) {
 }
 
 function renderSchedule(data) {
-  const t = data.live && data.html ? parseTable(data.html) : null;
-  if (!t) return demoBlock('Schedule', DEMO.schedNote);
+  if (!data.live || !data.html) return demoBlock('Schedule', DEMO.schedNote);
 
-  // Try to group by week column; fallback to flat table
-  const weekIdx = t.headers.findIndex(h => /week/i.test(h));
-  const dateIdx = t.headers.findIndex(h => /date/i.test(h));
-  const homeIdx = t.headers.findIndex(h => /home/i.test(h));
-  const awayIdx = t.headers.findIndex(h => /away|visit/i.test(h));
+  // FargoRate schedule is NOT a table — it's date headers + match divs
+  const d = document.createElement('div');
+  d.innerHTML = data.html;
 
-  if (weekIdx < 0 || homeIdx < 0) {
-    // Flat table fallback
+  // Try table first (some divisions use table format)
+  const table = d.querySelector('table');
+  if (table) {
+    const t = parseTable(data.html);
+    if (t && t.rows.length) {
+      return `<div class="card">
+        <div class="card-header"><span class="card-title">Division Schedule</span></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>${t.rows.map(r=>`<tr>${r.map(cell=>`<td style="color:var(--text2)">${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+  }
+
+  // FargoRate schedule format: date headers + match rows
+  // Look for any text content grouped by date
+  const text = d.innerText || d.textContent || '';
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  if (!lines.length) return demoBlock('Schedule', DEMO.schedNote);
+
+  // Group lines into date blocks
+  const datePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+  const blocks = [];
+  let current = null;
+
+  lines.forEach(line => {
+    if (datePattern.test(line)) {
+      current = { date: line, matches: [] };
+      blocks.push(current);
+    } else if (current) {
+      current.matches.push(line);
+    }
+  });
+
+  if (!blocks.length) {
+    // Just dump all text as a simple list
     return `<div class="card">
       <div class="card-header"><span class="card-title">Division Schedule</span></div>
-      <div style="overflow-x:auto">
-        <table class="tbl">
-          <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-          <tbody>${t.rows.map(r=>`<tr>${r.map((cell,ci)=>`<td style="color:var(--text2)">${cell}</td>`).join('')}</tr>`).join('')}</tbody>
-        </table>
+      <div style="padding:16px;color:var(--text2);font-size:14px;line-height:2">
+        ${lines.join('<br>')}
       </div>
     </div>`;
   }
 
-  // Group by week
-  const byWeek = {};
-  t.rows.forEach(r => {
-    const wk = r[weekIdx] || 'TBD';
-    if (!byWeek[wk]) byWeek[wk] = { date: r[dateIdx]||'', matches: [] };
-    byWeek[wk].matches.push(r);
-  });
-
-  const weeks = Object.keys(byWeek).sort((a,b) => parseInt(b)-parseInt(a));
-
-  return `<div style="display:flex;flex-direction:column;gap:10px">
-    ${weeks.map(wk => {
-      const { date, matches } = byWeek[wk];
-      return `<div class="week-block">
-        <div class="week-header">Week ${wk} <span>${date}</span></div>
-        ${matches.map(r => {
-          const home = r[homeIdx] || '—';
-          const away = r[awayIdx] || '—';
-          // Look for score columns
-          const scoreIdx = t.headers.findIndex(h => /score|result/i.test(h));
-          const played = scoreIdx >= 0 && r[scoreIdx] && r[scoreIdx] !== '0-0';
-          return `<div class="match-row">
-            <div class="match-home">${home}</div>
-            <div style="display:flex;justify-content:center">
-              ${played
-                ? `<div class="score-chip">
-                    <span style="color:var(--teal3)">${r[scoreIdx]||'?'}</span>
-                  </div>`
-                : `<div class="upcoming-chip"><span class="upcoming-dot"></span>TBD</div>`
-              }
-            </div>
-            <div class="match-away">${away}</div>
-          </div>`;
-        }).join('')}
-      </div>`;
-    }).join('')}
+  return `<div style="display:flex;flex-direction:column;gap:8px">
+    ${blocks.map(block => `
+      <div class="week-block">
+        <div class="week-header">${block.date}</div>
+        ${block.matches.map(m => `
+          <div style="padding:10px 14px;border:1px solid var(--border);border-top:none;background:var(--bg2);font-size:14px;color:var(--text2)">
+            ${m}
+          </div>`).join('')}
+      </div>`).join('')}
   </div>`;
 }
 
