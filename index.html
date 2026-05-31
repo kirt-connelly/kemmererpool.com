@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.38
+  &nbsp;·&nbsp; v1.39
 </footer>
 
 <script>
@@ -664,80 +664,124 @@ function renderMatchResult(html, title) {
   const d = document.createElement('div');
   d.innerHTML = html;
 
-  // FargoRate match result page has rounds with player matchups
-  // Extract round sections
-  const rounds = [];
+  // Extract match metadata from hidden inputs
+  const gi = id => d.querySelector(`#${id}`)?.value || '';
+  const team1 = gi('TeamOne_Name') || title.split(' vs ')[0];
+  const team2 = gi('TeamTwo_Name') || title.split(' vs ')[1] || '';
+  const dateStr = gi('Date') || '';
+  const matchDate = dateStr ? new Date(dateStr).toLocaleDateString('en-US',
+    { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '';
+
+  // Parse rounds — each .round-container has a data-round attr
+  // .game-container divs have data-round matching
+  const roundNums = [...new Set(
+    [...d.querySelectorAll('.game-container[data-round]')]
+      .map(g => g.getAttribute('data-round'))
+  )].sort((a,b) => Number(a)-Number(b));
+
+  // For each round, collect game rows
+  // Each game-container has:
+  //   .team-one-player option[selected] → player 1 name
+  //   .team-two-player option[selected] → player 2 name
+  //   .game-chip → handicap chip (text like "10")
+  //   input.score-input or .score-display → scores
+  //   .adornment or .game-result → W/L/BR/TR markers
+
   let out = '';
 
-  // Try to pull title from page
-  const pageTitle = d.querySelector('.header-logo')?.textContent.trim() || title;
+  roundNums.forEach(rn => {
+    const games = [...d.querySelectorAll(`.game-container[data-round="${rn}"]`)];
+    if (!games.length) return;
 
-  // Get all tables — each round is typically a table or section
-  const tables = [...d.querySelectorAll('table')];
+    // Round totals row
+    const totalContainer = d.querySelector(`.round-total-container[data-round="${rn}"], .round-container[data-round="${rn}"]`);
+    const roundTitle = d.querySelector(`.round-title`) ? `Round ${rn}` : `Round ${rn}`;
 
-  // Detect round header rows and player rows
-  tables.forEach((table, ti) => {
-    const rows = [...table.querySelectorAll('tr')];
-    if (!rows.length) return;
+    let rows = '';
+    games.forEach(game => {
+      // Player names from select options
+      const p1sel = game.querySelector('.team-one-player, [data-team="1"] select, select[id^="player-1"]');
+      const p2sel = game.querySelector('.team-two-player, [data-team="2"] select, select[id^="player-2"]');
+      const p1 = p1sel?.querySelector('option[selected]')?.textContent.replace(/\s*\(\)\s*$/, '').trim()
+               || p1sel?.options?.[p1sel.selectedIndex]?.textContent.replace(/\s*\(\)\s*$/, '').trim()
+               || '—';
+      const p2 = p2sel?.querySelector('option[selected]')?.textContent.replace(/\s*\(\)\s*$/, '').trim()
+               || p2sel?.options?.[p2sel.selectedIndex]?.textContent.replace(/\s*\(\)\s*$/, '').trim()
+               || '—';
 
-    // Check if this looks like a round table (has player names + HDCP + SCORE columns)
-    const headerText = rows[0]?.textContent || '';
-    const hasHdcp    = /hdcp|handicap/i.test(headerText);
-    const hasScore   = /score/i.test(headerText);
-    if (!hasHdcp && !hasScore) return;
+      // Handicap chip
+      const chips = [...game.querySelectorAll('.game-chip')].map(c => c.textContent.trim());
+      const hdcp1 = chips[0] || '—';
+      const hdcp2 = chips[1] || '—';
 
-    const roundLabel = d.querySelectorAll('h3,h4,.round-header')[ti]?.textContent.trim()
-                    || `Round ${ti + 1}`;
+      // Scores — look for inputs or displayed values
+      const scoreEls = [...game.querySelectorAll('input[type="number"], input[type="text"], .score-value, .score-display')];
+      const s1 = scoreEls[0]?.value || scoreEls[0]?.textContent.trim() || '—';
+      const s2 = scoreEls[1]?.value || scoreEls[1]?.textContent.trim() || '—';
 
-    let roundHtml = `<div class="card" style="margin-bottom:14px">
-      <div class="card-header"><span class="card-title">${roundLabel}</span></div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th style="min-width:140px">Home</th>
-          <th style="text-align:center">HDCP</th>
-          <th style="text-align:center">Score</th>
-          <th style="text-align:center">H</th>
-          <th style="text-align:center">A</th>
-          <th style="text-align:center">Score</th>
-          <th style="text-align:center">HDCP</th>
-          <th style="min-width:140px;text-align:right">Away</th>
-        </tr></thead>
-        <tbody>`;
+      // Win indicators
+      const win1 = game.querySelector('.game-result-1.active, .win-indicator-1.active, [class*="winner-1"]') ? '✓' : '';
+      const win2 = game.querySelector('.game-result-2.active, .win-indicator-2.active, [class*="winner-2"]') ? '✓' : '';
 
-    rows.slice(1).forEach(row => {
-      const cells = [...row.querySelectorAll('td')];
-      if (cells.length < 4) return;
-      const vals = cells.map(c => c.textContent.trim());
-      // Skip totals/header rows
-      if (/total|handicap|round/i.test(vals[0])) {
-        roundHtml += `<tr style="background:var(--bg3)">
-          <td colspan="8" style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:6px 12px">${vals[0]}</td>
-        </tr>`;
-        return;
-      }
-      roundHtml += `<tr>${vals.map((v,i) => {
-        const isName = i === 0 || i === vals.length - 1;
-        const align  = i === vals.length - 1 ? 'right' : i === 0 ? 'left' : 'center';
-        return `<td style="text-align:${align};${isName ? 'color:var(--cream);font-weight:600' : 'color:var(--text2)'}">${v||'—'}</td>`;
-      }).join('')}</tr>`;
+      // Adornments (BR, TR, WZ)
+      const adn1 = [...game.querySelectorAll('.adornment-1.active, [data-team="1"] .adornment.active')]
+        .map(a => a.textContent.trim()).join(' ');
+      const adn2 = [...game.querySelectorAll('.adornment-2.active, [data-team="2"] .adornment.active')]
+        .map(a => a.textContent.trim()).join(' ');
+
+      rows += `<tr>
+        <td style="color:var(--cream);font-weight:600">${p1}${adn1 ? ` <span style="color:var(--green2);font-size:11px">${adn1}</span>` : ''}</td>
+        <td class="num" style="text-align:center;color:var(--text3)">${hdcp1}</td>
+        <td class="num" style="text-align:center;color:var(--text2)">${s1}</td>
+        <td style="text-align:center;width:30px;color:${win1?'var(--green2)':'var(--text3)'};font-weight:700">${win1||'·'}</td>
+        <td style="text-align:center;width:30px;color:${win2?'var(--green2)':'var(--text3)'};font-weight:700">${win2||'·'}</td>
+        <td class="num" style="text-align:center;color:var(--text2)">${s2}</td>
+        <td class="num" style="text-align:center;color:var(--text3)">${hdcp2}</td>
+        <td style="text-align:right;color:var(--cream);font-weight:600">${p2}${adn2 ? ` <span style="color:var(--green2);font-size:11px">${adn2}</span>` : ''}</td>
+      </tr>`;
     });
 
-    roundHtml += `</tbody></table></div></div>`;
-    out += roundHtml;
+    out += `<div class="card" style="margin-bottom:12px">
+      <div class="card-header">
+        <span class="card-title">Round ${rn}</span>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr>
+          <th>${team1}</th>
+          <th style="text-align:center">HDCP</th>
+          <th style="text-align:center">Score</th>
+          <th style="text-align:center" colspan="2">Result</th>
+          <th style="text-align:center">Score</th>
+          <th style="text-align:center">HDCP</th>
+          <th style="text-align:right">${team2}</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </div>`;
   });
 
-  if (!out) {
-    // Fallback: just show the raw content in a card
-    const body = d.querySelector('body') || d;
-    // Strip scripts/styles
-    [...body.querySelectorAll('script,style,header,nav')].forEach(el => el.remove());
-    out = `<div class="card"><div style="padding:8px;font-size:13px;color:var(--text2);line-height:1.6">${body.innerHTML}</div></div>`;
+  // If Angular hasn't rendered anything useful, show a clean summary from hidden fields
+  if (!out || roundNums.length === 0) {
+    out = `<div class="card">
+      <div class="card-header"><span class="card-title">Match Details</span></div>
+      <div style="padding:20px;color:var(--text2)">
+        <p>Match data is rendered by FargoRate's app and can't be displayed inline.</p>
+        <p style="margin-top:12px">
+          <a href="https://lms.fargorate.com/PublicReport/MatchResultBCAPL?matchId=${gi('Id')}"
+             target="_blank" rel="noopener"
+             style="color:var(--green2);text-decoration:underline">
+            View on FargoRate ↗
+          </a>
+        </p>
+      </div>
+    </div>`;
   }
 
   return `
     <div class="card" style="margin-bottom:14px">
       <div class="card-header">
-        <span class="card-title" style="color:var(--cream)">${pageTitle}</span>
+        <span class="card-title" style="color:var(--cream);font-size:16px">${team1} vs ${team2}</span>
+        <span class="card-meta">${matchDate}</span>
       </div>
     </div>
     ${out}`;
