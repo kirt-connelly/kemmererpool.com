@@ -4,186 +4,161 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kemmerer Pool League</title>
-  <meta name="description" content="Official standings, player stats, and schedule for the Kemmerer Pool League — Jenkins Music &amp; Vending." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <meta name="description" content="Official standings, player stats, and schedule for the Kemmerer Pool League." />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:       #08090e;
-      --bg2:      #0d1017;
-      --bg3:      #12161f;
-      --border:   #1a2030;
-      --border2:  #222c3e;
-      --text:     #d4ddf0;
-      --text2:    #6a7d9a;
-      --text3:    #333f54;
-      --accent:   #4a7fa5;
-      --accent2:  #5c9cc4;
-      --green:    #2d8c5e;
-      --green2:   #3aaf78;
-      --felt:     repeating-linear-gradient(90deg,#0b4a22 0px,#093d1c 3px,#0b4a22 6px);
-      --radius:   8px;
-      --radius-sm:5px;
+      --bg:      #1c2030;
+      --bg2:     #242838;
+      --bg3:     #2c3248;
+      --bg4:     #323850;
+      --border:  #3a4260;
+      --border2: #4a5478;
+      --text:    #f0f4ff;
+      --text2:   #9aa8cc;
+      --text3:   #5a6888;
+      --accent:  #4d8fcc;
+      --accent2: #6aaee8;
+      --green:   #2a9d6f;
+      --green2:  #34c487;
+      --red:     #c45a5a;
+      --felt:    repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 3px,#1a5c32 6px);
+      --radius:  10px;
+      --radius-sm: 6px;
     }
     html { scroll-behavior: smooth; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-    .felt-strip { height: 4px; background: var(--felt); opacity: .7; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .felt-strip { height: 4px; background: var(--felt); }
 
-    /* Header */
+    /* ── Header ── */
     header { background: var(--bg2); border-bottom: 1px solid var(--border); }
-    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 20px 0 0; gap: 16px; flex-wrap: wrap; }
-    .logo-block { display: flex; align-items: center; gap: 12px; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 0; gap: 16px; flex-wrap: wrap; }
+    .logo-block { display: flex; align-items: center; gap: 14px; }
     .pool-balls { display: flex; gap: 5px; }
-    .league-name { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
-    .league-sub { font-size: 11px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
-
-    /* Status pill */
-    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 500; }
-    .live-pill.live { background: #0c1f14; border: 1px solid #1e4a30; color: var(--green2); }
-    .live-pill.demo { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
-    .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .league-name { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+    .league-sub { font-size: 11px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
+    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 12px; font-size: 11px; font-weight: 600; letter-spacing: .03em; }
+    .live-pill.live { background: rgba(52,196,135,.12); border: 1px solid rgba(52,196,135,.3); color: var(--green2); }
+    .live-pill.demo { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
+    .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .live-pill.live .dot { background: var(--green2); }
     .live-pill.demo .dot { background: var(--text3); }
 
-    /* League tabs */
-    .league-tabs { display: flex; gap: 3px; padding-top: 18px; flex-wrap: wrap; }
-    .ltab {
-      padding: 9px 20px; cursor: pointer; font-family: 'DM Sans', sans-serif;
-      font-size: 14px; font-weight: 500;
-      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-      border: 1px solid transparent; border-bottom: none;
-      background: transparent; color: var(--text2); transition: all .15s;
-    }
-    .ltab:hover:not(.active) { color: var(--text); background: var(--bg3); border-color: var(--border); }
-    .ltab.active { background: var(--bg); color: var(--text); border-color: var(--border); border-bottom-color: var(--bg); position: relative; bottom: -1px; }
-    .ltab .badge-new { font-size: 9px; background: var(--green); color: #fff; border-radius: 99px; padding: 1px 6px; margin-left: 5px; vertical-align: middle; }
+    /* ── League tabs ── */
+    .league-tabs { display: flex; gap: 3px; padding-top: 16px; }
+    .ltab { padding: 9px 22px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid transparent; border-bottom: none; background: transparent; color: var(--text2); transition: all .15s; }
+    .ltab:hover:not(.active) { color: var(--text); background: var(--bg3); }
+    .ltab.active { background: var(--bg); color: var(--text); border-color: var(--border); border-bottom-color: var(--bg); position: relative; bottom: -1px; font-weight: 600; }
+    .ltab .badge { font-size: 9px; background: var(--green); color: #fff; border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
 
-    /* View tabs */
+    /* ── View tabs ── */
     .view-bar { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
-    .view-bar-inner { display: flex; gap: 2px; padding: 8px 0; flex-wrap: wrap; }
-    .vtab {
-      padding: 6px 15px; cursor: pointer; font-size: 14px; font-weight: 400;
-      border-radius: var(--radius-sm); border: none;
-      background: transparent; color: var(--text2); transition: all .12s;
-    }
+    .view-bar-inner { display: flex; gap: 2px; padding: 8px 0; }
+    .vtab { padding: 7px 16px; cursor: pointer; font-size: 14px; font-weight: 400; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text2); transition: all .12s; }
     .vtab:hover:not(.active) { color: var(--text); background: var(--bg3); }
-    .vtab.active { background: var(--bg3); color: var(--text); font-weight: 500; border-left: 2px solid var(--accent); padding-left: 13px; }
+    .vtab.active { background: var(--bg3); color: var(--text); font-weight: 600; border-left: 2px solid var(--accent2); padding-left: 14px; }
 
-    /* Main */
+    /* ── Main ── */
     main { padding: 24px 0 80px; }
 
-    /* Card */
+    /* ── Card ── */
     .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid var(--border); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg3); }
     .card-title { font-size: 15px; font-weight: 600; color: var(--text); }
     .card-meta { font-size: 12px; color: var(--text3); }
 
-    /* Table */
+    /* ── Table ── */
     .tbl { width: 100%; border-collapse: collapse; }
-    .tbl th { text-align: left; padding: 9px 16px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); }
-    .tbl td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+    .tbl th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tbl td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
     .tbl tbody tr:last-child td { border-bottom: none; }
     .tbl tbody tr:hover td { background: var(--bg3); }
     .tbl .num { font-variant-numeric: tabular-nums; }
+    .rank-num { font-size: 13px; font-weight: 600; color: var(--text3); width: 28px; display: inline-block; text-align: center; }
+    .rank-1 .rank-num { color: var(--accent2); }
 
-    /* Win bar */
-    .win-bar-wrap { display: flex; align-items: center; gap: 8px; }
-    .win-bar { width: 60px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; flex-shrink: 0; }
-    .win-bar-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+    /* ── Win bar ── */
+    .bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .bar-track { height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; flex-shrink: 0; border: 1px solid var(--border); }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
 
-    /* Rating bar */
-    .rating-wrap { display: flex; align-items: center; gap: 8px; }
-    .rating-bar { width: 72px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; flex-shrink: 0; }
-    .rating-bar-fill { height: 100%; border-radius: 2px; }
-    .rating-val { font-size: 14px; font-weight: 600; color: var(--accent2); font-variant-numeric: tabular-nums; }
+    /* ── Fargo rating bar ── */
+    .fargo-wrap { display: flex; align-items: center; gap: 10px; }
+    .fargo-track { width: 100px; height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; flex-shrink: 0; border: 1px solid var(--border); }
+    .fargo-fill { height: 100%; border-radius: 4px; }
+    .fargo-num { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 36px; }
 
-    /* Tier badge */
-    .tier { font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
-    .tier-elite { background: #0d1c28; border: 1px solid #1e3f5c; color: var(--accent2); }
-    .tier-adv   { background: #0c1f14; border: 1px solid #1e4a30; color: var(--green2); }
-    .tier-int   { background: #121620; border: 1px solid #222c40; color: #7a9ac0; }
-    .tier-dev   { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
-    .tier-beg   { background: var(--bg3); border: 1px solid var(--border); color: var(--text3); }
+    /* ── Team section header (Players/Team) ── */
+    .team-section-header { padding: 10px 16px; background: var(--bg3); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--accent2); letter-spacing: .06em; text-transform: uppercase; }
 
-    /* Schedule */
-    .week-block { margin-bottom: 8px; }
-    .week-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm) var(--radius-sm) 0 0; font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; }
-    .week-header span { color: var(--text3); font-weight: 400; letter-spacing: 0; text-transform: none; }
-    .match-row { display: grid; grid-template-columns: 1fr 80px 1fr; align-items: center; gap: 8px; padding: 11px 14px; border: 1px solid var(--border); border-top: none; font-size: 14px; background: var(--bg2); }
-    .match-row:last-child { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
-    .match-row:hover { background: var(--bg3); }
+    /* ── Schedule ── */
+    .sched-date-header { padding: 9px 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm) var(--radius-sm) 0 0; font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .05em; text-transform: uppercase; }
+    .sched-block { margin-bottom: 10px; }
+    .match-card { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--border); border-top: none; background: var(--bg2); font-size: 14px; }
+    .match-card:hover { background: var(--bg3); }
+    .match-card:last-child { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
     .match-home { text-align: right; }
-    .score-chip { display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 14px; font-weight: 600; }
-    .upcoming-chip { display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--bg3); border: 1px dashed var(--border2); border-radius: var(--radius-sm); padding: 4px 8px; font-size: 11px; color: var(--text3); }
-    .upcoming-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+    .match-away { text-align: left; }
+    .match-venue { font-size: 11px; color: var(--text3); text-align: center; margin-top: 2px; }
+    .vs-chip { display: flex; align-items: center; justify-content: center; background: var(--bg4); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 12px; font-size: 12px; font-weight: 700; color: var(--text3); letter-spacing: .05em; white-space: nowrap; min-width: 60px; }
+    .tbd-chip { display: flex; align-items: center; justify-content: center; gap: 5px; background: var(--bg4); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 5px 12px; font-size: 11px; color: var(--text3); white-space: nowrap; min-width: 60px; }
+    .tbd-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green2); flex-shrink: 0; }
 
-    /* Spinner */
-    .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 0; }
-    .spinner { width: 32px; height: 32px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+    /* ── Spinner ── */
+    .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 80px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner-label { color: var(--text3); font-size: 13px; }
 
-    /* Notice */
-    .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; color: var(--text2); font-size: 13px; line-height: 1.8; }
+    /* ── Notice / demo block ── */
+    .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; color: var(--text2); font-size: 14px; line-height: 1.8; }
     .notice strong { color: var(--text); }
-    .notice code { display: block; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; word-break: break-all; color: var(--accent2); font-size: 11px; margin: 8px 0; }
 
-    /* Responsive */
+    /* ── Responsive ── */
     @media (max-width: 640px) {
       .league-name { font-size: 18px; }
-      .tbl th, .tbl td { padding: 8px 10px; font-size: 13px; }
-      .match-row { grid-template-columns: 1fr 70px 1fr; gap: 4px; font-size: 13px; }
+      .tbl th, .tbl td { padding: 9px 10px; font-size: 13px; }
+      .match-card { grid-template-columns: 1fr 50px 1fr; gap: 6px; font-size: 13px; }
+      .fargo-track { width: 60px; }
     }
 
-    /* Footer */
-    footer { border-top: 1px solid var(--border); padding: 18px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
     footer a { color: var(--accent); text-decoration: none; }
     footer a:hover { color: var(--accent2); }
   </style>
 </head>
 <body>
 
-<!-- ── Felt strip ── -->
 <div class="felt-strip"></div>
 
-<!-- ── Header ── -->
 <header>
   <div class="wrap">
     <div class="header-inner">
       <div class="logo-block">
-        <div class="pool-balls" aria-hidden="true" id="pool-balls"></div>
+        <div class="pool-balls" id="pool-balls" aria-hidden="true"></div>
         <div>
           <div class="league-name">Kemmerer Pool League</div>
           <div class="league-sub">Jenkins Music &amp; Vending · kemmererpool.com</div>
         </div>
       </div>
       <div style="text-align:right">
-        <div id="live-status" class="live-pill demo">
-          <span class="dot"></span> Loading…
-        </div>
+        <div id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</div>
         <div style="font-size:11px;color:var(--text3);margin-top:4px" id="refresh-note"></div>
       </div>
     </div>
-
-    <!-- League tabs -->
     <div class="league-tabs">
-      <button class="ltab active" id="ltab-10ball" onclick="switchLeague('10ball')">
-        ⚫ 10-Ball 2026 <span class="badge-new">Active</span>
-      </button>
-      <button class="ltab" id="ltab-8ball" onclick="switchLeague('8ball')">
-        ⚪ 8-Ball 25-26
-      </button>
+      <button class="ltab active" id="ltab-10ball" onclick="switchLeague('10ball')">⚫ 10-Ball 2026 <span class="badge">Active</span></button>
+      <button class="ltab" id="ltab-8ball" onclick="switchLeague('8ball')">⚪ 8-Ball 25-26</button>
     </div>
   </div>
 </header>
 
-<!-- ── View tabs (sticky) ── -->
 <div class="view-bar">
   <div class="wrap">
     <div class="view-bar-inner">
@@ -196,102 +171,80 @@
   </div>
 </div>
 
-<!-- ── Main ── -->
 <main>
   <div class="wrap">
     <div id="content"></div>
   </div>
 </main>
 
-<!-- ── Footer ── -->
 <footer>
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
-  KEMMERER POOL LEAGUE · JENKINS MUSIC &amp; VENDING · KEMMERER, WY
-  <br style="margin:4px 0" />
+  KEMMERER POOL LEAGUE · JENKINS MUSIC &amp; VENDING · KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  <br style="margin:4px 0" />
-  <span style="color:var(--text3);font-size:10px">v1.4</span>
+  &nbsp;·&nbsp; <span style="color:var(--text3)">v1.5</span>
 </footer>
 
 <script>
-/* ─── Config ─────────────────────────────────────────────────────────────── */
-const PROXY = '/proxy?url=';   // Cloudflare Pages Function — /functions/proxy.js
+/* ── Config ── */
+const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
-
 const DIVISIONS = {
   '10ball': { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: 'Kemmerer Summer 10 Ball 2026' },
   '8ball':  { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: 'Kemmerer 8 Ball League 25-26' },
 };
-
 const VIEWS = {
-  teams:    { url: id => `${BASE}/GenerateTeamStandingsReport/${id}`, method: 'GET' },
-  players:  { url: id => `${BASE}/GeneratePlayerStandingsReport/${id}`, method: 'GET' },
-  byteam:   { url: id => `${BASE}/GeneratePlayerStandingsByTeamReport/${id}`, method: 'GET' },
-  list:     { url: id => `${BASE}/GeneratePlayerListReport/${id}`, method: 'GET' },
-  schedule: { url: () => `${BASE}/GenerateDivisionScheduleReport`, method: 'POST', body: id => `divisionId=${id}` },
+  teams:    { url: id => `${BASE}/GenerateTeamStandingsReport/${id}`,            method: 'GET' },
+  players:  { url: id => `${BASE}/GeneratePlayerStandingsReport/${id}`,          method: 'GET' },
+  byteam:   { url: id => `${BASE}/GeneratePlayerStandingsByTeamReport/${id}`,    method: 'GET' },
+  list:     { url: id => `${BASE}/GeneratePlayerListReport/${id}`,               method: 'GET' },
+  schedule: { url: ()  => `${BASE}/GenerateDivisionScheduleReport`,              method: 'POST', body: id => `divisionId=${id}` },
 };
 
-/* ─── State ──────────────────────────────────────────────────────────────── */
-let league = '10ball';
-let view   = 'teams';
-let cache  = {};
-let isLive = null;
+/* ── State ── */
+let league = '10ball', view = 'teams', cache = {}, isLive = null;
 
-/* ─── Pool balls decoration ──────────────────────────────────────────────── */
-(function drawBalls() {
-  const colors = {1:'#F5C518',2:'#1B4FD8',3:'#D42B2B',4:'#6B1DB5',5:'#E87C1E',6:'#1A7A3A',7:'#A0190F',8:'#111',9:'#F5C518'};
-  const show = [8,1,9];
-  const wrap = document.getElementById('pool-balls');
-  show.forEach(n => {
-    const stripe = n > 8;
-    const c = colors[n] || '#888';
-    const svg = `<svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true">
-      <circle cx="18" cy="18" r="17" fill="${stripe?'#fff':c}" stroke="#00000044" stroke-width="1"/>
+/* ── Pool balls ── */
+(function() {
+  const colors = {1:'#F5C518',2:'#1B4FD8',3:'#D42B2B',4:'#6B1DB5',5:'#E87C1E',6:'#1A7A3A',7:'#A0190F',8:'#222',9:'#F5C518'};
+  [8,1,9].forEach(n => {
+    const c = colors[n], stripe = n > 8;
+    document.getElementById('pool-balls').insertAdjacentHTML('beforeend',
+      `<svg width="30" height="30" viewBox="0 0 36 36"><circle cx="18" cy="18" r="17" fill="${stripe?'#fff':c}" stroke="#00000033" stroke-width="1"/>
       ${stripe?`<rect x="1" y="11" width="34" height="14" fill="${c}" rx="1"/>`:''}
-      <circle cx="18" cy="18" r="7" fill="rgba(255,255,255,0.90)"/>
-      <text x="18" y="22" text-anchor="middle" font-size="8" font-weight="bold" fill="#111" font-family="serif">${n}</text>
-      <ellipse cx="12" cy="12" rx="3.5" ry="2" fill="rgba(255,255,255,0.30)" transform="rotate(-30 12 12)"/>
-    </svg>`;
-    wrap.insertAdjacentHTML('beforeend', svg);
+      <circle cx="18" cy="18" r="7" fill="rgba(255,255,255,.88)"/>
+      <text x="18" y="22" text-anchor="middle" font-size="8" font-weight="bold" fill="#111" font-family="sans-serif">${n}</text></svg>`);
   });
 })();
 
-/* ─── Status pill ─────────────────────────────────────────────────────────── */
+/* ── Status ── */
 function setStatus(live) {
   if (isLive === live) return;
   isLive = live;
   const el = document.getElementById('live-status');
-  el.className = `live-pill ${live ? 'live' : 'demo'}`;
-  el.innerHTML = `<span class="dot"></span> ${live ? 'Live data' : 'Demo data'}`;
+  el.className = `live-pill ${live?'live':'demo'}`;
+  el.innerHTML = `<span class="dot"></span> ${live?'Live data':'Demo data'}`;
   document.getElementById('refresh-note').textContent =
     `Ratings current as of ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
 }
 
-/* ─── Fetch via proxy ─────────────────────────────────────────────────────── */
+/* ── Fetch ── */
 async function fetchSection(lg, vw) {
   const key = `${lg}__${vw}`;
   if (cache[key]) return cache[key];
   const divId = DIVISIONS[lg].id;
-  const view = VIEWS[vw];
-  const url = view.url(divId);
-  const method = view.method || 'GET';
-  const body = view.body ? view.body(divId) : undefined;
-
+  const v = VIEWS[vw];
+  const url = v.url(divId);
+  const method = v.method || 'GET';
   try {
-    const opts = {
-      method: method,
-      headers: { 'Accept': 'text/html' },
-    };
+    const opts = { method, headers: { 'Accept': 'text/html' } };
     if (method === 'POST') {
-      opts.method = 'POST';
       opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      opts.body = body;
+      opts.body = v.body(divId);
     }
-    const proxyUrl = PROXY + encodeURIComponent(url);
-    const r = await fetch(proxyUrl, opts);
+    const r = await fetch(PROXY + encodeURIComponent(url), opts);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const html = await r.text();
-    if (!html || html.trim().length < 30) throw new Error('empty response');
+    if (!html || html.trim().length < 30) throw new Error('empty');
     cache[key] = { html, live: true };
     setStatus(true);
     return cache[key];
@@ -302,7 +255,7 @@ async function fetchSection(lg, vw) {
   }
 }
 
-/* ─── Parse HTML table from FargoRate partial ─────────────────────────────── */
+/* ── Parse table ── */
 function parseTable(html) {
   const d = document.createElement('div');
   d.innerHTML = html;
@@ -315,31 +268,24 @@ function parseTable(html) {
   return { headers, rows };
 }
 
-/* ─── Color helpers ───────────────────────────────────────────────────────── */
-function winHue(pctStr) {
-  const v = parseFloat(pctStr) / 100;
-  if (isNaN(v)) return '#888';
-  return `hsl(${Math.round(v * 130)},60%,42%)`;
+/* ── Color helpers ── */
+function winColor(pct) {
+  const v = Math.min(Math.max(parseFloat(pct)/100, 0), 1);
+  const h = Math.round(v * 130);
+  return `hsl(${h},60%,45%)`;
 }
-function ratingColor(rating) {
-  const pct = Math.min((rating || 0) / 800, 1);
-  return `hsl(${Math.round(pct * 160 + 180)},65%,42%)`; // teal→green
+function fargoColor(rating) {
+  const pct = Math.min((parseInt(rating)||0)/800, 1);
+  return `hsl(${Math.round(pct*200+160)},60%,48%)`;
 }
-function tierInfo(rating) {
-  if (rating >= 600) return ['Elite',    'tier-elite'];
-  if (rating >= 500) return ['Advanced', 'tier-adv'];
-  if (rating >= 450) return ['Intermediate','tier-int'];
-  if (rating >= 375) return ['Developing','tier-dev'];
-  return ['Beginner', 'tier-beg'];
-}
-const MEDALS = ['🥇','🥈','🥉'];
 
-/* ─── Renderers ───────────────────────────────────────────────────────────── */
+/* ── Render Teams ── */
 function renderTeams(data) {
   const t = data.live && data.html ? parseTable(data.html) : null;
-  const rows = t ? t.rows : DEMO.teams;
+  const rows = t ? t.rows : [];
   const headers = t ? t.headers : ['#','Team','RDS %','RDS','GMS','PTS','WKS'];
-  const rdsIdx = headers.findIndex(h => h.toLowerCase().includes('%'));
+  const pctIdx = headers.findIndex(h => h.includes('%'));
+  if (!rows.length) return demoBlock('Team Standings');
 
   return `<div class="card">
     <div class="card-header">
@@ -351,15 +297,18 @@ function renderTeams(data) {
         <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
         <tbody>
           ${rows.map((r,i) => {
-            const pctStr = r[rdsIdx] || '0%';
-            return `<tr>
+            const pctStr = pctIdx >= 0 ? r[pctIdx] : '0%';
+            const pctVal = parseFloat(pctStr) || 0;
+            return `<tr class="${i===0?'rank-1':''}">
               ${r.map((cell,ci) => {
-                if (ci===0) return `<td class="num">${MEDALS[i] || cell}</td>`;
-                if (ci===1) return `<td style="font-weight:500;color:${i<3?'var(--text)':'var(--text)'}">${cell}</td>`;
-                if (ci===rdsIdx) return `<td>
-                  <div class="win-bar-wrap">
-                    <div class="win-bar"><div class="win-bar-fill" style="width:${parseFloat(pctStr)||0}%;background:${winHue(pctStr)}"></div></div>
-                    <span class="num" style="font-size:12px;color:var(--text2)">${cell}</span>
+                if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
+                if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
+                if (ci===pctIdx) return `<td>
+                  <div class="bar-wrap">
+                    <div class="bar-track" style="width:80px">
+                      <div class="bar-fill" style="width:${pctVal}%;background:${winColor(pctStr)}"></div>
+                    </div>
+                    <span class="num" style="font-size:13px;color:var(--text2)">${cell}</span>
                   </div></td>`;
                 return `<td class="num" style="color:var(--text2)">${cell}</td>`;
               }).join('')}
@@ -368,13 +317,14 @@ function renderTeams(data) {
         </tbody>
       </table>
     </div>
-    ${!data.live ? demoNote() : ''}
   </div>`;
 }
 
+/* ── Render Players ── */
 function renderPlayers(data) {
   const t = data.live && data.html ? parseTable(data.html) : null;
-  if (!t) return demoBlock('Players', DEMO.playerNote);
+  if (!t || !t.rows.length) return demoBlock('Player Standings');
+  const winIdx = t.headers.findIndex(h => /win/i.test(h));
   return `<div class="card">
     <div class="card-header">
       <span class="card-title">Player Standings</span>
@@ -384,44 +334,18 @@ function renderPlayers(data) {
       <table class="tbl">
         <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
         <tbody>
-          ${t.rows.map((r,i)=>`<tr>
-            ${r.map((cell,ci)=>{
-              if(ci===0) return `<td class="num" style="color:var(--text3)">${MEDALS[i]||cell}</td>`;
-              if(ci===1) return `<td style="font-weight:500">${cell}</td>`;
-              return `<td class="num" style="color:var(--text2)">${cell}</td>`;
-            }).join('')}
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-  </div>`;
-}
-
-function renderList(data) {
-  const t = data.live && data.html ? parseTable(data.html) : null;
-  if (!t) return demoBlock('Player List', DEMO.playerNote);
-  const ratingIdx = t.headers.findIndex(h => /rating|fargo/i.test(h));
-  return `<div class="card">
-    <div class="card-header">
-      <span class="card-title">Player List &amp; Fargo Ratings</span>
-      <span class="card-meta">${t.rows.length} players</span>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="tbl">
-        <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}${ratingIdx<0?'<th>Tier</th>':''}</tr></thead>
-        <tbody>
-          ${t.rows.map((r,i)=>`<tr>
-            ${r.map((cell,ci)=>{
-              if(ci===1) return `<td style="font-weight:500">${cell}</td>`;
-              if(ci===ratingIdx && ratingIdx>=0){
-                const rating = parseInt(cell)||0;
-                const pct = Math.min(rating/800,1);
-                const [tierLabel,tierClass] = tierInfo(rating);
+          ${t.rows.map((r,i) => `<tr class="${i===0?'rank-1':''}">
+            ${r.map((cell,ci) => {
+              if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
+              if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
+              if (ci===winIdx && winIdx>0) {
+                const pct = parseFloat(cell)||0;
                 return `<td>
-                  <div class="rating-wrap">
-                    <div class="rating-bar"><div class="rating-bar-fill" style="width:${pct*100}%;background:${ratingColor(rating)}"></div></div>
-                    <span class="rating-val">${cell}</span>
-                    <span class="tier ${tierClass}">${tierLabel}</span>
+                  <div class="bar-wrap">
+                    <div class="bar-track" style="width:60px">
+                      <div class="bar-fill" style="width:${pct}%;background:${winColor(cell)}"></div>
+                    </div>
+                    <span class="num" style="font-size:13px;color:var(--text2)">${cell}</span>
                   </div></td>`;
               }
               return `<td class="num" style="color:var(--text2)">${cell}</td>`;
@@ -433,136 +357,231 @@ function renderList(data) {
   </div>`;
 }
 
-function renderSchedule(data) {
-  if (!data.live || !data.html) return demoBlock('Schedule', DEMO.schedNote);
+/* ── Render Players by Team ── */
+function renderByTeam(data) {
+  const t = data.live && data.html ? parseTable(data.html) : null;
+  if (!t || !t.rows.length) return demoBlock('Players by Team');
 
-  // FargoRate schedule is NOT a table — it's date headers + match divs
+  // Detect team header rows (rows where only first cell has content or row has class)
+  // FargoRate puts team name as a row with colspan or single cell
   const d = document.createElement('div');
   d.innerHTML = data.html;
-
-  // Try table first (some divisions use table format)
   const table = d.querySelector('table');
-  if (table) {
-    const t = parseTable(data.html);
-    if (t && t.rows.length) {
-      return `<div class="card">
-        <div class="card-header"><span class="card-title">Division Schedule</span></div>
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-            <tbody>${t.rows.map(r=>`<tr>${r.map(cell=>`<td style="color:var(--text2)">${cell}</td>`).join('')}</tr>`).join('')}</tbody>
-          </table>
-        </div>
-      </div>`;
-    }
-  }
+  if (!table) return demoBlock('Players by Team');
 
-  // FargoRate schedule format: date headers + match rows
-  // Look for any text content grouped by date
-  const text = d.innerText || d.textContent || '';
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const allRows = [...table.querySelectorAll('tr')].slice(1);
+  let html = `<div class="card">
+    <div class="card-header">
+      <span class="card-title">Players by Team</span>
+      <span class="card-meta">${DIVISIONS[league].label}</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>`;
 
-  if (!lines.length) return demoBlock('Schedule', DEMO.schedNote);
+  allRows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    const isTeamHeader = cells.length === 1 || (cells.length > 0 && cells[0].getAttribute('colspan') > 1)
+      || (cells.length > 0 && row.className.toLowerCase().includes('team'));
 
-  // Group lines into date blocks
-  const datePattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-  const blocks = [];
-  let current = null;
-
-  lines.forEach(line => {
-    if (datePattern.test(line)) {
-      current = { date: line, matches: [] };
-      blocks.push(current);
-    } else if (current) {
-      current.matches.push(line);
+    if (isTeamHeader || (cells.length > 0 && [...cells].every((c,i) => i===0 || c.textContent.trim()==='' || c.textContent.trim()==='-'))) {
+      const name = cells[0]?.textContent.trim();
+      if (name) html += `<tr><td colspan="${t.headers.length}" class="team-section-header">${name}</td></tr>`;
+    } else {
+      const rowData = [...cells].map(c => c.textContent.trim());
+      html += `<tr>${rowData.map((cell,ci) => {
+        if (ci===0) return `<td class="num" style="color:var(--text3);font-size:13px">${cell}</td>`;
+        if (ci===1) return `<td style="font-weight:500;color:var(--text)">${cell}</td>`;
+        return `<td class="num" style="color:var(--text2)">${cell}</td>`;
+      }).join('')}</tr>`;
     }
   });
 
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+
+/* ── Render Player List ── */
+function renderList(data) {
+  const t = data.live && data.html ? parseTable(data.html) : null;
+  if (!t || !t.rows.length) return demoBlock('Player List');
+
+  const ratingIdx = t.headers.findIndex(h => /rating|fargo/i.test(h));
+
+  // Sort by fargo rating descending
+  const sorted = ratingIdx >= 0
+    ? [...t.rows].sort((a,b) => (parseInt(b[ratingIdx])||0) - (parseInt(a[ratingIdx])||0))
+    : t.rows;
+
+  return `<div class="card">
+    <div class="card-header">
+      <span class="card-title">Player List &amp; Fargo Ratings</span>
+      <span class="card-meta">${sorted.length} players · sorted by rating</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>#</th>
+          ${t.headers.map(h=>`<th>${h}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${sorted.map((r,i) => {
+            const rating = ratingIdx >= 0 ? parseInt(r[ratingIdx])||0 : 0;
+            const pct = Math.min(rating/800,1);
+            return `<tr class="${i===0?'rank-1':''}">
+              <td><span class="rank-num">${i+1}</span></td>
+              ${r.map((cell,ci) => {
+                if (ci===1) return `<td style="font-weight:600;color:var(--text)">${cell}</td>`;
+                if (ci===ratingIdx && ratingIdx>=0) return `<td>
+                  <div class="fargo-wrap">
+                    <div class="fargo-track">
+                      <div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div>
+                    </div>
+                    <span class="fargo-num" style="color:${fargoColor(rating)}">${cell}</span>
+                  </div></td>`;
+                return `<td style="color:var(--text2)">${cell}</td>`;
+              }).join('')}
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ── Render Schedule ── */
+function renderSchedule(data) {
+  if (!data.live || !data.html) return demoBlock('Schedule');
+  const d = document.createElement('div');
+  d.innerHTML = data.html;
+
+  // Parse the schedule — FargoRate uses date headers + match entries
+  const blocks = [];
+  let current = null;
+
+  const allEls = d.querySelectorAll('*');
+  allEls.forEach(el => {
+    const text = el.textContent.trim();
+    // Date headers like "10/22/2025"
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text) && el.children.length === 0) {
+      current = { date: text, matches: [] };
+      blocks.push(current);
+    }
+  });
+
+  // If no date blocks found, walk text nodes
   if (!blocks.length) {
-    // Just dump all text as a simple list
+    const text = d.innerText || d.textContent || '';
+    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+    const dateRe = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+    lines.forEach(line => {
+      if (dateRe.test(line)) { current = {date:line, matches:[]}; blocks.push(current); }
+      else if (current) current.matches.push(line);
+    });
+  } else {
+    // Get all text content and parse into matches
+    const text = d.innerText || d.textContent || '';
+    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+    const dateRe = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+    let cur = null;
+    lines.forEach(line => {
+      if (dateRe.test(line)) { cur = blocks.find(b=>b.date===line); }
+      else if (cur) cur.matches.push(line);
+    });
+  }
+
+  if (!blocks.length) {
+    // Fallback: just show raw text nicely
+    const lines = (d.innerText||d.textContent||'').split('\n').map(l=>l.trim()).filter(Boolean);
     return `<div class="card">
-      <div class="card-header"><span class="card-title">Division Schedule</span></div>
-      <div style="padding:16px;color:var(--text2);font-size:14px;line-height:2">
-        ${lines.join('<br>')}
+      <div class="card-header"><span class="card-title">Schedule</span></div>
+      <div style="padding:16px">
+        ${lines.map(l=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);color:var(--text2);font-size:14px">${l}</div>`).join('')}
       </div>
     </div>`;
   }
 
-  return `<div style="display:flex;flex-direction:column;gap:8px">
-    ${blocks.map(block => `
-      <div class="week-block">
-        <div class="week-header">${block.date}</div>
-        ${block.matches.map(m => `
-          <div style="padding:10px 14px;border:1px solid var(--border);border-top:none;background:var(--bg2);font-size:14px;color:var(--text2)">
-            ${m}
+  // Group matches into Home/Away pairs
+  function parseMatches(lines) {
+    const matches = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      // Home team starts with (H)
+      if (line.startsWith('(H)')) {
+        const home = line.replace(/^\(H\)\s*/, '');
+        // skip "vs" line
+        let j = i+1;
+        while (j < lines.length && lines[j].toLowerCase() === 'vs') j++;
+        const away = j < lines.length && lines[j].startsWith('(A)') ? lines[j].replace(/^\(A\)\s*/,'') : '';
+        const venue = (j+1) < lines.length && !lines[j+1].startsWith('(H)') && !lines[j+1].startsWith('(A)') ? lines[j+1] : '';
+        matches.push({ home, away, venue });
+        i = venue ? j+2 : j+1;
+      } else {
+        i++;
+      }
+    }
+    return matches;
+  }
+
+  return `<div style="display:flex;flex-direction:column;gap:10px">
+    ${blocks.map(block => {
+      const matches = parseMatches(block.matches);
+      if (!matches.length) return '';
+      return `<div class="sched-block">
+        <div class="sched-date-header">${block.date}</div>
+        ${matches.map(m => `
+          <div class="match-card">
+            <div class="match-home">
+              <div style="font-weight:600;color:var(--text)">${m.home}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+              <div class="vs-chip">VS</div>
+              ${m.venue ? `<div class="match-venue">${m.venue}</div>` : ''}
+            </div>
+            <div class="match-away">
+              <div style="font-weight:600;color:var(--text)">${m.away}</div>
+            </div>
           </div>`).join('')}
-      </div>`).join('')}
+      </div>`;
+    }).join('')}
   </div>`;
 }
 
-/* ─── Demo / fallback helpers ─────────────────────────────────────────────── */
-const DEMO = {
-  teams: [
-    ['1','Jeff & Mark','87.5%','3.5','12/4','12','1'],
-    ['2','Rylee & John','12.5%','0.5','4/12','4','1'],
-    ['3','Mike & Harlan','0.0%','0','0/0','0','0'],
-    ['4','Teddy & Trevor','0.0%','0','0/0','0','0'],
-    ['5','Jess & Joel','0.0%','0','0/0','0','0'],
-    ['6','Danny & Bill','0.0%','0','0/0','0','0'],
-    ['7','Brandon & Cait','0.0%','0','0/0','0','0'],
-    ['8','Tanner & Jake','0.0%','0','0/0','0','0'],
-  ],
-  playerNote: 'Live player data loads once the Cloudflare Worker proxy is active on kemmererpool.com.',
-  schedNote:  'Live schedule loads once the Cloudflare Worker proxy is active on kemmererpool.com.',
-};
-
-function demoNote() {
-  return `<div style="padding:10px 16px;font-size:11px;color:var(--text3);border-top:1px solid var(--border)">
-    Showing cached data — live feed will activate on kemmererpool.com via the included Cloudflare Worker.
-  </div>`;
-}
-
-function demoBlock(title, note) {
+/* ── Demo block ── */
+function demoBlock(title) {
   return `<div class="notice">
     <strong>${title}</strong><br>
-    ${note}
-    <br><br>
-    <strong>Setup:</strong> Deploy to Cloudflare Pages, then the <code>_worker.js</code> in this repo
-    automatically proxies FargoRate data with no CORS issues.
+    Live data will load once connected to kemmererpool.com via the Cloudflare proxy.
   </div>`;
 }
 
-/* ─── Tab switching ───────────────────────────────────────────────────────── */
+/* ── Tab switching ── */
 function switchLeague(lg) {
   league = lg;
-  ['10ball','8ball'].forEach(k => {
-    document.getElementById(`ltab-${k}`).classList.toggle('active', k===lg);
-  });
+  ['10ball','8ball'].forEach(k => document.getElementById(`ltab-${k}`).classList.toggle('active', k===lg));
+  cache = {};
   loadView();
 }
-
 function switchView(vw) {
   view = vw;
-  ['teams','players','byteam','list','schedule'].forEach(k => {
-    document.getElementById(`vt-${k}`).classList.toggle('active', k===vw);
-  });
+  ['teams','players','byteam','list','schedule'].forEach(k => document.getElementById(`vt-${k}`).classList.toggle('active', k===vw));
   loadView();
 }
 
-/* ─── Load & render ───────────────────────────────────────────────────────── */
+/* ── Load ── */
 async function loadView() {
-  const el = document.getElementById('content');
-  el.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Fetching league data…</div></div>`;
-
+  document.getElementById('content').innerHTML =
+    `<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading live data…</div></div>`;
   const data = await fetchSection(league, view);
   let html = '';
-  if      (view === 'teams')    html = renderTeams(data);
-  else if (view === 'players')  html = renderPlayers(data);
-  else if (view === 'byteam')   html = renderPlayers(data);
-  else if (view === 'list')     html = renderList(data);
-  else if (view === 'schedule') html = renderSchedule(data);
-
-  el.innerHTML = html;
+  if      (view==='teams')    html = renderTeams(data);
+  else if (view==='players')  html = renderPlayers(data);
+  else if (view==='byteam')   html = renderByTeam(data);
+  else if (view==='list')     html = renderList(data);
+  else if (view==='schedule') html = renderSchedule(data);
+  document.getElementById('content').innerHTML = html;
 }
 
 loadView();
