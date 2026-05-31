@@ -99,19 +99,19 @@
     .team-section-hdr { padding: 9px 16px; background: var(--bg3); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--cream); letter-spacing: .05em; text-transform: uppercase; border-left: 3px solid var(--accent); }
 
     /* ── Schedule ── */
-    .sched-block { margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .sched-date-hdr { padding: 12px 20px; background: var(--bg3); font-size: 13px; font-weight: 700; color: var(--cream); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
     .sched-count { font-weight: 400; color: var(--text3); font-size: 11px; }
-    .match-grid { display: flex; flex-direction: column; }
-    
-    .match-card { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; border-top: 1px solid var(--border); background: var(--bg2); }
+    .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 600px) { .match-grid { grid-template-columns: 1fr; } }
+    .match-card { display: grid; grid-template-columns: 1fr 80px 1fr; align-items: center; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--bg2); }
     .match-card:hover { background: var(--bg3); }
-    .match-home { text-align: right; padding: 16px 20px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
-    .match-away { text-align: left; padding: 16px 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
-    .match-name { font-size: 15px; font-weight: 700; color: var(--cream); }
-    .match-label { font-size: 11px; color: var(--text3); margin-top: 3px; letter-spacing: .06em; text-transform: uppercase; }
-    .vs-col { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 14px 16px; min-width: 120px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); background: var(--bg3); }
-    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 800; color: #fff; letter-spacing: .08em; }
+    .match-home { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+    .match-away { text-align: left; display: flex; flex-direction: column; align-items: flex-start; }
+    .match-name { font-size: 14px; font-weight: 600; color: var(--cream); }
+    .match-label { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
+    .vs-col { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .vs-chip { background: var(--bg4); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: .05em; }
     .result-btn {
       background: var(--bg3);
       border: 1px solid var(--accent);
@@ -130,8 +130,7 @@
       background: var(--accent);
       color: #fff;
     }
-    .venue-label { font-size: 12px; color: var(--text3); text-align: center; font-weight: 500; }
-    .match-venue-row { font-size: 12px; color: var(--text3); text-align: center; width: 100%; }
+    .venue-label { font-size: 10px; color: var(--text3); text-align: center; }
 
     /* ── Spinner ── */
     .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 80px 0; }
@@ -155,10 +154,8 @@
       .vtab.active { padding-left: 9px; }
       .tbl th { padding: 8px 8px; font-size: 10px; }
       .tbl td { padding: 10px 8px; font-size: 13px; }
-      .match-card { grid-template-columns: 1fr 80px 1fr; }
-      .match-name { font-size: 13px; }
-      .match-home, .match-away { padding: 12px 10px; }
-      .vs-col { min-width: 80px; padding: 10px 8px; }
+      .match-card { grid-template-columns: 1fr 50px 1fr; gap: 4px; padding: 10px 10px; }
+      .match-name { font-size: 12px; }
       .fargo-track { width: 50px; }
       .bar-track { width: 50px !important; }
     }
@@ -215,7 +212,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.34
+  &nbsp;·&nbsp; v1.35
 </footer>
 
 <script>
@@ -558,32 +555,7 @@ function renderSchedule(data) {
     return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
   }
 
-  // Extract matchId from an anchor href like /PublicReport/MatchResultBCAPL?matchId=xxxx
-  // Search the node itself, its parent, and siblings for any matching link
-  function extractMatchId(node) {
-    // Search in the node
-    let a = node.querySelector('a[href*="matchId"], a[href*="MatchResult"]');
-    if (!a) a = node.querySelector('a[href*="Match"]');
-    // Search in parent
-    if (!a && node.parentElement) {
-      a = node.parentElement.querySelector('a[href*="matchId"], a[href*="MatchResult"]');
-    }
-    // Search anywhere in the document for links near this node
-    if (!a) {
-      const allLinks = [...d.querySelectorAll('a[href*="matchId"], a[href*="MatchResult"]')];
-      // Find the closest link to this node
-      if (allLinks.length > 0) {
-        // We'll assign links to blocks in order later
-        return '__FIND_BY_ORDER__';
-      }
-    }
-    if (!a) return null;
-    const href = a.getAttribute('href') || '';
-    const m = href.match(/matchId=([a-f0-9-]{36})/i);
-    return m ? m[1] : null;
-  }
-
-  // Pre-collect all matchIds in document order
+  // Pre-collect ALL matchIds from anywhere in the document, in order
   const allMatchLinks = [...d.querySelectorAll('a[href*="matchId"], a[href*="MatchResult"]')]
     .map(a => {
       const href = a.getAttribute('href') || '';
@@ -604,21 +576,22 @@ function renderSchedule(data) {
       const teams = [...node.querySelectorAll('.schedule-team')]
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
       const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
-      // Try direct extraction first, then fall back to sequential order
-      let matchId = extractMatchId(node);
-      if (matchId === '__FIND_BY_ORDER__') {
-        matchId = allMatchLinks[matchLinkIdx++] || null;
-      } else if (!matchId && allMatchLinks.length > matchLinkIdx) {
-        matchId = allMatchLinks[matchLinkIdx++] || null;
+      // Try to find matchId directly in this node first, then fall back to sequential
+      let matchId = null;
+      const a = node.querySelector('a[href*="matchId"], a[href*="MatchResult"]');
+      if (a) {
+        const m = (a.getAttribute('href')||'').match(/matchId=([a-f0-9-]{36})/i);
+        matchId = m ? m[1] : null;
       }
+      if (!matchId) matchId = allMatchLinks[matchLinkIdx++] || null;
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
 
-  // DEBUG — remove after confirming
-  const debugInfo = `allMatchLinks found: ${allMatchLinks.length} | blocks: ${blocks.length} | ` +
-    [...d.querySelectorAll('a')].slice(0,5).map(a=>a.getAttribute('href')||'').join(' | ');
-  console.log('SCHEDULE DEBUG:', debugInfo);
+  // DEBUG — remove after confirming Results buttons work
+  console.log('SCHEDULE DEBUG: allMatchLinks found:', allMatchLinks.length,
+    '| blocks:', blocks.length,
+    '| first 3 hrefs:', [...d.querySelectorAll('a')].slice(0,3).map(a=>a.getAttribute('href')||'').join(' | '));
 
   if (!blocks.length) return notice('No schedule data found.');
 
@@ -641,10 +614,10 @@ function renderSchedule(data) {
               </div>
               <div class="vs-col">
                 <div class="vs-chip">VS</div>
-                ${m.venue ? `<div class="match-venue-row">${m.venue}</div>` : ''}
+                ${m.venue ? `<div class="venue-label">${m.venue}</div>` : ''}
                 ${isPast && m.matchId
                   ? `<button class="result-btn" onclick="loadMatchResult('${m.matchId}','${m.home} vs ${m.away}')">📋 Results</button>`
-                  : isPast ? `<div class="match-venue-row" style="font-style:italic;color:var(--text3)">No results</div>` : ''}
+                  : isPast ? `<div class="venue-label" style="color:var(--text3);font-style:italic">No results</div>` : ''}
               </div>
               <div class="match-away">
                 <div class="match-name" style="color:var(--cream)">${m.away}</div>
