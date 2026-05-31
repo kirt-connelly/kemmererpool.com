@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.26
+  &nbsp;·&nbsp; v1.27
 </footer>
 
 <script>
@@ -382,37 +382,91 @@ function renderByTeam(data) {
   d.innerHTML = data.html;
   const table = d.querySelector('table');
   if (!table) return notice('No data available.');
-  const headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
-  const allRows = [...table.querySelectorAll('tr')].slice(1);
 
-  let html = `<div class="card">
-    <div class="card-header">
-      <span class="card-title">Players by Team</span>
-      <span class="card-meta">${DIVISIONS[league].label}</span>
-    </div>
-    <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-      <tbody>`;
+  // Get headers — try <th> first, fall back to first <tr> tds
+  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
+  const allTrs = [...table.querySelectorAll('tr')];
+  let dataRows = allTrs.slice(1);
+  if (!headers.length && allTrs[0]) {
+    headers = [...allTrs[0].querySelectorAll('td')].map(td => td.textContent.trim());
+  }
 
-  allRows.forEach(row => {
+  // Find WIN PCT column index (for bar rendering)
+  const winPctIdx = headers.findIndex(h => /win.?pct|win.?%|pct/i.test(h));
+  // Name column is index 0, but FargoRate puts name at col 0 in byteam view
+  // Detect if names are "Last, First" or "First Last"
+
+  // Count teams for the meta line
+  let teamCount = 0;
+
+  let html = `<div style="display:flex;flex-direction:column;gap:16px">`;
+
+  let currentTeam = null;
+  let currentPlayers = [];
+
+  function flushTeam() {
+    if (!currentTeam) return;
+    teamCount++;
+    html += `<div class="card">
+      <div class="card-header" style="border-left:3px solid var(--accent)">
+        <span class="card-title" style="color:var(--cream);font-size:15px">${currentTeam}</span>
+        <span class="card-meta">${currentPlayers.length} player${currentPlayers.length!==1?'s':''}</span>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr>
+          <th>Player</th>
+          ${headers.slice(1).map(h => `<th style="text-align:${h==='NAME'?'left':'center'}">${h}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${currentPlayers.map(cells => {
+            const name = cells[0] || '';
+            // Format name: "Last, First" → "First Last", or leave as-is
+            const displayName = /,\s/.test(name)
+              ? name.replace(/^([^,]+),\s*(.+)$/, '$2 $1')
+              : name;
+            return `<tr>
+              <td style="font-weight:600;color:var(--cream);min-width:130px">${displayName}</td>
+              ${cells.slice(1).map((cell, ci) => {
+                const hdr = headers[ci + 1] || '';
+                // Win pct bar
+                if (ci + 1 === winPctIdx) {
+                  const pv = parseFloat(cell) || 0;
+                  const pvNorm = pv > 1 ? pv : pv * 100;
+                  const pvStr = cell.includes('%') ? cell : pvNorm.toFixed(0) + '%';
+                  return `<td style="text-align:center"><div class="bar-wrap" style="justify-content:center">
+                    <div class="bar-track" style="width:55px"><div class="bar-fill" style="width:${pvNorm}%;background:${winColor(pvNorm+'%')}"></div></div>
+                    <span class="num" style="font-size:13px;color:${winColor(pvNorm+'%')};font-weight:600;min-width:36px">${pvStr}</span>
+                  </div></td>`;
+                }
+                // Highlight non-zero BR/TR type cols
+                const isHighlight = /^(brs|trs|wzs|wbs|cws|pms)$/i.test(hdr) && parseInt(cell) > 0;
+                return `<td class="num" style="text-align:center;color:${isHighlight?'var(--green2)':'var(--text2)'}${isHighlight?';font-weight:700':''}">${cell||'—'}</td>`;
+              }).join('')}
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+    currentPlayers = [];
+  }
+
+  dataRows.forEach(row => {
     const cells = [...row.querySelectorAll('td')];
-    const isHeader = cells.length === 1
+    if (!cells.length) return;
+    const isTeamHdr = cells.length === 1
       || (cells[0] && cells[0].colSpan > 1)
-      || (cells.length > 1 && cells.slice(1).every(c => !c.textContent.trim() || c.textContent.trim() === '-'));
-    if (isHeader) {
-      const name = cells[0]?.textContent.trim();
-      if (name) html += `<tr><td colspan="${headers.length}" class="team-section-hdr">${name}</td></tr>`;
+      || (cells.length > 1 && cells.slice(1).every(c => !c.textContent.trim() || c.textContent.trim() === '-' || c.textContent.trim() === '0'));
+    if (isTeamHdr) {
+      flushTeam();
+      currentTeam = cells[0]?.textContent.trim();
     } else {
-      html += `<tr>${cells.map((c,ci) => {
-        const cell = c.textContent.trim();
-        if (ci===0) return `<td class="num" style="color:var(--text3);font-size:13px">${cell}</td>`;
-        if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${cell}</td>`;
-        return `<td class="num" style="color:var(--text2)">${cell}</td>`;
-      }).join('')}</tr>`;
+      const vals = cells.map(c => c.textContent.trim());
+      if (vals[0]) currentPlayers.push(vals);
     }
   });
+  flushTeam();
 
-  html += `</tbody></table></div></div>`;
+  html += `</div>`;
   return html;
 }
 
