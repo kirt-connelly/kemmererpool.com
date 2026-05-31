@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.22
+  &nbsp;·&nbsp; v1.23
 </footer>
 
 <script>
@@ -255,11 +255,36 @@ function parseTable(html) {
   d.innerHTML = html;
   const table = d.querySelector('table');
   if (!table) return null;
-  const headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
-  const rows = [...table.querySelectorAll('tr')].slice(1)
+
+  const allTrs = [...table.querySelectorAll('tr')];
+  if (!allTrs.length) return null;
+
+  // Try <th> elements first
+  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
+  let dataStartIdx = 1;
+
+  // If no <th> found, treat first <tr> as header row using its <td>s
+  if (!headers.length && allTrs[0]) {
+    const firstCells = [...allTrs[0].querySelectorAll('td')];
+    if (firstCells.length) {
+      headers = firstCells.map(td => td.textContent.trim());
+    }
+  }
+
+  const rows = allTrs.slice(dataStartIdx)
     .map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim()))
     .filter(r => r.length > 0);
+
   return { headers, rows };
+}
+
+function findWinPctIdx(headers) {
+  const patterns = [/win\s*pct/i, /win\s*%/i, /pct/i, /%/i];
+  for (const p of patterns) {
+    const idx = headers.findIndex(h => p.test(h));
+    if (idx >= 0) return idx;
+  }
+  return -1;
 }
 
 function winColor(pctStr) {
@@ -286,7 +311,7 @@ function renderTeams(data) {
 
   const t = parseTable(data.html);
   if (!t || !t.rows.length) return notice('Team standings will appear here once live data loads.');
-  const pctIdx = t.headers.findIndex(h => h.includes('%'));
+  const pctIdx = findWinPctIdx(t.headers);
 
   return `<div class="card">
     <div class="card-header">
@@ -324,7 +349,7 @@ function renderTeams(data) {
 function renderPlayers(data) {
   const t = data.live && data.html ? parseTable(data.html) : null;
   if (!t || !t.rows.length) return notice('Player standings will appear here once live data loads.');
-  const winIdx = t.headers.findIndex(h => /win\s*pct/i.test(h));
+  const winIdx = findWinPctIdx(t.headers);
   return `<div class="card">
     <div class="card-header">
       <span class="card-title">Player Standings</span>
