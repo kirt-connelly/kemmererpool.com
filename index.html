@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.20
+  &nbsp;·&nbsp; v1.21
 </footer>
 
 <script>
@@ -513,38 +513,61 @@ function renderTeamDetail(html, teamName) {
   const d = document.createElement('div');
   d.innerHTML = html;
 
-  // Extract player rows from the main table
   const table = d.querySelector('table');
   if (!table) return notice('No team data found.');
 
   const allRows = [...table.querySelectorAll('tr')];
-  const headers = [...allRows[0]?.querySelectorAll('th,td') || []].map(c => c.textContent.trim());
 
-  // Find key stat rows vs player rows
+  // Stat rows are at the bottom — they have a label in col 0 and numeric data
+  // Skip rows where col 0 is "Week", "Location", or a player name pattern
+  const skipLabels = /^(week|location|name)$/i;
+  const statLabels = /^(match points|opp\.|rounds won|rounds lost|win\/loss|points|games)$/i;
+
   const playerRows = [];
   const statRows = [];
-  allRows.slice(1).forEach(row => {
-    const cells = [...row.querySelectorAll('td')];
+
+  allRows.forEach(row => {
+    const cells = [...row.querySelectorAll('td,th')];
     if (!cells.length) return;
     const first = cells[0]?.textContent.trim();
-    // Player rows have names like "Smith, John"
-    if (first && /^[A-Za-z]+,\s/.test(first)) {
-      playerRows.push(cells.map(c => c.textContent.trim()));
-    } else if (first) {
-      statRows.push({ label: first, cells: cells.map(c => c.textContent.trim()) });
+    if (!first) return;
+
+    if (statLabels.test(first)) {
+      // Real stat row — grab label + all weekly values
+      statRows.push({
+        label: first,
+        values: cells.slice(1).map(c => c.textContent.trim())
+      });
+    } else if (/^[A-Za-z]+,\s/.test(first)) {
+      // Player name "Last, First"
+      const vals = cells.map(c => c.textContent.trim());
+      const len = vals.length;
+      playerRows.push({
+        name: vals[0],
+        gPlayed: vals[len-8] || '-',
+        gWon:    vals[len-7] || '-',
+        winPct:  vals[len-6] || '-',
+        pts:     vals[len-5] || '-',
+        oppPts:  vals[len-4] || '-',
+        br:      vals[len-3] || '-',
+        tr:      vals[len-2] || '-',
+        weeks:   vals[len-1] || '-',
+      });
     }
   });
 
-  // Get season summary stats
-  const winRow   = statRows.find(r => /win.loss/i.test(r.label));
-  const roundRow = statRows.find(r => /rounds won/i.test(r.label));
-  const matchRow = statRows.find(r => /match points/i.test(r.label));
-  const ptsRow   = statRows.find(r => /^points$/i.test(r.label));
-
-  // Find weeks played (columns between player names and summary stats)
-  // Columns with dates are the weekly schedule
-  const headerCells = [...allRows[0]?.querySelectorAll('th,td') || []];
-  const weekHeaders = headerCells.slice(1).map(h => h.textContent.trim()).filter(h => h && !/games|win|pts|opp|break|table|weeks/i.test(h) && h.length < 10);
+  // Get week date headers from the table's first meaningful header row
+  const weekDates = [];
+  allRows.forEach(row => {
+    const cells = [...row.querySelectorAll('th,td')];
+    if (cells.length > 3) {
+      const texts = cells.map(c => c.textContent.trim());
+      // Date pattern like "MAY 27" or "JUN 03"
+      if (texts.some(t => /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d+/i.test(t))) {
+        texts.slice(1).forEach(t => { if (t) weekDates.push(t); });
+      }
+    }
+  });
 
   return `
     <div style="margin-bottom:12px">
@@ -562,43 +585,25 @@ function renderTeamDetail(html, teamName) {
       ${playerRows.length ? `
       <div style="overflow-x:auto"><table class="tbl">
         <thead><tr>
-          <th>Player</th>
-          <th>Games Played</th>
-          <th>Games Won</th>
-          <th>Win %</th>
-          <th>Points</th>
-          <th>Opp. Points</th>
-          <th>BR</th>
-          <th>TR</th>
-          <th>Weeks</th>
+          <th>Player</th><th>Played</th><th>Won</th><th>Win %</th>
+          <th>Pts</th><th>Opp Pts</th><th>BR</th><th>TR</th><th>Wks</th>
         </tr></thead>
         <tbody>
-          ${playerRows.map((r,i) => {
-            // FargoRate player rows: name, weekly scores..., games played, games won, win%, pts, opp pts, br, tr, weeks
-            const name = r[0];
-            const len = r.length;
-            const weeks   = r[len-1];
-            const tr      = r[len-2];
-            const br      = r[len-3];
-            const oppPts  = r[len-4];
-            const pts     = r[len-5];
-            const winPct  = r[len-6];
-            const gWon    = r[len-7];
-            const gPlayed = r[len-8];
-            const pv = parseFloat(winPct)||0;
+          ${playerRows.map(p => {
+            const pv = parseFloat(p.winPct)||0;
             return `<tr>
-              <td style="font-weight:500;color:var(--cream)">${name}</td>
-              <td class="num" style="color:var(--text2)">${gPlayed}</td>
-              <td class="num" style="color:var(--text2)">${gWon}</td>
+              <td style="font-weight:500;color:var(--cream)">${p.name}</td>
+              <td class="num" style="color:var(--text2)">${p.gPlayed}</td>
+              <td class="num" style="color:var(--text2)">${p.gWon}</td>
               <td><div class="bar-wrap">
-                <div class="bar-track" style="width:60px"><div class="bar-fill" style="width:${pv}%;background:${winColor(winPct+'%')}"></div></div>
-                <span class="num" style="font-size:13px;color:${winColor(winPct+'%')};font-weight:600">${winPct}</span>
+                <div class="bar-track" style="width:60px"><div class="bar-fill" style="width:${pv}%;background:${winColor(p.winPct+'%')}"></div></div>
+                <span class="num" style="font-size:13px;color:${winColor(p.winPct+'%')};font-weight:600">${p.winPct}</span>
               </div></td>
-              <td class="num" style="color:var(--text2)">${pts}</td>
-              <td class="num" style="color:var(--text2)">${oppPts}</td>
-              <td class="num" style="color:${parseInt(br)>0?'var(--green2)':'var(--text2)'}">${br}</td>
-              <td class="num" style="color:${parseInt(tr)>0?'var(--green2)':'var(--text2)'}">${tr}</td>
-              <td class="num" style="color:var(--text2)">${weeks}</td>
+              <td class="num" style="color:var(--text2)">${p.pts}</td>
+              <td class="num" style="color:var(--text2)">${p.oppPts}</td>
+              <td class="num" style="color:${parseInt(p.br)>0?'var(--green2)':'var(--text2)'}">${p.br}</td>
+              <td class="num" style="color:${parseInt(p.tr)>0?'var(--green2)':'var(--text2)'}">${p.tr}</td>
+              <td class="num" style="color:var(--text2)">${p.weeks}</td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -609,14 +614,24 @@ function renderTeamDetail(html, teamName) {
     <div class="card">
       <div class="card-header">
         <span class="card-title">Season Record</span>
+        <span class="card-meta">${weekDates.length} weeks scheduled</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border)">
-        ${statRows.filter(r => r.label && r.cells[0]).map(r => `
-          <div style="background:var(--bg2);padding:14px 16px">
-            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${r.label}</div>
-            <div style="font-size:20px;font-weight:700;color:var(--cream);font-variant-numeric:tabular-nums">${r.cells[0]}</div>
-          </div>`).join('')}
-      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr>
+          <th style="min-width:140px">Stat</th>
+          ${weekDates.map(w => `<th style="text-align:center;min-width:48px">${w}</th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${statRows.map(r => `<tr>
+            <td style="font-weight:500;color:var(--cream)">${r.label}</td>
+            ${r.values.map((v,i) => {
+              const isWin = r.label.toLowerCase().includes('win') && v==='W';
+              const isLoss = r.label.toLowerCase().includes('win') && v==='L';
+              return `<td class="num" style="text-align:center;color:${isWin?'var(--green2)':isLoss?'#cc4444':'var(--text2)'}">${v||'—'}</td>`;
+            }).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
     </div>` : ''}
   `;
 }
