@@ -212,7 +212,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.31
+  &nbsp;·&nbsp; v1.32
 </footer>
 
 <script>
@@ -556,12 +556,38 @@ function renderSchedule(data) {
   }
 
   // Extract matchId from an anchor href like /PublicReport/MatchResultBCAPL?matchId=xxxx
+  // Search the node itself, its parent, and siblings for any matching link
   function extractMatchId(node) {
-    const a = node.querySelector('a[href*="matchId"]');
+    // Search in the node
+    let a = node.querySelector('a[href*="matchId"], a[href*="MatchResult"]');
+    if (!a) a = node.querySelector('a[href*="Match"]');
+    // Search in parent
+    if (!a && node.parentElement) {
+      a = node.parentElement.querySelector('a[href*="matchId"], a[href*="MatchResult"]');
+    }
+    // Search anywhere in the document for links near this node
+    if (!a) {
+      const allLinks = [...d.querySelectorAll('a[href*="matchId"], a[href*="MatchResult"]')];
+      // Find the closest link to this node
+      if (allLinks.length > 0) {
+        // We'll assign links to blocks in order later
+        return '__FIND_BY_ORDER__';
+      }
+    }
     if (!a) return null;
-    const m = a.href.match(/matchId=([a-f0-9-]{36})/i);
+    const href = a.getAttribute('href') || '';
+    const m = href.match(/matchId=([a-f0-9-]{36})/i);
     return m ? m[1] : null;
   }
+
+  // Pre-collect all matchIds in document order
+  const allMatchLinks = [...d.querySelectorAll('a[href*="matchId"], a[href*="MatchResult"]')]
+    .map(a => {
+      const href = a.getAttribute('href') || '';
+      const m = href.match(/matchId=([a-f0-9-]{36})/i);
+      return m ? m[1] : null;
+    }).filter(Boolean);
+  let matchLinkIdx = 0;
 
   const blocks = [];
   let cur = null;
@@ -574,8 +600,14 @@ function renderSchedule(data) {
     } else if (node.classList.contains('schedule-team-block') && cur) {
       const teams = [...node.querySelectorAll('.schedule-team')]
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
-      const venue   = node.querySelector('.schedule-location')?.textContent.trim() || '';
-      const matchId = extractMatchId(node);
+      const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
+      // Try direct extraction first, then fall back to sequential order
+      let matchId = extractMatchId(node);
+      if (matchId === '__FIND_BY_ORDER__') {
+        matchId = allMatchLinks[matchLinkIdx++] || null;
+      } else if (!matchId && allMatchLinks.length > matchLinkIdx) {
+        matchId = allMatchLinks[matchLinkIdx++] || null;
+      }
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
