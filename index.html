@@ -194,7 +194,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.25
+  &nbsp;·&nbsp; v1.26
 </footer>
 
 <script>
@@ -544,32 +544,37 @@ function renderTeamDetail(html, teamName) {
   const allRows = [...table.querySelectorAll('tr')];
 
   // ── Step 1: find the header row that names the stat columns ──────────────
-  // Look for a row whose cells include known column names like "Played", "Won", etc.
-  // This lets us map by name instead of fragile len-N offsets.
-  const knownStatCols = ['played','won','win%','win pct','pts','opp','br','tr','wks','weeks'];
-  let colMap = {};          // e.g. { played: 3, won: 4, winPct: 5, ... }
+  // FargoRate puts week columns first, then summary stats at the far right.
+  // We scan RIGHT-TO-LEFT so we find the summary stats, not the week opponent names.
+  const knownStatCols = ['games played','games won','win percentage','player points',
+                          'opp. points','opp points','break & run','break run',
+                          'table run','weeks played','opp. run','played','won',
+                          'win%','win pct','pct','pts','br','tr','wks','weeks'];
+  let colMap = {};
   let playerHeaderRowIdx = -1;
 
   allRows.forEach((row, ri) => {
     const cells = [...row.querySelectorAll('th,td')];
-    const texts = cells.map(c => c.textContent.trim().toLowerCase());
-    const matchCount = texts.filter(t => knownStatCols.some(k => t.includes(k))).length;
+    const texts = cells.map(c => c.textContent.replace(/\s+/g,' ').trim().toLowerCase());
+    const matchCount = texts.filter(t => knownStatCols.some(k => t === k || t.includes(k))).length;
     if (matchCount >= 3 && playerHeaderRowIdx === -1) {
       playerHeaderRowIdx = ri;
-      texts.forEach((t, ci) => {
-        if (t.includes('played') || t.includes('gp'))      colMap.played  = ci;
-        if (t.includes('won') && !t.includes('rounds'))    colMap.won     = ci;
-        if (t.includes('win') && (t.includes('%') || t.includes('pct'))) colMap.winPct = ci;
-        if (t === 'pts' || t === 'points')                 colMap.pts     = ci;
-        if (t.includes('opp'))                             colMap.opp     = ci;
-        if (t === 'br')                                    colMap.br      = ci;
-        if (t === 'tr')                                    colMap.tr      = ci;
-        if (t.includes('wk') || t.includes('week'))       colMap.weeks   = ci;
-      });
+      // Scan RIGHT-TO-LEFT so summary stats win over week column labels
+      for (let ci = texts.length - 1; ci >= 0; ci--) {
+        const t = texts[ci];
+        if ((t.includes('games played') || t === 'played') && colMap.played === undefined) colMap.played = ci;
+        if ((t.includes('games won') || (t.includes('won') && !t.includes('rounds') && !t.includes('opp'))) && colMap.won === undefined) colMap.won = ci;
+        if ((t.includes('win percentage') || t.includes('win pct') || t.includes('win%') || t === 'pct') && colMap.winPct === undefined) colMap.winPct = ci;
+        if ((t.includes('player points') || t === 'pts' || t === 'points') && colMap.pts === undefined) colMap.pts = ci;
+        if ((t.includes('opp. points') || t.includes('opp points') || (t.includes('opp') && !t.includes('run'))) && colMap.opp === undefined) colMap.opp = ci;
+        if ((t === 'br' || t.includes('break & run') || t.includes('break run')) && colMap.br === undefined) colMap.br = ci;
+        if ((t === 'tr' || t.includes('table run')) && colMap.tr === undefined) colMap.tr = ci;
+        if ((t.includes('weeks played') || t === 'wks' || (t.includes('week') && !t.includes('played') === false)) && colMap.weeks === undefined) colMap.weeks = ci;
+      }
     }
   });
 
-  // Fallback: if header detection failed, use the old len-N offsets
+  // Fallback: if header detection failed, use end-offsets
   const useFallback = Object.keys(colMap).length < 3;
 
   // ── Step 2: find week-date header row ─────────────────────────────────────
@@ -669,14 +674,16 @@ function renderTeamDetail(html, teamName) {
         </tr></thead>
         <tbody>
           ${playerRows.map(p => {
-            const pv = parseFloat(p.winPct)||0;
+            const pv = parseFloat(p.winPct)||0;  // works whether value is "48%" or "48" or "0.48"
+            const pvNorm = pv > 1 ? pv : pv * 100; // normalise to 0-100 for bar width
+            const pvStr = p.winPct.includes('%') ? p.winPct : pvNorm.toFixed(0) + '%';
             return `<tr>
               <td style="font-weight:500;color:var(--cream)">${p.name}</td>
               <td class="num" style="color:var(--text2)">${p.gPlayed}</td>
               <td class="num" style="color:var(--text2)">${p.gWon}</td>
               <td><div class="bar-wrap">
-                <div class="bar-track" style="width:60px"><div class="bar-fill" style="width:${pv}%;background:${winColor(p.winPct+'%')}"></div></div>
-                <span class="num" style="font-size:13px;color:${winColor(p.winPct+'%')};font-weight:600">${p.winPct}</span>
+                <div class="bar-track" style="width:60px"><div class="bar-fill" style="width:${pvNorm}%;background:${winColor(pvNorm+'%')}"></div></div>
+                <span class="num" style="font-size:13px;color:${winColor(pvNorm+'%')};font-weight:600">${pvStr}</span>
               </div></td>
               <td class="num" style="color:var(--text2)">${p.pts}</td>
               <td class="num" style="color:var(--text2)">${p.oppPts}</td>
