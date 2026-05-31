@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.37
+  &nbsp;·&nbsp; v1.38
 </footer>
 
 <script>
@@ -577,14 +577,11 @@ function renderSchedule(data) {
       const teams = [...node.querySelectorAll('.schedule-team')]
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
       const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
-      // Try to find matchId directly in this node first, then fall back to sequential
+      // matchId is in data-url attribute on the schedule-team-block div
       let matchId = null;
-      const a = node.querySelector('a[href*="matchId"], a[href*="MatchResult"]');
-      if (a) {
-        const m = (a.getAttribute('href')||'').match(/matchId=([a-f0-9-]{36})/i);
-        matchId = m ? m[1] : null;
-      }
-      if (!matchId) matchId = allMatchLinks[matchLinkIdx++] || null;
+      const dataUrl = node.getAttribute('data-url') || '';
+      const mu = dataUrl.match(/matchId=([a-f0-9-]{36})/i);
+      if (mu) matchId = mu[1];
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
