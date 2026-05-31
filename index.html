@@ -112,6 +112,24 @@
     .match-label { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
     .vs-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .vs-chip { background: var(--bg4); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: .05em; }
+    .result-btn {
+      background: var(--bg3);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+      letter-spacing: 0.03em;
+    }
+    .result-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
     .venue-label { font-size: 10px; color: var(--text3); text-align: center; }
 
     /* ── Spinner ── */
@@ -194,7 +212,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.29
+  &nbsp;·&nbsp; v1.30
 </footer>
 
 <script>
@@ -516,12 +534,33 @@ function renderSchedule(data) {
   const d = document.createElement('div');
   d.innerHTML = data.html;
 
-  // FargoRate returns structured HTML with classes:
-  // .schedule-date, .schedule-team-block, .schedule-team, .schedule-location
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Parse date string "M/D/YYYY" into a Date
+  function parseDate(str) {
+    try { const p = str.split('/'); return new Date(p[2], p[0]-1, p[1]); }
+    catch(e) { return null; }
+  }
+
+  function fmtDate(str) {
+    const dt = parseDate(str);
+    if (!dt) return str;
+    return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  }
+
+  // Extract matchId from an anchor href like /PublicReport/MatchResultBCAPL?matchId=xxxx
+  function extractMatchId(node) {
+    const a = node.querySelector('a[href*="matchId"]');
+    if (!a) return null;
+    const m = a.href.match(/matchId=([a-f0-9-]{36})/i);
+    return m ? m[1] : null;
+  }
+
   const blocks = [];
   let cur = null;
-
   const container = d.querySelector('#schedule-list') || d;
+
   [...container.children].forEach(node => {
     if (node.classList.contains('schedule-date')) {
       cur = { date: node.textContent.trim(), matches: [] };
@@ -529,24 +568,19 @@ function renderSchedule(data) {
     } else if (node.classList.contains('schedule-team-block') && cur) {
       const teams = [...node.querySelectorAll('.schedule-team')]
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
-      const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
-      if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue });
+      const venue   = node.querySelector('.schedule-location')?.textContent.trim() || '';
+      const matchId = extractMatchId(node);
+      if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
 
   if (!blocks.length) return notice('No schedule data found.');
 
-  function fmtDate(str) {
-    try {
-      const p = str.split('/');
-      return new Date(p[2], p[0]-1, p[1]).toLocaleDateString('en-US',
-        { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-    } catch(e) { return str; }
-  }
-
   return `<div style="display:flex;flex-direction:column;gap:10px">
     ${blocks.map(block => {
       if (!block.matches.length) return '';
+      const dt     = parseDate(block.date);
+      const isPast = dt && dt < today;
       return `<div class="sched-block">
         <div class="sched-date-hdr">
           <span>${fmtDate(block.date)}</span>
@@ -562,6 +596,9 @@ function renderSchedule(data) {
               <div class="vs-col">
                 <div class="vs-chip">VS</div>
                 ${m.venue ? `<div class="venue-label">${m.venue}</div>` : ''}
+                ${isPast && m.matchId
+                  ? `<button class="result-btn" onclick="loadMatchResult('${m.matchId}','${m.home} vs ${m.away}')">📋 Results</button>`
+                  : isPast ? `<div class="venue-label" style="color:var(--text3);font-style:italic">No results</div>` : ''}
               </div>
               <div class="match-away">
                 <div class="match-name" style="color:var(--cream)">${m.away}</div>
@@ -572,6 +609,117 @@ function renderSchedule(data) {
       </div>`;
     }).join('')}
   </div>`;
+}
+
+/* ── Match Result ── */
+async function loadMatchResult(matchId, title) {
+  // Store schedule HTML so we can go back
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom:12px">
+      <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
+        ← Back to Schedule
+      </button>
+    </div>
+    <div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading results…</div></div>`;
+
+  try {
+    const url = `https://lms.fargorate.com/PublicReport/MatchResultBCAPL?matchId=${matchId}`;
+    const r   = await fetch(PROXY + encodeURIComponent(url));
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const html = await r.text();
+    document.getElementById('content').innerHTML =
+      renderMatchResult(html, title) +
+      `<div style="margin-top:16px">
+        <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
+          ← Back to Schedule
+        </button>
+      </div>`;
+  } catch(e) {
+    document.getElementById('content').innerHTML = notice(`Could not load match results: ${e.message}`);
+  }
+}
+
+function renderMatchResult(html, title) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+
+  // FargoRate match result page has rounds with player matchups
+  // Extract round sections
+  const rounds = [];
+  let out = '';
+
+  // Try to pull title from page
+  const pageTitle = d.querySelector('.header-logo')?.textContent.trim() || title;
+
+  // Get all tables — each round is typically a table or section
+  const tables = [...d.querySelectorAll('table')];
+
+  // Detect round header rows and player rows
+  tables.forEach((table, ti) => {
+    const rows = [...table.querySelectorAll('tr')];
+    if (!rows.length) return;
+
+    // Check if this looks like a round table (has player names + HDCP + SCORE columns)
+    const headerText = rows[0]?.textContent || '';
+    const hasHdcp    = /hdcp|handicap/i.test(headerText);
+    const hasScore   = /score/i.test(headerText);
+    if (!hasHdcp && !hasScore) return;
+
+    const roundLabel = d.querySelectorAll('h3,h4,.round-header')[ti]?.textContent.trim()
+                    || `Round ${ti + 1}`;
+
+    let roundHtml = `<div class="card" style="margin-bottom:14px">
+      <div class="card-header"><span class="card-title">${roundLabel}</span></div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr>
+          <th style="min-width:140px">Home</th>
+          <th style="text-align:center">HDCP</th>
+          <th style="text-align:center">Score</th>
+          <th style="text-align:center">H</th>
+          <th style="text-align:center">A</th>
+          <th style="text-align:center">Score</th>
+          <th style="text-align:center">HDCP</th>
+          <th style="min-width:140px;text-align:right">Away</th>
+        </tr></thead>
+        <tbody>`;
+
+    rows.slice(1).forEach(row => {
+      const cells = [...row.querySelectorAll('td')];
+      if (cells.length < 4) return;
+      const vals = cells.map(c => c.textContent.trim());
+      // Skip totals/header rows
+      if (/total|handicap|round/i.test(vals[0])) {
+        roundHtml += `<tr style="background:var(--bg3)">
+          <td colspan="8" style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:6px 12px">${vals[0]}</td>
+        </tr>`;
+        return;
+      }
+      roundHtml += `<tr>${vals.map((v,i) => {
+        const isName = i === 0 || i === vals.length - 1;
+        const align  = i === vals.length - 1 ? 'right' : i === 0 ? 'left' : 'center';
+        return `<td style="text-align:${align};${isName ? 'color:var(--cream);font-weight:600' : 'color:var(--text2)'}">${v||'—'}</td>`;
+      }).join('')}</tr>`;
+    });
+
+    roundHtml += `</tbody></table></div></div>`;
+    out += roundHtml;
+  });
+
+  if (!out) {
+    // Fallback: just show the raw content in a card
+    const body = d.querySelector('body') || d;
+    // Strip scripts/styles
+    [...body.querySelectorAll('script,style,header,nav')].forEach(el => el.remove());
+    out = `<div class="card"><div style="padding:8px;font-size:13px;color:var(--text2);line-height:1.6">${body.innerHTML}</div></div>`;
+  }
+
+  return `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <span class="card-title" style="color:var(--cream)">${pageTitle}</span>
+      </div>
+    </div>
+    ${out}`;
 }
 
 function notice(msg) {
@@ -739,7 +887,7 @@ function renderTeamDetail(html, teamName) {
       ${playerRows.length ? `
       <div style="overflow-x:auto"><table class="tbl">
         <thead><tr>
-          <th>Player</th><th>Played</th><th>Won</th><th>Win %</th>
+          <th>Player</th><th>Played</th><th>W/L</th><th>Win %</th>
           <th>Pts</th><th>Opp Pts</th><th>BR</th><th>TR</th><th>Wks</th>
         </tr></thead>
         <tbody>
