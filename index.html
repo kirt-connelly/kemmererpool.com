@@ -20,8 +20,8 @@
       --text:       #c8d8f0;
       --text2:      #7a90b0;
       --text3:      #3d5070;
-      --gold:       #d4af37;
-      --gold2:      #f0cc60;
+      --gold:       #3dd5e8;
+      --gold2:      #7ae8f5;
       --green:      #1a7a4a;
       --green2:     #22a060;
       --green3:     #3ecf8e;
@@ -70,7 +70,7 @@
     .league-name {
       font-family: 'Playfair Display', serif;
       font-size: 28px; font-weight: 900;
-      color: var(--gold); letter-spacing: -.01em; line-height: 1.1;
+      color: var(--teal3); letter-spacing: -.01em; line-height: 1.1;
     }
     .league-sub {
       font-size: 11px; color: var(--text3);
@@ -101,7 +101,7 @@
     .ltab:hover:not(.active) { color: var(--text2); background: var(--bg3); }
     .ltab.active {
       background: var(--teal);
-      color: #fff;
+      color: #e8feff;
       border-color: var(--teal2);
     }
     .ltab .badge-new {
@@ -146,7 +146,7 @@
     }
     .card-title {
       font-family: 'Playfair Display', serif;
-      font-size: 18px; font-weight: 700; color: var(--gold);
+      font-size: 18px; font-weight: 700; color: var(--teal3);
     }
     .card-meta { font-size: 12px; color: var(--text3); }
 
@@ -188,7 +188,7 @@
       font-size: 10px; font-weight: 700; letter-spacing: .06em;
       text-transform: uppercase; padding: 2px 8px; border-radius: 99px;
     }
-    .tier-elite    { background: #1a1200; border: 1px solid #4a3000; color: #d4af37; }
+    .tier-elite    { background: #051e22; border: 1px solid #0e5560; color: var(--teal3); }
     .tier-adv      { background: #0a1e14; border: 1px solid #1a4a2e; color: var(--green3); }
     .tier-int      { background: #0a1428; border: 1px solid #1a3060; color: var(--blue3); }
     .tier-dev      { background: #111828; border: 1px solid #1c2c40; color: var(--teal3); }
@@ -204,7 +204,6 @@
       padding: 9px 16px; background: var(--bg);
       border: 1px solid var(--border); border-radius: var(--radius-sm) var(--radius-sm) 0 0;
       font-size: 12px; font-weight: 700; color: var(--teal3);
-      letter-spacing: .04em; text-transform: uppercase;
     }
     .week-header span { color: var(--text3); font-weight: 400; letter-spacing: 0; }
     .match-row {
@@ -346,7 +345,7 @@
 
 <script>
 /* ─── Config ─────────────────────────────────────────────────────────────── */
-const PROXY = '/proxy?url=';   // Cloudflare Worker on same domain
+const PROXY = '/proxy?url=';   // Cloudflare Pages Function at /functions/proxy.js
 const BASE  = 'https://lms.fargorate.com/PublicReport';
 
 const DIVISIONS = {
@@ -681,4 +680,3 @@ loadView();
 </script>
 </body>
 </html>
- 
