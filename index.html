@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.62
+  &nbsp;·&nbsp; v1.63
 </footer>
 
 <script>
@@ -715,8 +715,7 @@ function renderMatchResult(html, title) {
     let rows = '';
     let roundWins1 = 0, roundWins2 = 0;
     let roundPts1  = 0, roundPts2  = 0;
-    let roundRatingSum1 = 0, roundRatingSum2 = 0;
-    let roundPlayerCount1 = 0, roundPlayerCount2 = 0;
+
 
     games.forEach((game, gi_idx) => {
       // Player names — first selected option from each team's select
@@ -802,14 +801,6 @@ function renderMatchResult(html, title) {
       const aw1 = adornWin1 || w1;
       const aw2 = adornWin2 || w2;
 
-      // Accumulate player ratings for round-level handicap calculation
-      const pgR1 = parseInt(game.querySelector('select.team-one-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-      const pgR2 = parseInt(game.querySelector('select.team-two-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-      roundRatingSum1 += pgR1;
-      roundRatingSum2 += pgR2;
-      roundPlayerCount1++;
-      roundPlayerCount2++;
-
       rows += `<tr>
           <td style="color:var(--cream);font-weight:600">
             <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${p1}
@@ -829,15 +820,17 @@ function renderMatchResult(html, title) {
     // 8-ball  (maxScore>1): show total points + round handicap
     const use8BallScoring = maxScore > 1;
 
-    // 8-ball: compute round-level handicap from combined team Fargo ratings
-    // Handicap = floor(|teamRatingSum1 - teamRatingSum2| / 100), given to lower team
-    const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
-    const roundRatingDiff = Math.abs(roundRatingSum1 - roundRatingSum2);
-    const roundHdcpAmt = use8BallScoring ? Math.min(Math.floor(roundRatingDiff / 100), maxHdcp) : 0;
-    const team1GetsHdcp = use8BallScoring && roundRatingSum1 < roundRatingSum2 && roundHdcpAmt > 0;
-    const team2GetsHdcp = use8BallScoring && roundRatingSum2 < roundRatingSum1 && roundHdcpAmt > 0;
-    const adjPts1 = roundPts1 + (team1GetsHdcp ? roundHdcpAmt : 0);
-    const adjPts2 = roundPts2 + (team2GetsHdcp ? roundHdcpAmt : 0);
+    // 8-ball: read handicap directly from FargoRate's own DOM elements
+    // FargoRate computes this via lookup table — trust their values, don't recalculate
+    const hdcpEl1 = d.querySelector(`.round-applied-handicap[data-round="${rn}"][data-team="1"]`);
+    const hdcpEl2 = d.querySelector(`.round-applied-handicap[data-round="${rn}"][data-team="2"]`);
+    const rawHdcp1 = parseInt((hdcpEl1?.textContent || '0').replace(/[^0-9-]/g,'')) || 0;
+    const rawHdcp2 = parseInt((hdcpEl2?.textContent || '0').replace(/[^0-9-]/g,'')) || 0;
+    const roundHdcpAmt = Math.max(rawHdcp1, rawHdcp2);
+    const team1GetsHdcp = use8BallScoring && rawHdcp1 > 0;
+    const team2GetsHdcp = use8BallScoring && rawHdcp2 > 0;
+    const adjPts1 = roundPts1 + (team1GetsHdcp ? rawHdcp1 : 0);
+    const adjPts2 = roundPts2 + (team2GetsHdcp ? rawHdcp2 : 0);
 
     const tot1 = use8BallScoring ? adjPts1 : roundWins1;
     const tot2 = use8BallScoring ? adjPts2 : roundWins2;
