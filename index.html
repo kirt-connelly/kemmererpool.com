@@ -233,7 +233,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.80
+  &nbsp;·&nbsp; v1.81
 </footer>
 
 <script>
@@ -974,11 +974,6 @@ function renderMatchResult(html, title) {
   }
 
   const use8BallFinal = maxScore > 1;
-
-  // The match total (4–12) is itself a "round" — award it a round win too
-  if (matchWins1 > matchWins2)      { matchRoundWins1 += 1; }
-  else if (matchWins2 > matchWins1) { matchRoundWins2 += 1; }
-  else if (matchWins1 > 0)          { matchRoundWins1 += 0.5; matchRoundWins2 += 0.5; }
 
   const fin1 = use8BallFinal ? matchTotal1 : matchWins1;
   const fin2 = use8BallFinal ? matchTotal2 : matchWins2;
