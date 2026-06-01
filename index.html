@@ -213,7 +213,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.72
+  &nbsp;·&nbsp; v1.73
 </footer>
 
 <script>
@@ -390,7 +390,9 @@ function renderPlayers(data) {
               <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
             </div></td>`;
           }
-          return `<td class="num" style="color:var(--text2)">${cell}</td>`;
+          const hdr = t.headers[ci] || '';
+          const isAccolade = /^(brs|trs|wzs|wbs|cws|pms)$/i.test(hdr) && parseInt(cell) > 0;
+          return `<td class="num" style="color:${isAccolade?'var(--green2)':'var(--text2)'}${isAccolade?';font-weight:700':''}">${cell}</td>`;
         }).join('')}
       </tr>`).join('')}</tbody>
     </table></div>
