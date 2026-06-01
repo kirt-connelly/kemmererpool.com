@@ -233,7 +233,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.79
+  &nbsp;·&nbsp; v1.80
 </footer>
 
 <script>
@@ -1341,11 +1341,12 @@ function switchLeague(lg) {
   ['10ball','8ball','events'].forEach(k => {
     const el = document.getElementById(`ltab-${k}`);
     el.classList.toggle('active', k===lg);
-    // Dim the inactive league (not events tab)
     if (k !== 'events') {
       el.classList.toggle('inactive-league', k !== lg && lg !== 'events');
     }
   });
+  // Hide view-bar tabs when on Events — they're league-specific
+  document.querySelector('.view-bar').style.display = lg === 'events' ? 'none' : '';
   if (lg === 'events') {
     document.getElementById('content').innerHTML = renderEvents();
     return;
