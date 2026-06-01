@@ -163,6 +163,23 @@
       .bar-track { width: 50px !important; }
     }
 
+    /* ── Lightbox ── */
+    .lightbox-overlay {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,.88); align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .lightbox-overlay.open { display: flex; }
+    .lightbox-overlay img {
+      max-width: 92vw; max-height: 92vh; border-radius: var(--radius);
+      box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
+    }
+    .lightbox-close {
+      position: fixed; top: 18px; right: 22px; font-size: 28px; color: #fff;
+      cursor: pointer; line-height: 1; opacity: .8; z-index: 1001;
+    }
+    .lightbox-close:hover { opacity: 1; }
+
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
     footer a { color: var(--text2); text-decoration: none; }
@@ -216,7 +233,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.74
+  &nbsp;·&nbsp; v1.76
 </footer>
 
 <script>
@@ -1273,21 +1290,15 @@ function renderEvents() {
         </tr></thead>
         <tbody>
           <tr>
-            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 3–4, 2026</td>
-            <td style="color:var(--text2)">Evanston, WY</td>
-            <td style="text-align:center;color:var(--text3)">—</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Kemmerer Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 31–Feb 1, 2026</td>
+            <td style="font-weight:600;color:var(--cream)">Kemmerer Year End</td>
+            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 25–26, 2026</td>
             <td style="color:var(--text2)">Kemmerer, WY</td>
             <td style="text-align:center;color:var(--text3)">—</td>
           </tr>
           <tr>
             <td style="font-weight:600;color:var(--cream)">AMOW Wyoming State Championships</td>
             <td class="num" style="color:var(--text2);white-space:nowrap">Mar 16–22, 2026</td>
-            <td style="color:var(--text2)">Wyoming</td>
+            <td style="color:var(--text2)">Casper, WY</td>
             <td style="text-align:center">
               <a href="https://www.playcsipool.com/2026-amow-wyoming-8ball-championships.html" target="_blank" rel="noopener"
                  style="color:var(--green2);font-size:12px;font-weight:600;text-decoration:none"
@@ -1295,16 +1306,28 @@ function renderEvents() {
             </td>
           </tr>
           <tr>
-            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
+            <td style="font-weight:600;color:var(--cream)">Bridger Valley Tri City</td>
             <td class="num" style="color:var(--text2);white-space:nowrap">Feb 28–Mar 1, 2026</td>
-            <td style="color:var(--text2)">Evanston, WY</td>
-            <td style="text-align:center;color:var(--text3)">—</td>
+            <td style="color:var(--text2)">Bridger Valley, WY</td>
+            <td style="text-align:center">
+              <button onclick="openLightbox('bridgervalley.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
+            </td>
           </tr>
           <tr>
-            <td style="font-weight:600;color:var(--cream)">Kemmerer Year End</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 25–26, 2026</td>
+            <td style="font-weight:600;color:var(--cream)">Red Short Memorial Tri City</td>
+            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 31–Feb 1, 2026</td>
             <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center;color:var(--text3)">—</td>
+            <td style="text-align:center">
+              <button onclick="openLightbox('kemmerer.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
+            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 3–4, 2026</td>
+            <td style="color:var(--text2)">Evanston, WY</td>
+            <td style="text-align:center">
+              <button onclick="openLightbox('evanston.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
+            </td>
           </tr>
         </tbody>
       </table></div>
@@ -1350,6 +1373,24 @@ async function loadView() {
 }
 
 loadView();
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close" onclick="closeLightbox()">✕</span>
+  <img id="lightbox-img" src="" alt="Tournament flyer" onclick="event.stopPropagation()">
+</div>
+
 </body>
 </html>
