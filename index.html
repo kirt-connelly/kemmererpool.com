@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kemmerer Pool League</title>
   <meta name="description" content="Official standings, player stats, and schedule for the Kemmerer Pool League." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -233,7 +234,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.83
+  &nbsp;·&nbsp; v1.84
 </footer>
 
 <script>
@@ -634,7 +635,7 @@ function renderSchedule(data) {
     ${blocks.map(block => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
-      const isPast = dt && dt < today;
+      const isPast = dt && dt <= today;
       return `<div class="sched-block">
         <div class="sched-date-hdr">
           <span>${fmtDate(block.date)}</span>
