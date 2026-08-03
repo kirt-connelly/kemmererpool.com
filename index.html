@@ -25,8 +25,30 @@
       --green:     #27855a;
       --green2:    #32a870;
       --felt:      repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px);
+      --loss:      #cc4444;
+      --on-accent: #ffffff;
+      --overlay:   rgba(0,0,0,.88);
       --radius:    8px;
       --radius-sm: 5px;
+    }
+    html[data-theme="light"] {
+      --bg:        #f5f3ef;
+      --bg2:       #ffffff;
+      --bg3:       #eae6df;
+      --bg4:       #ddd8ce;
+      --border:    #d6d0c5;
+      --border2:   #bcb4a6;
+      --text:      #1a1714;
+      --text2:     #5a5348;
+      --text3:     #8b8376;
+      --accent:    #1f6b48;
+      --accent-dim:#175038;
+      --cream:     #2b2419;
+      --green:     #1f6b48;
+      --green2:    #1a7a4e;
+      --loss:      #b23636;
+      --on-accent: #ffffff;
+      --overlay:   rgba(0,0,0,.72);
     }
     html { scroll-behavior: smooth; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
@@ -50,6 +72,9 @@
     .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .live-pill.live .dot { background: var(--green2); }
     .live-pill.demo .dot { background: var(--text3); }
+    .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: background .15s, color .15s; }
+    .theme-btn:hover { background: var(--bg4); color: var(--text); }
+    .header-right-row { display: flex; align-items: center; gap: 8px; }
     .refresh-note { font-size: 10px; color: var(--text3); white-space: nowrap; }
 
     /* ── League tabs ── */
@@ -59,7 +84,7 @@
     .ltab.inactive-league { color: var(--text2); background: var(--bg3); }
     .ltab.inactive-league:hover { color: var(--text); background: var(--bg4); }
     .ltab.active { background: var(--bg); color: var(--text); border-color: var(--border); border-bottom-color: var(--bg); position: relative; bottom: -1px; font-weight: 600; }
-    .ltab .badge { font-size: 9px; background: var(--green); color: #fff; border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
+    .ltab .badge { font-size: 9px; background: var(--green); color: var(--on-accent); border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
 
     /* ── View tabs ── */
     .view-bar { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; overflow-x: auto; }
@@ -115,7 +140,7 @@
     .match-name { font-size: 14px; font-weight: 700; color: var(--cream); line-height: 1.2; }
     .match-label { font-size: 10px; color: var(--text3); margin-top: 3px; letter-spacing: .06em; text-transform: uppercase; }
     .vs-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; color: #fff; letter-spacing: .08em; }
+    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; color: var(--on-accent); letter-spacing: .08em; }
     .result-btn {
       background: var(--bg3);
       border: 1px solid var(--accent);
@@ -132,7 +157,7 @@
     }
     .result-btn:hover {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
     .venue-label { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500; }
 
@@ -167,7 +192,7 @@
     /* ── Lightbox ── */
     .lightbox-overlay {
       display: none; position: fixed; inset: 0; z-index: 1000;
-      background: rgba(0,0,0,.88); align-items: center; justify-content: center;
+      background: var(--overlay); align-items: center; justify-content: center;
       cursor: pointer;
     }
     .lightbox-overlay.open { display: flex; }
@@ -176,7 +201,7 @@
       box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
     }
     .lightbox-close {
-      position: fixed; top: 18px; right: 22px; font-size: 28px; color: #fff;
+      position: fixed; top: 18px; right: 22px; font-size: 28px; color: var(--on-accent);
       cursor: pointer; line-height: 1; opacity: .8; z-index: 1001;
     }
     .lightbox-close:hover { opacity: 1; }
@@ -200,7 +225,10 @@
         </div>
       </div>
       <div class="header-right">
-        <div id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</div>
+        <div class="header-right-row">
+          <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle light or dark theme">🌙</button>
+          <div id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</div>
+        </div>
         <div class="refresh-note" id="refresh-note"></div>
       </div>
     </div>
@@ -234,7 +262,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.86
+  &nbsp;·&nbsp; v1.87
 </footer>
 
 <script>
@@ -252,7 +280,34 @@ const VIEWS = {
   schedule: { url: ()  => `${BASE}/GenerateDivisionScheduleReport`,           method: 'POST', body: id => `divisionId=${id}` },
 };
 
-let league = '10ball', view = 'teams', cache = {}, isLive = null;
+let league = '10ball', view = 'teams', cache = {}, isLive = null, inDrillDown = false;
+
+/* ── Theme ── */
+function isLightTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light';
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
+}
+function toggleTheme() {
+  applyTheme(isLightTheme() ? 'dark' : 'light');
+  // Win% / Fargo bars are generated as inline HSL, so re-render to re-tint them.
+  // Skipped while drilled into a match or team so the user isn't bounced out.
+  if (league === 'events') document.getElementById('content').innerHTML = renderEvents();
+  else if (!inDrillDown) loadView();
+}
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
+  if (saved !== 'light' && saved !== 'dark') {
+    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
+})();
 
 function setStatus(live) {
   if (isLive === live) return;
@@ -329,11 +384,11 @@ function findWinPctIdx(headers) {
 
 function winColor(pctStr) {
   const v = Math.min(Math.max(parseFloat(pctStr)/100, 0), 1);
-  return `hsl(${Math.round(v*130)},55%,42%)`;
+  return `hsl(${Math.round(v*130)},${isLightTheme()?62:55}%,${isLightTheme()?36:42}%)`;
 }
 function fargoColor(rating) {
   const pct = Math.min((parseInt(rating)||0)/800, 1);
-  return `hsl(${Math.round(pct*100+20)},55%,48%)`;
+  return `hsl(${Math.round(pct*100+20)},${isLightTheme()?62:55}%,${isLightTheme()?38:48}%)`;
 }
 
 /* ── Teams ── */
@@ -672,6 +727,7 @@ function renderSchedule(data) {
 
 /* ── Match Result ── */
 async function loadMatchResult(matchId, title) {
+  inDrillDown = true;
   // Store schedule HTML so we can go back
   document.getElementById('content').innerHTML = `
     <div style="margin-bottom:12px">
@@ -853,9 +909,9 @@ function renderMatchResult(html, title) {
             <div style="${nameStyle}"><span style="${dotStyle(db1a)};margin-right:5px">●</span>${dp1a}</div>
             <div style="${nameStyle}"><span style="${dotStyle(db1b)};margin-right:5px">●</span>${dp1b}</div>
           </td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'#cc4444':'var(--text2)'}">${s1}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'var(--loss)':'var(--text2)'}">${s1}</td>
           <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'#cc4444':'var(--text2)'}">${s2}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'var(--loss)':'var(--text2)'}">${s2}</td>
           <td style="text-align:right;padding-bottom:2px">
             <div style="${nameStyle}">${dp2a}<span style="${dotStyle(db2a)};margin-left:5px">●</span></div>
             <div style="${nameStyle}">${dp2b}<span style="${dotStyle(db2b)};margin-left:5px">●</span></div>
@@ -863,8 +919,8 @@ function renderMatchResult(html, title) {
         </tr>`;
       } else {
         // Display adornment codes as green badges
-      const displayS1 = adornWin1 ? `<span style="font-size:11px;background:var(--green);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700">${s1}</span>` : s1;
-      const displayS2 = adornWin2 ? `<span style="font-size:11px;background:var(--green);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700">${s2}</span>` : s2;
+      const displayS1 = adornWin1 ? `<span style="font-size:11px;background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s1}</span>` : s1;
+      const displayS2 = adornWin2 ? `<span style="font-size:11px;background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s2}</span>` : s2;
       const aw1 = adornWin1 || w1;
       const aw2 = adornWin2 || w2;
 
@@ -878,9 +934,9 @@ function renderMatchResult(html, title) {
           <td style="color:var(--cream);font-weight:600">
             <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${p1}
           </td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw1?'var(--green2)':aw2?'#cc4444':'var(--text2)'}">${displayS1}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw1?'var(--green2)':aw2?'var(--loss)':'var(--text2)'}">${displayS1}</td>
           <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw2?'var(--green2)':aw1?'#cc4444':'var(--text2)'}">${displayS2}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw2?'var(--green2)':aw1?'var(--loss)':'var(--text2)'}">${displayS2}</td>
           <td style="text-align:right;color:var(--cream);font-weight:600">
             ${p2}<span style="color:${broke2?'var(--green2)':'var(--border2)'};font-size:9px;margin-left:5px">●</span>
           </td>
@@ -943,9 +999,9 @@ function renderMatchResult(html, title) {
       : (!totW1 ? ` <span style="font-size:11px;font-weight:600;color:var(--text2)">(T)</span>` : '');
     rows += `<tr style="background:var(--bg);border-top:2px solid var(--accent)">
       <td style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
-      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW1?'var(--green2)':totW2?'#cc4444':'var(--text2)'}">${tot1}${tag1}</td>
+      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW1?'var(--green2)':totW2?'var(--loss)':'var(--text2)'}">${tot1}${tag1}</td>
       <td></td>
-      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW2?'var(--green2)':totW1?'#cc4444':'var(--text2)'}">${tot2}${tag2}</td>
+      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW2?'var(--green2)':totW1?'var(--loss)':'var(--text2)'}">${tot2}${tag2}</td>
       <td style="font-size:11px;text-align:right">${roundLabel}</td>
     </tr>`;
 
@@ -1002,18 +1058,18 @@ function renderMatchResult(html, title) {
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px">
       <span style="font-weight:700;color:var(--cream);font-size:15px">${team1}</span>
       <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:26px;font-weight:800;color:${mw1?'var(--green2)':mw2?'#cc4444':'var(--text2)'}">${fin1}${finTag1}</span>
+        <span style="font-size:26px;font-weight:800;color:${mw1?'var(--green2)':mw2?'var(--loss)':'var(--text2)'}">${fin1}${finTag1}</span>
         <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">TOTAL<br>GAMES</span>
-        <span style="font-size:26px;font-weight:800;color:${mw2?'var(--green2)':mw1?'#cc4444':'var(--text2)'}">${fin2}${finTag2}</span>
+        <span style="font-size:26px;font-weight:800;color:${mw2?'var(--green2)':mw1?'var(--loss)':'var(--text2)'}">${fin2}${finTag2}</span>
       </div>
       <span style="font-weight:700;color:var(--cream);font-size:15px">${team2}</span>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;border-top:1px solid var(--border)">
       <span style="font-size:12px;color:var(--text3)"></span>
       <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:26px;font-weight:800;color:${rwWin1?'var(--green2)':rwWin2?'#cc4444':'var(--text2)'}">${rw1str}</span>
+        <span style="font-size:26px;font-weight:800;color:${rwWin1?'var(--green2)':rwWin2?'var(--loss)':'var(--text2)'}">${rw1str}</span>
         <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">ROUNDS<br>WON</span>
-        <span style="font-size:26px;font-weight:800;color:${rwWin2?'var(--green2)':rwWin1?'#cc4444':'var(--text2)'}">${rw2str}</span>
+        <span style="font-size:26px;font-weight:800;color:${rwWin2?'var(--green2)':rwWin1?'var(--loss)':'var(--text2)'}">${rw2str}</span>
       </div>
       <span style="font-size:12px;color:var(--text3)"></span>
     </div>
@@ -1042,6 +1098,7 @@ function notice(msg) {
 
 /* ── Team Detail ── */
 async function loadTeamDetail(teamId, teamName) {
+  inDrillDown = true;
   const url = `https://lms.fargorate.com/PublicReport/DivisionTeamReportBCAPL?teamId=${teamId}`;
   document.getElementById('content').innerHTML =
     `<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading ${teamName}…</div></div>`;
@@ -1246,7 +1303,7 @@ function renderTeamDetail(html, teamName) {
               const isWL  = /win|w\/l|result/i.test(r.label);
               const isW   = isWL && /^w$/i.test(v);
               const isL   = isWL && /^l$/i.test(v);
-              const color = isW ? 'var(--green2)' : isL ? '#cc4444' : 'var(--text2)';
+              const color = isW ? 'var(--green2)' : isL ? 'var(--loss)' : 'var(--text2)';
               return `<td class="num" style="text-align:center;color:${color};font-weight:${isW||isL?'700':'400'}">${v||'—'}</td>`;
             }).join('')}
           </tr>`).join('')}
@@ -1264,12 +1321,40 @@ function renderEvents() {
       <div class="card-header">
         <span class="card-title">Upcoming Events</span>
       </div>
-      <div style="padding:20px">
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr>
+          <th>Event</th>
+          <th>Date</th>
+          <th>Location</th>
+          <th style="text-align:center">Info</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
+            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
+            <td style="color:var(--text2)">Evanston, WY</td>
+            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">Red Short Memorial Tri City</td>
+            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
+            <td style="color:var(--text2)">Kemmerer, WY</td>
+            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">Bridger Valley Tri City</td>
+            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
+            <td style="color:var(--text2)">Bridger Valley, WY</td>
+            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div style="padding:20px;border-top:1px solid var(--border)">
         <p style="color:var(--text2);font-size:14px;line-height:1.8;margin-bottom:16px">
-          Check with Jenkins Music &amp; Vending for upcoming tournaments, the Jenkins Cup, and other league events.
+          Dates and details are still being finalized. Check with Jenkins Music &amp; Vending for upcoming tournaments, the Jenkins Cup, and other league events.
         </p>
         <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:opacity .15s"
+           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:opacity .15s"
            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
           🎱 Jenkins Music &amp; Vending — Leagues &amp; Tournaments ↗
         </a>
@@ -1387,6 +1472,7 @@ function switchView(vw) {
 }
 
 async function loadView() {
+  inDrillDown = false;
   document.getElementById('content').innerHTML =
     `<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading…</div></div>`;
   const data = await fetchSection(league, view);
