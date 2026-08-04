@@ -74,8 +74,7 @@
     .live-pill.demo .dot { background: var(--text3); }
     .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: background .15s, color .15s; }
     .theme-btn:hover { background: var(--bg4); color: var(--text); }
-    .header-right-row { display: flex; align-items: center; gap: 8px; }
-    .refresh-note { font-size: 10px; color: var(--text3); white-space: nowrap; }
+    .refresh-note { font-size: 11px; color: var(--text3); }
 
     /* ── League tabs ── */
     .league-tabs { display: flex; gap: 3px; padding-top: 14px; }
@@ -232,6 +231,8 @@
 
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
+    .footer-inner { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+    .footer-meta { margin-top: 4px; line-height: 1.9; }
     footer a { color: var(--text2); text-decoration: none; }
     footer a:hover { color: var(--text); }
   </style>
@@ -249,11 +250,7 @@
         </div>
       </div>
       <div class="header-right">
-        <div class="header-right-row">
-          <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle light or dark theme">🌙</button>
-          <div id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</div>
-        </div>
-        <div class="refresh-note" id="refresh-note"></div>
+        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle light or dark theme">🌙</button>
       </div>
     </div>
     <div class="league-tabs">
@@ -284,9 +281,15 @@
 
 <footer>
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
-  KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
-  Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.90
+  <div class="footer-inner">
+    <div id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</div>
+    <div class="refresh-note" id="refresh-note"></div>
+    <div class="footer-meta">
+      KEMMERER POOL LEAGUE &nbsp;·&nbsp; KEMMERER, WY<br>
+      Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
+      &nbsp;·&nbsp; v1.91
+    </div>
+  </div>
 </footer>
 
 <script>
