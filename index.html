@@ -189,6 +189,28 @@
       .bar-track { width: 50px !important; }
     }
 
+    /* ── Suggestion form ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .field input, .field textarea {
+      font-family: inherit; font-size: 14px; color: var(--text);
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 9px 12px; width: 100%; transition: border-color .15s;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+    .field textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .submit-btn {
+      background: var(--accent); color: var(--on-accent); border: none;
+      padding: 10px 22px; border-radius: var(--radius-sm); font-family: inherit;
+      font-size: 13px; font-weight: 600; letter-spacing: .03em; cursor: pointer; transition: opacity .15s;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: .85; }
+    .submit-btn:disabled { opacity: .5; cursor: default; }
+    .form-status { font-size: 13px; font-weight: 500; }
+
     /* ── Lightbox ── */
     .lightbox-overlay {
       display: none; position: fixed; inset: 0; z-index: 1000;
@@ -262,7 +284,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.87
+  &nbsp;·&nbsp; v1.89
 </footer>
 
 <script>
@@ -1319,6 +1341,32 @@ function renderEvents() {
 
     <div class="card">
       <div class="card-header">
+        <span class="card-title">League Officers</span>
+      </div>
+      <div style="overflow-x:auto"><table class="tbl">
+        <thead><tr>
+          <th>Position</th>
+          <th>Name</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">President</td>
+            <td style="color:var(--text3);font-style:italic">TBD</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">Vice President</td>
+            <td style="color:var(--text2)">Cody Baker</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--cream)">Secretary</td>
+            <td style="color:var(--text2)">Andy Cass</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
         <span class="card-title">Upcoming Events</span>
       </div>
       <div style="overflow-x:auto"><table class="tbl">
@@ -1420,31 +1468,80 @@ function renderEvents() {
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title">League Officers</span>
+        <span class="card-title">Suggestions</span>
       </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Position</th>
-          <th>Name</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">President</td>
-            <td style="color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Vice President</td>
-            <td style="color:var(--text2)">Cody Baker</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Secretary</td>
-            <td style="color:var(--text2)">Andy Cass</td>
-          </tr>
-        </tbody>
-      </table></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+        <p style="color:var(--text2);font-size:14px;line-height:1.7;margin:0">
+          Got an idea for the league or spotted something wrong on the site? Send it to the officers.
+        </p>
+        <div class="field-row">
+          <div class="field">
+            <label for="sg-name">Name <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
+            <input id="sg-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="sg-email">Email <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
+            <input id="sg-email" type="email" maxlength="120" autocomplete="email" placeholder="So we can reply">
+          </div>
+        </div>
+        <div class="field">
+          <label for="sg-message">Suggestion</label>
+          <textarea id="sg-message" maxlength="2000" placeholder="What's on your mind?"></textarea>
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="sg-website">Leave this field empty</label>
+          <input id="sg-website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <button class="submit-btn" id="sg-submit" onclick="submitSuggestion()">Send Suggestion</button>
+          <span class="form-status" id="sg-status"></span>
+        </div>
+      </div>
     </div>
 
   </div>`;
+}
+
+async function submitSuggestion() {
+  const btn    = document.getElementById('sg-submit');
+  const status = document.getElementById('sg-status');
+  const say = (msg, color) => { status.textContent = msg; status.style.color = color; };
+
+  const message = document.getElementById('sg-message').value.trim();
+  if (message.length < 5) {
+    say('Please enter a suggestion first.', 'var(--loss)');
+    document.getElementById('sg-message').focus();
+    return;
+  }
+
+  btn.disabled = true;
+  say('Sending…', 'var(--text3)');
+
+  try {
+    const r = await fetch('/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:    document.getElementById('sg-name').value,
+        email:   document.getElementById('sg-email').value,
+        website: document.getElementById('sg-website').value,  // honeypot
+        message,
+      }),
+    });
+    const data = await r.json().catch(() => ({}));
+
+    if (r.ok && data.ok) {
+      ['sg-name','sg-email','sg-message'].forEach(id => document.getElementById(id).value = '');
+      say('Thanks — your suggestion was sent.', 'var(--green2)');
+      btn.disabled = false;
+    } else {
+      say(data.error || 'Something went wrong. Please try again.', 'var(--loss)');
+      btn.disabled = false;
+    }
+  } catch(e) {
+    say('Could not connect. Please try again.', 'var(--loss)');
+    btn.disabled = false;
+  }
 }
 
 function switchLeague(lg) {
