@@ -129,6 +129,8 @@
     /* ── Schedule ── */
     .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
+    .sched-block.sched-next { border-color: var(--accent); }
+    .next-pill { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 10px; font-weight: 700; letter-spacing: .06em; vertical-align: middle; }
     .sched-count { font-weight: 400; color: var(--text3); font-size: 11px; }
     .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); }
     @media (max-width: 700px) { .match-grid { grid-template-columns: 1fr; } }
@@ -284,7 +286,7 @@
   <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
   KEMMERER POOL LEAGUE &nbsp;·&nbsp; JENKINS MUSIC &amp; VENDING &nbsp;·&nbsp; KEMMERER, WY<br>
   Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-  &nbsp;·&nbsp; v1.89
+  &nbsp;·&nbsp; v1.90
 </footer>
 
 <script>
@@ -708,14 +710,22 @@ function renderSchedule(data) {
 
   if (!blocks.length) return notice('No schedule data found.');
 
+  // First block on or after today — the schedule scrolls here on open.
+  const nextIdx = blocks.findIndex(b => {
+    if (!b.matches.length) return false;
+    const d = parseDate(b.date);
+    return d && d >= today;
+  });
+
   return `<div style="display:flex;flex-direction:column;gap:10px">
-    ${blocks.map(block => {
+    ${blocks.map((block, bi) => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
       const isPast = dt && dt <= today;
-      return `<div class="sched-block">
+      const isNext = bi === nextIdx;
+      return `<div class="sched-block${isNext?' sched-next':''}"${isNext?' id="sched-next"':''}>
         <div class="sched-date-hdr">
-          <span>${fmtDate(block.date)}</span>
+          <span>${fmtDate(block.date)}${isNext?' <span class="next-pill">Next up</span>':''}</span>
           <span class="sched-count">${block.matches.length} match${block.matches.length!==1?'es':''}</span>
         </div>
         <div class="match-grid">
@@ -1580,6 +1590,18 @@ async function loadView() {
   else if (view==='list')     html = renderList(data);
   else if (view==='schedule') html = renderSchedule(data);
   document.getElementById('content').innerHTML = html;
+  if (view === 'schedule') scrollToNextMatch();
+}
+
+// Jump to the next upcoming date so the schedule doesn't open on old weeks.
+function scrollToNextMatch() {
+  const el = document.getElementById('sched-next');
+  if (!el) return;                       // season over, or nothing upcoming
+  if (el.previousElementSibling === null) return;  // already at the top
+  const bar = document.querySelector('.view-bar');
+  const offset = (bar ? bar.offsetHeight : 0) + 12;
+  const y = el.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' });
 }
 
 loadView();
