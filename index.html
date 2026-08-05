@@ -162,6 +162,16 @@
     }
     .venue-label { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500; }
 
+    /* ── Print toolbar ── */
+    .sched-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+    .print-title { display: none; }
+    .print-btn {
+      background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+      padding: 6px 14px; border-radius: var(--radius-sm); font-family: inherit;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s;
+    }
+    .print-btn:hover { background: var(--bg4); color: var(--text); }
+
     /* ── Spinner ── */
     .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 80px 0; }
     .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
@@ -229,6 +239,42 @@
     }
     .lightbox-close:hover { opacity: 1; }
 
+    /* ── Print ── */
+    @media print {
+      /* Repoint the palette instead of overriding every rule individually. */
+      :root, html[data-theme="light"], html[data-theme="dark"] {
+        --bg: #fff; --bg2: #fff; --bg3: #f2f2f2; --bg4: #e8e8e8;
+        --border: #999; --border2: #777;
+        --text: #000; --text2: #222; --text3: #555;
+        --cream: #000; --accent: #000; --accent-dim: #000;
+        --green: #000; --green2: #000; --loss: #000; --on-accent: #000;
+      }
+      html, body { background: #fff; font-size: 10.5pt; }
+      header, .view-bar, footer, .felt-strip, .theme-btn,
+      .lightbox-overlay, .result-btn, .print-btn, .next-pill { display: none !important; }
+      main { padding: 0; }
+      .wrap { max-width: none; padding: 0; }
+
+      .sched-toolbar { display: block; margin-bottom: 14px; }
+      .print-title { display: block; font-size: 14pt; font-weight: 700; color: #000; }
+      .print-sub { display: block; font-size: 9pt; font-weight: 400; color: #555; margin-top: 2px; }
+
+      /* Keep a week's matches together rather than split across a page. */
+      .sched-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; border: 1px solid #999; }
+      .sched-date-hdr { padding: 5px 9px; font-size: 9.5pt; border-bottom: 1px solid #999; }
+      .match-grid { gap: 0; }
+      .match-card { padding: 7px 9px; min-height: 0; gap: 4px; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+      .match-name { font-size: 10pt; }
+      .match-label { font-size: 7.5pt; }
+      /* These use --accent as a *background*; forcing it black would hide the
+         text, and most browsers drop backgrounds when printing anyway. */
+      .vs-chip, .next-pill, .submit-btn, .live-pill, a[style*="var(--accent)"] {
+        background: transparent !important; color: #000 !important; border: 1px solid #999 !important;
+      }
+      .vs-chip { padding: 1px 8px; font-size: 8pt; }
+      .venue-label { font-size: 9pt; font-weight: 600; }
+    }
+
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
     .footer-inner { display: flex; flex-direction: column; align-items: center; gap: 9px; }
@@ -284,7 +330,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v1.94
+      &nbsp;·&nbsp; v1.95
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -721,7 +767,14 @@ function renderSchedule(data) {
     return d && d >= today;
   });
 
-  return `<div style="display:flex;flex-direction:column;gap:10px">
+  return `<div class="sched-toolbar">
+    <div class="print-title">
+      Kemmerer Pool League &mdash; ${DIVISIONS[league].label}
+      <span class="print-sub">Printed ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
+    </div>
+    <button class="print-btn" onclick="window.print()">Print Schedule</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
     ${blocks.map((block, bi) => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
