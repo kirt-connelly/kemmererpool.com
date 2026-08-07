@@ -64,11 +64,29 @@
 
   /* ── Bracket ── */
   .bracket-scroll { overflow-x: auto; padding: 4px 18px 18px; }
-  .rounds { display: flex; gap: 26px; min-width: min-content; align-items: stretch; }
-  .round { display: flex; flex-direction: column; justify-content: space-around; gap: 12px; min-width: 190px; }
+  .rounds { display: flex; gap: 30px; min-width: min-content; align-items: stretch; }
+  .round { display: flex; flex-direction: column; min-width: 186px; }
   .round-label { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
     color: var(--text3); text-align: center; padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    margin-bottom: 4px; }
+    margin-bottom: 10px; flex-shrink: 0; }
+  /* Matches spread evenly down the column so each pair lines up with the single
+     match it feeds in the next column. */
+  .round-body { flex: 1; display: flex; flex-direction: column; justify-content: space-around; }
+  .pair { flex: 1; display: flex; flex-direction: column; justify-content: space-around; position: relative; }
+
+  /* ── Connectors ──
+     Each match runs a stub out to the midpoint of the gap; a pair joins those
+     two stubs with a vertical; the next match picks it up with its own stub. */
+  .match::after { content: ''; position: absolute; right: -15px; top: 50%;
+    width: 15px; height: 1px; background: var(--border2); }
+  .pair:not(.single)::after { content: ''; position: absolute; right: -15px; top: 25%;
+    width: 1px; height: 50%; background: var(--border2); }
+  /* A 1:1 feed (losers-bracket major rounds) is just a straight run across. */
+  .pair.single .match::after { right: -30px; width: 30px; }
+  .round:not(:first-child) .match::before { content: ''; position: absolute; left: -15px; top: 50%;
+    width: 15px; height: 1px; background: var(--border2); }
+  .round:last-child .match::after, .round:last-child .pair::after { display: none; }
+  .round:first-child .match::before { display: none; }
 
   .match { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
     overflow: hidden; position: relative; }
@@ -87,6 +105,13 @@
   .slot.lost .nm { color: var(--text3); text-decoration: line-through; }
   .slot.empty .nm, .slot.bye .nm { color: var(--text3); font-weight: 400; font-style: italic; }
   .slot.locked { cursor: default; }
+  .slot.bye.open { cursor: pointer; }
+  .slot.bye.open .nm { color: var(--accent); font-style: normal; font-weight: 600; }
+  .slot.bye.open:hover { background: var(--bg3); }
+  .slot-input { width: 100%; font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--cream); background: var(--bg2); border: 1px solid var(--accent);
+    border-radius: 3px; padding: 3px 6px; }
+  .slot-input:focus { outline: none; }
   .score-box { width: 24px; height: 20px; flex-shrink: 0; border: 1px solid var(--border);
     border-radius: 3px; background: var(--bg2); }
 
@@ -122,8 +147,13 @@
     .card-header { background: transparent; border-bottom: 1px solid #000; padding: 0 0 4px; }
     .card-title { font-size: 11pt; }
     .bracket-scroll { overflow: visible; padding: 8px 0 0; }
-    .rounds { gap: 16px; }
+    .rounds { gap: 22px; }
     .round { min-width: 0; }
+    .match::after, .match::before, .pair::after { background: #666; }
+    .pair.single .match::after { right: -22px; width: 22px; }
+    .match::after { right: -11px; width: 11px; }
+    .pair:not(.single)::after { right: -11px; }
+    .round:not(:first-child) .match::before { left: -11px; width: 11px; }
     .match { break-inside: avoid; }
     .slot { padding: 5px 7px 5px 22px; min-height: 26px; }
     .slot.won .nm { font-weight: 700; }
@@ -414,16 +444,88 @@ const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 
 function slotHTML(m, i) {
   const v = m.players[i];
-  let cls = 'slot', label;
+  const seedSlot = m.slots[i].type === 'seed' ? m.slots[i].seed : null;
+  let cls = 'slot', label, click = `pick('${m.id}',${i})`;
+
   if (v === undefined)      { cls += ' empty locked'; label = '—'; }
-  else if (v === null)      { cls += ' bye locked';   label = 'Bye'; }
-  else {
+  else if (v === null) {
+    // A first-round bye can be filled in when someone turns up late. Byes
+    // further down the losers bracket are consequences, not open slots.
+    if (seedSlot !== null) { cls += ' bye open'; label = 'Bye — add player';
+                             click = `editBye('${m.id}',${i})`; }
+    else                   { cls += ' bye locked'; label = 'Bye'; }
+  } else {
     label = esc(v);
     if (m.resolved) cls += (m.winner === i || (m.autoWon && m.winnerName === v)) ? ' won' : ' lost';
     if (m.autoWon) cls += ' locked';
+    if (seedSlot !== null) cls += ' named';           // right-click to correct a name
   }
-  return `<div class="${cls}" onclick="pick('${m.id}',${i})">
+  return `<div class="${cls}" data-m="${m.id}" data-i="${i}" onclick="${click}"${
+    seedSlot !== null ? ` oncontextmenu="editBye('${m.id}',${i});return false"` : ''}>
     <span class="nm">${label}</span><span class="score-box"></span></div>`;
+}
+
+/* Replace a slot with an input so a latecomer can be typed straight in. */
+function editBye(mid, i) {
+  const m = B.matches.find(x => x.id === mid);
+  if (!m || m.slots[i].type !== 'seed') return;
+  const seed = m.slots[i].seed;
+  const el = document.querySelector(`.slot[data-m="${mid}"][data-i="${i}"]`);
+  if (!el || el.querySelector('input')) return;
+
+  const current = B.bySeed[seed] || '';
+  el.innerHTML = `<input class="slot-input" value="${esc(current)}"
+    placeholder="Player name" spellcheck="false">`;
+  const inp = el.querySelector('input');
+  inp.focus(); inp.select();
+
+  let done = false;
+  const commit = (save) => {
+    if (done) return; done = true;
+    if (save) {
+      const name = inp.value.trim();
+      const changed = (B.bySeed[seed] || '') !== name;
+      B.bySeed[seed] = name || null;        // blank puts the bye back
+      if (changed) clearDownstream(mid);
+      syncNames();
+    }
+    render();
+  };
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') commit(true);
+    if (e.key === 'Escape') commit(false);
+  });
+  inp.addEventListener('blur', () => commit(true));
+}
+
+/* Adding a player mid-tournament invalidates anything decided after that match,
+   so those results are cleared rather than left pointing at the wrong person. */
+function clearDownstream(mid) {
+  const deps = {};
+  B.matches.forEach(m => m.slots.forEach(s => {
+    if (s.of) (deps[s.of] = deps[s.of] || []).push(m.id);
+  }));
+  const seen = new Set();
+  const walk = (id) => {
+    (deps[id] || []).forEach(nid => {
+      if (seen.has(nid)) return;
+      seen.add(nid);
+      const m = B.matches.find(x => x.id === nid);
+      if (m) m.winner = null;
+      walk(nid);
+    });
+  };
+  const self = B.matches.find(x => x.id === mid);
+  if (self) self.winner = null;
+  walk(mid);
+}
+
+/* Keep the roster box in step so a redraw includes latecomers. */
+function syncNames() {
+  const names = [];
+  for (let s = 1; s <= B.size; s++) if (B.bySeed[s]) names.push(B.bySeed[s]);
+  document.getElementById('names').value = names.join('\n');
+  updateCount();
 }
 
 function matchHTML(m) {
@@ -436,9 +538,22 @@ function matchHTML(m) {
 function roundColumns(list, labelFor) {
   const byRound = {};
   list.forEach(m => (byRound[m.round] = byRound[m.round] || []).push(m));
-  return Object.keys(byRound).sort((a,b)=>a-b).map(r =>
-    `<div class="round"><div class="round-label">${labelFor(+r, byRound[r].length)}</div>
-      ${byRound[r].map(matchHTML).join('')}</div>`).join('');
+  const keys = Object.keys(byRound).map(Number).sort((a,b) => a-b);
+
+  return keys.map((r, ri) => {
+    const cur = byRound[r], next = byRound[keys[ri + 1]];
+    // Two matches join into one only when the next round is half the size.
+    // Losers-bracket major rounds are 1:1, so those get straight lines instead.
+    const joins = next && next.length === cur.length / 2;
+    const groups = [];
+    if (joins) for (let i = 0; i < cur.length; i += 2) groups.push(cur.slice(i, i + 2));
+    else cur.forEach(m => groups.push([m]));
+
+    const body = groups.map(g =>
+      `<div class="pair${g.length === 1 ? ' single' : ''}">${g.map(matchHTML).join('')}</div>`).join('');
+    return `<div class="round"><div class="round-label">${labelFor(r, cur.length)}</div>
+      <div class="round-body">${body}</div></div>`;
+  }).join('');
 }
 function roundsHTML(list, labelFor) {
   return `<div class="rounds">${roundColumns(list, labelFor)}</div>`;
@@ -457,22 +572,25 @@ function render() {
     : r === lbLast - 1 ? 'Losers Semis' : `Losers R${r}`;
 
   const champ = champion(B);
-  const byeNote = B.byeCount ? ` · ${B.byeCount} bye${B.byeCount === 1 ? '' : 's'}` : '';
+  const live = Object.values(B.bySeed).filter(Boolean).length;
+  const byes = B.size - live;
+  const byeNote = byes ? ` · ${byes} bye${byes === 1 ? '' : 's'}` : '';
 
   document.getElementById('print-head').innerHTML =
     `<div class="t">Kemmerer Pool League — Double Elimination</div>
-     <div class="d">${B.playerCount} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
+     <div class="d">${live} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
   // The grand final continues the winners-bracket row rather than sitting in a
   // section of its own — that's where the eye expects a bracket to end.
   const gfCols = gf.map(m =>
-    `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Final #2' : 'Final'}</div>${matchHTML(m)}</div>`).join('');
+    `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Final #2' : 'Final'}</div>
+       <div class="round-body"><div class="pair single">${matchHTML(m)}</div></div></div>`).join('');
 
   document.getElementById('out').innerHTML = `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Winners Bracket</span>
-        <span class="card-meta">${B.playerCount} players${byeNote}</span>
+        <span class="card-meta">${live} players${byeNote}</span>
       </div>
       <div class="bracket-scroll"><div class="rounds">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
     </div>
