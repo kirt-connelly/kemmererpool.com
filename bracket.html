@@ -63,34 +63,16 @@
   .hint { font-size: 12px; color: var(--text3); }
 
   /* ── Bracket ── */
-  .bracket-scroll { overflow-x: auto; padding: 4px 18px 18px; }
-  .rounds { display: flex; gap: 30px; min-width: min-content; align-items: stretch; }
-  .round { display: flex; flex-direction: column; min-width: 186px; }
-  .round-label { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
-    color: var(--text3); text-align: center; padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    margin-bottom: 10px; flex-shrink: 0; }
-  /* Matches spread evenly down the column so each pair lines up with the single
-     match it feeds in the next column. */
-  .round-body { flex: 1; display: flex; flex-direction: column; justify-content: space-around;
-    min-height: var(--bh, 0px); }
-  .pair { flex: 1; display: flex; flex-direction: column; justify-content: space-around; position: relative; }
-
-  /* ── Connectors ──
-     Each match runs a stub out to the midpoint of the gap; a pair joins those
-     two stubs with a vertical; the next match picks it up with its own stub. */
-  .match::after { content: ''; position: absolute; right: -15px; top: 50%;
-    width: 15px; height: 1px; background: var(--border2); }
-  .pair:not(.single)::after { content: ''; position: absolute; right: -15px; top: 25%;
-    width: 1px; height: 50%; background: var(--border2); }
-  /* A 1:1 feed (losers-bracket major rounds) is just a straight run across. */
-  .pair.single .match::after { right: -30px; width: 30px; }
-  .round:not(:first-child) .match::before { content: ''; position: absolute; left: -15px; top: 50%;
-    width: 15px; height: 1px; background: var(--border2); }
-  .round:last-child .match::after, .round:last-child .pair::after { display: none; }
-  .round:first-child .match::before { display: none; }
-
-  .match { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
-    overflow: hidden; position: relative; }
+  .bracket-scroll { overflow-x: auto; padding: 4px 18px 22px; }
+  /* Positions are computed in JS and set inline — flexbox can't align a bracket
+     reliably once rounds stop halving (losers-bracket major rounds feed 1:1). */
+  .canvas { position: relative; min-width: min-content; }
+  .round-label { position: absolute; top: 0; font-size: 10px; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--text3);
+    text-align: center; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+  .line { position: absolute; background: var(--border2); }
+  .match { position: absolute; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); overflow: hidden; }
   .match.decided { border-color: var(--border2); }
   .match.ready { border-color: var(--accent); }
   .match-no { position: absolute; top: -1px; left: -1px; font-size: 9px; font-weight: 700;
@@ -150,14 +132,10 @@
     .card-header { background: transparent; border-bottom: 1px solid #000; padding: 0 0 4px; }
     .card-title { font-size: 11pt; }
     .bracket-scroll { overflow: visible; padding: 8px 0 0; }
-    .rounds { gap: 22px; }
-    .round { min-width: 0; }
-    .round-body { min-height: 0 !important; }
-    .match::after, .match::before, .pair::after { background: #666; }
-    .pair.single .match::after { right: -22px; width: 22px; }
-    .match::after { right: -11px; width: 11px; }
-    .pair:not(.single)::after { right: -11px; }
-    .round:not(:first-child) .match::before { left: -11px; width: 11px; }
+    .line { background: #666; }
+    /* Canvas widths are fixed pixels, so shrink to fit the page. zoom reflows
+       (transform would leave the original height as blank space). */
+    .canvas { zoom: .74; }
     .match { break-inside: avoid; }
     .slot { padding: 5px 7px 5px 22px; min-height: 26px; }
     .slot.won .nm { font-weight: 700; }
@@ -551,28 +529,85 @@ function matchHTML(m) {
     ${slotHTML(m,0)}${slotHTML(m,1)}</div>`;
 }
 
-function roundColumns(list, labelFor) {
-  const byRound = {};
-  list.forEach(m => (byRound[m.round] = byRound[m.round] || []).push(m));
-  const keys = Object.keys(byRound).map(Number).sort((a,b) => a-b);
+const COL_W = 172, COL_GAP = 44, MATCH_H = 54, HEAD_H = 30;
 
-  return keys.map((r, ri) => {
-    const cur = byRound[r], next = byRound[keys[ri + 1]];
-    // Two matches join into one only when the next round is half the size.
-    // Losers-bracket major rounds are 1:1, so those get straight lines instead.
-    const joins = next && next.length === cur.length / 2;
-    const groups = [];
-    if (joins) for (let i = 0; i < cur.length; i += 2) groups.push(cur.slice(i, i + 2));
-    else cur.forEach(m => groups.push([m]));
-
-    const body = groups.map(g =>
-      `<div class="pair${g.length === 1 ? ' single' : ''}">${g.map(matchHTML).join('')}</div>`).join('');
-    return `<div class="round"><div class="round-label">${labelFor(r, cur.length)}</div>
-      <div class="round-body">${body}</div></div>`;
-  }).join('');
+/* A match sits at the vertical midpoint of whatever feeds it. Round one is
+   evenly spaced; everything after is derived, so joins land dead centre between
+   their two feeders and 1:1 feeds run perfectly straight. */
+function computeLayout(list, lane) {
+  const rounds = [...new Set(list.map(m => m.round))].sort((a, b) => a - b);
+  const pos = {};
+  rounds.forEach((r, ri) => {
+    const cur = list.filter(m => m.round === r);
+    const prevIds = ri ? list.filter(m => m.round === rounds[ri - 1]).map(m => m.id) : [];
+    cur.forEach((m, i) => {
+      let y;
+      if (!ri) y = HEAD_H + (i + 0.5) * lane;
+      else {
+        const feeds = m.slots.filter(s => s.of && prevIds.includes(s.of)).map(s => pos[s.of].y);
+        y = feeds.length ? feeds.reduce((a, b) => a + b, 0) / feeds.length
+                         : HEAD_H + (i + 0.5) * lane;
+      }
+      pos[m.id] = { col: ri, y, round: r };
+    });
+  });
+  return { pos, rounds };
 }
-function roundsHTML(list, labelFor) {
-  return `<div class="rounds">${roundColumns(list, labelFor)}</div>`;
+
+const colX = col => col * (COL_W + COL_GAP);
+
+/* Draws the elbow from each feeder into its match: a stub out to the midpoint
+   of the gap, a vertical joining the feeders, then a stub into the match. */
+function connectorHTML(list, pos, rounds) {
+  const px = [];
+  const line = (x, y, w, h) => px.push(
+    `<div class="line" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>`);
+
+  rounds.forEach((r, ri) => {
+    if (!ri) return;
+    const prevIds = list.filter(m => m.round === rounds[ri - 1]).map(m => m.id);
+    list.filter(m => m.round === r).forEach(m => {
+      // Final #2 references the same match in both slots — dedupe so it doesn't
+      // draw a zero-height vertical on top of itself.
+      const seen = new Set();
+      const feeds = m.slots.filter(s => s.of && prevIds.includes(s.of) && !seen.has(s.of) && seen.add(s.of))
+                           .map(s => pos[s.of]);
+      if (!feeds.length) return;
+      const fRight = colX(feeds[0].col) + COL_W;
+      const midX   = fRight + COL_GAP / 2;
+      const myLeft = colX(pos[m.id].col);
+
+      feeds.forEach(f => line(fRight, f.y, midX - fRight, 1));      // out of each feeder
+      if (feeds.length > 1) {                                        // join them
+        const ys = feeds.map(f => f.y);
+        line(midX, Math.min(...ys), 1, Math.max(...ys) - Math.min(...ys));
+      }
+      line(midX, pos[m.id].y, myLeft - midX, 1);                     // into this match
+    });
+  });
+  return px.join('');
+}
+
+function bracketHTML(list, labelFor, lane) {
+  if (!list.length) return '';
+  const { pos, rounds } = computeLayout(list, lane);
+  const height = Math.max(...Object.values(pos).map(p => p.y)) + MATCH_H / 2 + 10;
+  const width  = colX(rounds.length - 1) + COL_W;
+
+  const labels = rounds.map((r, ri) => {
+    const n = list.filter(m => m.round === r).length;
+    return `<div class="round-label" style="left:${colX(ri)}px;width:${COL_W}px">${labelFor(r, n)}</div>`;
+  }).join('');
+
+  const boxes = list.map(m => {
+    const p = pos[m.id];
+    return `<div class="match${m.resolved ? ' decided' : ''}"
+      style="left:${colX(p.col)}px;top:${p.y - MATCH_H / 2}px;width:${COL_W}px">
+      <span class="match-no">${m.no}</span>${slotHTML(m,0)}${slotHTML(m,1)}</div>`;
+  }).join('');
+
+  return `<div class="canvas" style="height:${height}px;width:${width}px">
+    ${labels}${connectorHTML(list, pos, rounds)}${boxes}</div>`;
 }
 
 function render() {
@@ -581,11 +616,24 @@ function render() {
   const lb = B.matches.filter(m => m.bracket === 'L');
   const gf = B.matches.filter(m => m.bracket === 'GF' && m.live);
 
-  const wbLabel = (r) => r === B.rounds ? 'Winners Final'
-    : r === B.rounds - 1 ? 'Winners Semis' : `Winners R${r}`;
+  // Finals continue the winners row, so they're laid out as extra rounds on the
+  // same canvas — that keeps the line running straight out of the winners final.
+  const wbRounds = Math.max(...wb.map(m => m.round));
+  const gfShifted = gf.map(m => ({ ...m, round: wbRounds + m.round }));
+  const wbAll = [...wb, ...gfShifted];
+
+  const wbLabel = (r) => r > wbRounds ? (r === wbRounds + 2 ? 'Final #2' : 'Final')
+    : r === wbRounds ? 'Winners Final'
+    : r === wbRounds - 1 ? 'Winners Semis' : `Winners R${r}`;
   const lbLast = (B.rounds - 1) * 2;
   const lbLabel = (r) => r === lbLast ? 'Losers Final'
     : r === lbLast - 1 ? 'Losers Semis' : `Losers R${r}`;
+
+  // One shared pitch. The losers bracket opens with half as many matches, so
+  // its lane is doubled and both brackets end up the same height.
+  const LANE = 66;
+  const lbFirst = lb.filter(m => m.round === 1).length || 1;
+  const lbLane = ((B.size / 2) * LANE) / lbFirst;
 
   const champ = champion(B);
   const live = Object.values(B.bySeed).filter(Boolean).length;
@@ -596,31 +644,18 @@ function render() {
     `<div class="t">Kemmerer Pool League — Double Elimination</div>
      <div class="d">${live} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
-  // The grand final continues the winners-bracket row rather than sitting in a
-  // section of its own — that's where the eye expects a bracket to end.
-  // Each bracket is sized by its own first column at a shared pitch, so matches
-  // sit at the same rhythm in both. The losers bracket starts with half as many
-  // matches, so it comes out half the height — as it should.
-  const LANE = 74;
-  const wbBh = (B.size / 2) * LANE;
-  const lbBh = lb.length ? (lb.filter(m => m.round === 1).length) * LANE : 0;
-
-  const gfCols = gf.map(m =>
-    `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Final #2' : 'Final'}</div>
-       <div class="round-body"><div class="pair single">${matchHTML(m)}</div></div></div>`).join('');
-
   document.getElementById('out').innerHTML = `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Winners Bracket</span>
         <span class="card-meta">${live} players${byeNote}</span>
       </div>
-      <div class="bracket-scroll"><div class="rounds" style="--bh:${wbBh}px">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
+      <div class="bracket-scroll">${bracketHTML(wbAll, wbLabel, LANE)}</div>
     </div>
     ${lb.length ? `<div class="card">
       <div class="card-header"><span class="card-title">Losers Bracket</span>
         <span class="card-meta">Second loss ends your tournament</span></div>
-      <div class="bracket-scroll"><div class="rounds" style="--bh:${lbBh}px">${roundColumns(lb, lbLabel)}</div></div>
+      <div class="bracket-scroll">${bracketHTML(lb, lbLabel, lbLane)}</div>
     </div>` : ''}
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}`;
 }
