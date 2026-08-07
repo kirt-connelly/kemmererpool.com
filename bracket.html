@@ -52,7 +52,7 @@
     line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: 10px 12px; }
   textarea:focus { outline: none; border-color: var(--accent); }
-  .fee-row { margin-top: 14px; }
+  .fee-row { margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
   .fee-input { display: inline-flex; align-items: center; gap: 6px; background: var(--bg);
     border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
   .fee-input:focus-within { border-color: var(--accent); }
@@ -69,7 +69,6 @@
     text-transform: uppercase; color: var(--text3); }
   .payout .amt { font-size: 22px; font-weight: 700; color: var(--cream); margin-top: 3px;
     font-variant-numeric: tabular-nums; }
-  .payout .who { font-size: 12px; color: var(--text3); margin-top: 2px; }
   .payout.first { border-color: var(--accent); }
   .payout.first .amt { color: var(--green2); }
 
@@ -202,9 +201,16 @@
       <textarea id="names" spellcheck="false" placeholder="Teddy Deason&#10;Cody Baker&#10;Johnnie Colangelo&#10;Mark Scott"
         oninput="updateCount()"></textarea>
       <div class="fee-row">
-        <label class="fl" for="fee">Entry fee per player</label>
-        <div class="fee-input"><span>$</span><input id="fee" type="number" min="0" step="1"
-          value="10" inputmode="decimal" oninput="onFeeChange()"></div>
+        <div>
+          <label class="fl" for="fee">Entry fee per player</label>
+          <div class="fee-input"><span>$</span><input id="fee" type="number" min="0" step="1"
+            value="10" inputmode="decimal" oninput="onFeeChange()"></div>
+        </div>
+        <div>
+          <label class="fl" for="bar">Bar add-on</label>
+          <div class="fee-input"><span>$</span><input id="bar" type="number" min="0" step="5"
+            value="0" inputmode="decimal" oninput="onFeeChange()"></div>
+        </div>
       </div>
       <div class="btn-row">
         <button class="act primary" id="draw-btn" onclick="draw()">Draw bracket</button>
@@ -222,7 +228,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.2</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.4</div>
 </footer>
 
 <script>
@@ -410,16 +416,23 @@ function champion(b) {
 
 /* ── Payouts ──
    First takes half the pot. The other half splits two-thirds / one-third between
-   second and third — which is the same as a straight 1/2, 1/3, 1/6 of the whole.
-   Second and third round to whole dollars and first takes the remainder, so the
-   three payouts always add up to exactly what was collected. */
-function computePayouts(players, feeDollars) {
-  const pot = Math.round(players * feeDollars * 100);        // cents, no float drift
+   second and third — the same as a straight 1/2, 1/3, 1/6 of the whole.
+   First and second round to the nearest $5 so they're payable in bills; third
+   absorbs the difference, keeping the three payouts equal to what was collected. */
+function computePayouts(players, feeDollars, addOnDollars) {
+  const entries = Math.round(players * feeDollars * 100);    // cents, no float drift
+  const addOn   = Math.round((addOnDollars || 0) * 100);
+  const pot     = entries + addOn;
   if (pot <= 0) return null;
-  const second = Math.round(pot / 3 / 100) * 100;
-  const third  = Math.round(pot / 6 / 100) * 100;
-  const first  = pot - second - third;
-  return { pot, first, second, third };
+  const to5 = (cents) => Math.round(cents / 500) * 500;
+
+  const first  = to5(pot / 2);
+  let   second = to5(pot / 3);
+  let   third  = pot - first - second;
+
+  // Tiny pots can leave nothing for third — pay two places instead of a zero.
+  if (third <= 0) { second = pot - first; third = 0; }
+  return { pot, entries, addOn, first, second, third };
 }
 
 const money = (cents) => {
@@ -428,21 +441,21 @@ const money = (cents) => {
                                     : v.toLocaleString('en-US', { minimumFractionDigits: 2 }));
 };
 
-function payoutHTML(players, feeDollars, champ) {
-  const p = computePayouts(players, feeDollars);
+function payoutHTML(players, feeDollars, addOnDollars, champ) {
+  const p = computePayouts(players, feeDollars, addOnDollars);
   if (!p) return '';
+  const breakdown = `${players} × ${money(Math.round(feeDollars*100))}`
+    + (p.addOn ? ` + ${money(p.addOn)} bar` : '')
+    + ` = ${money(p.pot)} pot`;
   return `<div class="card">
     <div class="card-header">
       <span class="card-title">Payouts</span>
-      <span class="card-meta">${players} × ${money(Math.round(feeDollars*100))} = ${money(p.pot)} pot</span>
+      <span class="card-meta">${breakdown}</span>
     </div>
     <div class="payouts">
-      <div class="payout first"><div class="place">1st</div><div class="amt">${money(p.first)}</div>
-        <div class="who">${champ ? esc(champ) : 'Half the pot'}</div></div>
-      <div class="payout"><div class="place">2nd</div><div class="amt">${money(p.second)}</div>
-        <div class="who">Two-thirds of the rest</div></div>
-      <div class="payout"><div class="place">3rd</div><div class="amt">${money(p.third)}</div>
-        <div class="who">One-third of the rest</div></div>
+      <div class="payout first"><div class="place">1st</div><div class="amt">${money(p.first)}</div></div>
+      <div class="payout"><div class="place">2nd</div><div class="amt">${money(p.second)}</div></div>
+      ${p.third > 0 ? `<div class="payout"><div class="place">3rd</div><div class="amt">${money(p.third)}</div></div>` : ''}
     </div>
   </div>`;
 }
@@ -729,9 +742,10 @@ function render() {
      <div class="d">${live} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
   const fee = parseFloat(document.getElementById('fee').value) || 0;
+  const bar = parseFloat(document.getElementById('bar').value) || 0;
 
   document.getElementById('out').innerHTML = `
-    ${payoutHTML(live, fee, champ)}
+    ${payoutHTML(live, fee, bar, champ)}
     <div class="card">
       <div class="card-header">
         <span class="card-title">Winners Bracket</span>
