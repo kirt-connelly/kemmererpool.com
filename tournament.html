@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bracket Draw — Kemmerer Pool League</title>
+<title>Tournament — Kemmerer Pool League</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -67,6 +67,9 @@
   .fee-input input { width: 76px; border: none; background: none; color: var(--text);
     font-family: inherit; font-size: 14px; padding: 9px 0; }
   .fee-input input:focus { outline: none; }
+  .fee-input select { border: none; background: none; color: var(--text); font-family: inherit;
+    font-size: 14px; padding: 9px 0; cursor: pointer; }
+  .fee-input select:focus { outline: none; }
 
   /* ── Player lookup ── */
   .lookup { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -234,8 +237,8 @@
   <div class="wrap">
     <div class="header-inner">
       <div>
-        <h1>Bracket Draw</h1>
-        <div class="sub">Kemmerer Pool League · Double Elimination</div>
+        <h1>Tournament</h1>
+        <div class="sub">Kemmerer Pool League · Double Elimination · Fargo Races</div>
       </div>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle light or dark theme">🌙</button>
     </div>
@@ -277,9 +280,15 @@
             value="0" inputmode="decimal" oninput="onFeeChange()"></div>
         </div>
         <div>
-          <label class="fl" for="cap">Longest race</label>
-          <div class="fee-input"><input id="cap" type="number" min="3" max="25" step="1"
-            value="9" oninput="onFeeChange()"></div>
+          <label class="fl" for="chart">Race chart</label>
+          <div class="fee-input"><select id="chart" onchange="onFeeChange()">
+            <option value="R2">R2 — hot</option>
+            <option value="R3" selected>R3 — hot</option>
+            <option value="R4">R4 — hot</option>
+            <option value="R5">R5 — hot</option>
+            <option value="R6">R6 — hot</option>
+            <option value="R7">R7 — hot</option>
+          </select></div>
         </div>
       </div>
     </div>
@@ -298,7 +307,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.7</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.2</div>
 </footer>
 
 <script>
@@ -794,37 +803,39 @@ function renderRoster() {
 }
 
 /* ── Hot races ──
-   Per-game probability is FargoRate's own: p = 1 / (1 + 2^((r2-r1)/100)).
-   "Hot" is the shortest race that stays closest to even without handing the
-   edge to the lower-rated player: underdog goes to 3, favourite goes longer. */
+   FargoRate's published "hot" charts. Each row is [minDiff, maxDiff, [favourite,
+   underdog]] — note these shorten the underdog's race as the gap grows rather
+   than lengthening the favourite's, so races stay a sensible length. */
+const RACE_CHARTS = {
+  R2: [[0,67,[2,2]], [68,112,[3,2]], [113,Infinity,[4,2]]],
+  R3: [[0,67,[3,3]], [68,112,[3,2]], [113,147,[4,2]], [148,Infinity,[5,2]]],
+  R4: [[0,45,[4,4]], [46,80,[4,3]], [81,146,[5,3]], [147,175,[5,2]], [176,Infinity,[6,2]]],
+  R5: [[0,34,[5,5]], [35,62,[5,4]], [63,108,[6,4]], [109,131,[6,3]], [132,151,[7,3]],
+       [152,Infinity,[8,3]]],
+  R6: [[0,27,[6,6]], [28,51,[6,5]], [52,85,[7,5]], [86,106,[7,4]], [107,151,[8,4]],
+       [152,169,[8,3]], [170,Infinity,[9,3]]],
+  R7: [[0,23,[7,7]], [24,43,[7,6]], [44,71,[8,6]], [72,89,[8,5]], [90,123,[9,5]],
+       [124,139,[9,4]], [140,185,[10,4]], [186,Infinity,[10,3]]],
+};
+
+function currentChart() {
+  const k = (document.getElementById('chart') || {}).value || 'R3';
+  return RACE_CHARTS[k] ? k : 'R3';
+}
+
 const DEFAULT_RACE = 3;
 
-function pMatch(p, a, b) {
-  let total = 0;
-  for (let k = 0; k < b; k++) {
-    let comb = 1;
-    for (let i = 1; i <= k; i++) comb = comb * (a - 1 + i) / i;
-    total += comb * Math.pow(p, a) * Math.pow(1 - p, k);
-  }
-  return total;
-}
-
-function raceCap() {
-  return Math.max(3, Math.min(25, parseInt((document.getElementById('cap')||{}).value, 10) || 9));
-}
-
-/* Returns [raceForA, raceForB] given two ratings. */
+/* Returns [raceForA, raceForB] for two ratings under the selected chart. */
 function hotRace(ra, rb) {
-  if (!ra || !rb || ra === rb) return [DEFAULT_RACE, DEFAULT_RACE];
-  const hi = Math.max(ra, rb), lo = Math.min(ra, rb);
-  const p = 1 / (1 + Math.pow(2, (lo - hi) / 100));
-  let best = null;
-  for (let fav = DEFAULT_RACE; fav <= raceCap(); fav++) {
-    const w = pMatch(p, fav, DEFAULT_RACE);
-    if (w >= 0.5 && (best === null || w < best.w)) best = { fav, w };
-  }
-  const favRace = best ? best.fav : raceCap();
-  return ra > rb ? [favRace, DEFAULT_RACE] : [DEFAULT_RACE, favRace];
+  const chart = RACE_CHARTS[currentChart()];
+  const even  = chart[0][2][0];                 // the chart's level race, e.g. 3 for R3
+  if (!ra || !rb) return [even, even];
+
+  const diff = Math.abs(ra - rb);
+  const row  = chart.find(([lo, hi]) => diff >= lo && diff <= hi) || chart[chart.length - 1];
+  const [fav, dog] = row[2];
+  if (ra === rb) return [even, even];
+  return ra > rb ? [fav, dog] : [dog, fav];
 }
 
 const ratingOf = (name) => {
@@ -1127,8 +1138,8 @@ function render() {
   const byeNote = byes ? ` · ${byes} bye${byes === 1 ? '' : 's'}` : '';
 
   document.getElementById('print-head').innerHTML =
-    `<div class="t">Kemmerer Pool League — Double Elimination</div>
-     <div class="d">${live} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
+    `<div class="t">Kemmerer Pool League — Tournament</div>
+     <div class="d">${live} players${byeNote} · ${currentChart()} hot races · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
   const fee = parseFloat(document.getElementById('fee').value) || 0;
   const bar = parseFloat(document.getElementById('bar').value) || 0;
@@ -1138,7 +1149,7 @@ function render() {
     <div class="card">
       <div class="card-header">
         <span class="card-title">Winners Bracket</span>
-        <span class="card-meta">${live} players${byeNote}</span>
+        <span class="card-meta">${live} players${byeNote} · ${currentChart()} hot</span>
       </div>
       <div class="bracket-scroll">${bracketHTML(wbAll, wbLabel, LANE)}</div>
     </div>
