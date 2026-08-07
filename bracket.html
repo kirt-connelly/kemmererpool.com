@@ -466,7 +466,7 @@ function render() {
   // The grand final continues the winners-bracket row rather than sitting in a
   // section of its own — that's where the eye expects a bracket to end.
   const gfCols = gf.map(m =>
-    `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Reset' : 'Grand Final'}</div>${matchHTML(m)}</div>`).join('');
+    `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Final #2' : 'Final'}</div>${matchHTML(m)}</div>`).join('');
 
   document.getElementById('out').innerHTML = `
     <div class="card">
