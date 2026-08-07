@@ -598,10 +598,12 @@ function render() {
 
   // The grand final continues the winners-bracket row rather than sitting in a
   // section of its own — that's where the eye expects a bracket to end.
-  // One "lane" per winners round-1 match. The losers bracket reuses the same
-  // total height, so its half-as-many matches sit at double the spacing —
-  // which is what lines the two brackets up and gives the connectors room.
-  const bh = (B.size / 2) * 78;
+  // Each bracket is sized by its own first column at a shared pitch, so matches
+  // sit at the same rhythm in both. The losers bracket starts with half as many
+  // matches, so it comes out half the height — as it should.
+  const LANE = 74;
+  const wbBh = (B.size / 2) * LANE;
+  const lbBh = lb.length ? (lb.filter(m => m.round === 1).length) * LANE : 0;
 
   const gfCols = gf.map(m =>
     `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Final #2' : 'Final'}</div>
@@ -613,12 +615,12 @@ function render() {
         <span class="card-title">Winners Bracket</span>
         <span class="card-meta">${live} players${byeNote}</span>
       </div>
-      <div class="bracket-scroll"><div class="rounds" style="--bh:${bh}px">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
+      <div class="bracket-scroll"><div class="rounds" style="--bh:${wbBh}px">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
     </div>
     ${lb.length ? `<div class="card">
       <div class="card-header"><span class="card-title">Losers Bracket</span>
         <span class="card-meta">Second loss ends your tournament</span></div>
-      <div class="bracket-scroll"><div class="rounds" style="--bh:${bh}px">${roundColumns(lb, lbLabel)}</div></div>
+      <div class="bracket-scroll"><div class="rounds" style="--bh:${lbBh}px">${roundColumns(lb, lbLabel)}</div></div>
     </div>` : ''}
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}`;
 }
