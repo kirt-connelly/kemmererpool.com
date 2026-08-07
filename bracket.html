@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bracket Draw — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #141414; --bg2: #1e1e1e; --bg3: #262626; --bg4: #2e2e2e;
+    --border: #363636; --border2: #464646;
+    --text: #ffffff; --text2: #b0a898; --text3: #666058;
+    --accent: #27855a; --cream: #e8ddd0; --green2: #32a870; --loss: #cc4444;
+    --on-accent: #ffffff;
+    --radius: 8px; --radius-sm: 5px;
+  }
+  html[data-theme="light"] {
+    --bg: #f5f3ef; --bg2: #ffffff; --bg3: #eae6df; --bg4: #ddd8ce;
+    --border: #d6d0c5; --border2: #bcb4a6;
+    --text: #1a1714; --text2: #5a5348; --text3: #8b8376;
+    --accent: #1f6b48; --cream: #2b2419; --green2: #1a7a4e; --loss: #b23636;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0,#154d28 4px,#1a5c32 8px); opacity: .5; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 12px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
+  .theme-btn { width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    cursor: pointer; font-size: 13px; padding: 0; }
+  .theme-btn:hover { background: var(--bg4); color: var(--text); }
+
+  main { padding: 22px 0 70px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-meta { font-size: 12px; color: var(--text3); }
+  .pad { padding: 18px; }
+
+  label.fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 150px; resize: vertical; font-family: inherit; font-size: 14px;
+    line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  button.act { font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: .03em;
+    padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2); transition: background .15s, color .15s; }
+  button.act:hover { background: var(--bg4); color: var(--text); }
+  button.act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button.act.primary:hover { opacity: .87; color: var(--on-accent); }
+  button.act:disabled { opacity: .45; cursor: default; }
+  .hint { font-size: 12px; color: var(--text3); }
+
+  /* ── Bracket ── */
+  .bracket-scroll { overflow-x: auto; padding: 4px 18px 18px; }
+  .rounds { display: flex; gap: 26px; min-width: min-content; align-items: stretch; }
+  .round { display: flex; flex-direction: column; justify-content: space-around; gap: 12px; min-width: 190px; }
+  .round-label { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text3); text-align: center; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    margin-bottom: 4px; }
+
+  .match { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+    overflow: hidden; position: relative; }
+  .match.decided { border-color: var(--border2); }
+  .match.ready { border-color: var(--accent); }
+  .match-no { position: absolute; top: -1px; left: -1px; font-size: 9px; font-weight: 700;
+    background: var(--bg3); color: var(--text3); padding: 1px 5px; border-radius: var(--radius-sm) 0 var(--radius-sm) 0;
+    letter-spacing: .04em; }
+  .slot { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 9px 7px 26px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border);
+    min-height: 32px; }
+  .slot:last-child { border-bottom: none; }
+  .slot:hover:not(.locked) { background: var(--bg3); }
+  .slot .nm { font-weight: 600; color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot.won .nm { color: var(--green2); }
+  .slot.lost .nm { color: var(--text3); text-decoration: line-through; }
+  .slot.empty .nm, .slot.bye .nm { color: var(--text3); font-weight: 400; font-style: italic; }
+  .slot.locked { cursor: default; }
+  .score-box { width: 24px; height: 20px; flex-shrink: 0; border: 1px solid var(--border);
+    border-radius: 3px; background: var(--bg2); }
+
+  .champion { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 20px;
+    border: 1px solid var(--accent); border-radius: var(--radius); background: var(--bg2); margin-top: 4px; }
+  .champion .lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); }
+  .champion .nm { font-size: 24px; font-weight: 700; color: var(--green2); }
+
+  .empty-state { padding: 46px 18px; text-align: center; color: var(--text3); font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 14px; }
+    h1 { font-size: 18px; }
+    .round { min-width: 165px; }
+  }
+
+  /* ── Print: this gets taped to the wall and written on in pen ── */
+  @media print {
+    @page { size: landscape; margin: 0.4in; }
+    :root, html[data-theme="light"], html[data-theme="dark"] {
+      --bg: #fff; --bg2: #fff; --bg3: #f2f2f2; --bg4: #eee;
+      --border: #999; --border2: #666;
+      --text: #000; --text2: #222; --text3: #555;
+      --accent: #000; --cream: #000; --green2: #000; --loss: #000; --on-accent: #000;
+    }
+    html, body { background: #fff; font-size: 9.5pt; }
+    header, .setup-card, .btn-row, .theme-btn, .header-felt { display: none !important; }
+    main { padding: 0; }
+    .wrap { max-width: none; padding: 0; }
+    .card { border: none; margin-bottom: 10px; break-inside: avoid; }
+    .card-header { background: transparent; border-bottom: 1px solid #000; padding: 0 0 4px; }
+    .card-title { font-size: 11pt; }
+    .bracket-scroll { overflow: visible; padding: 8px 0 0; }
+    .rounds { gap: 16px; }
+    .round { min-width: 0; }
+    .match { break-inside: avoid; }
+    .slot { padding: 5px 7px 5px 22px; min-height: 26px; }
+    .slot.won .nm { font-weight: 700; }
+    .slot.lost .nm { text-decoration: line-through; }
+    /* Blank boxes so scores can be filled in by hand. */
+    .score-box { border: 1px solid #666; }
+    .champion { border: 1px solid #000; }
+    .print-head { display: block !important; }
+  }
+  .print-head { display: none; margin-bottom: 10px; }
+  .print-head .t { font-size: 14pt; font-weight: 700; }
+  .print-head .d { font-size: 9pt; color: #555; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-felt"></div>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <h1>Bracket Draw</h1>
+        <div class="sub">Kemmerer Pool League · Double Elimination</div>
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle light or dark theme">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <div class="print-head" id="print-head"></div>
+
+  <div class="card setup-card">
+    <div class="card-header">
+      <span class="card-title">Players</span>
+      <span class="card-meta" id="count-meta">0 players</span>
+    </div>
+    <div class="pad">
+      <label class="fl" for="names">One name per line</label>
+      <textarea id="names" spellcheck="false" placeholder="Teddy Deason&#10;Cody Baker&#10;Johnnie Colangelo&#10;Mark Scott"
+        oninput="updateCount()"></textarea>
+      <div class="btn-row">
+        <button class="act primary" id="draw-btn" onclick="draw()">Draw bracket</button>
+        <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
+        <button class="act" id="print-btn" onclick="window.print()" disabled>Print</button>
+        <button class="act" id="clear-btn" onclick="clearResults()" disabled>Clear results</button>
+        <span class="hint" id="hint"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="out"></div>
+
+</div>
+</main>
+
+<script>
+/* ── Theme ── */
+function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
+}
+function toggleTheme() { applyTheme(isLight() ? 'dark' : 'light'); }
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
+  if (saved !== 'light' && saved !== 'dark') {
+    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
+})();
+
+/* ── Bracket construction ──
+   Slots are declarative: each names a seed, or the winner/loser of an earlier
+   match. Resolution is then one pass over the matches in order. */
+
+// 1 meets the bottom seed, 2 the next, and so on. Built recursively so byes —
+// which always land on the highest seed numbers — spread across the draw
+// instead of clustering in one quarter.
+function seedOrder(size) {
+  let order = [1];
+  while (order.length < size) {
+    const round = order.length * 2 + 1;
+    const next = [];
+    for (const s of order) next.push(s, round - s);
+    order = next;
+  }
+  return order;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildBracket(names) {
+  const players = shuffle(names);
+  const n = players.length;
+  let size = 1;
+  while (size < n) size *= 2;
+  const rounds = Math.log2(size);
+
+  const bySeed = {};
+  players.forEach((p, i) => bySeed[i + 1] = p);
+  for (let s = n + 1; s <= size; s++) bySeed[s] = null;   // null === bye
+
+  const matches = [];
+  const add = m => { matches.push(m); return m; };
+
+  const order = seedOrder(size);
+  let prev = [];
+  for (let r = 1; r <= rounds; r++) {
+    const cur = [];
+    for (let i = 0, c = size / Math.pow(2, r); i < c; i++) {
+      cur.push(add({
+        id: `W${r}-${i}`, bracket: 'W', round: r, winner: null,
+        slots: r === 1
+          ? [{ type: 'seed', seed: order[i*2] }, { type: 'seed', seed: order[i*2+1] }]
+          : [{ type: 'winner', of: prev[i*2].id }, { type: 'winner', of: prev[i*2+1].id }],
+      }));
+    }
+    prev = cur;
+  }
+  const wbFinal = prev[0];
+
+  // Losers bracket alternates minor rounds (survivors meet) with major rounds
+  // (survivors meet the players just knocked out of the winners bracket).
+  const wbRound = r => matches.filter(m => m.bracket === 'W' && m.round === r);
+  let lbPrev = [];
+  for (let r = 1, last = rounds > 1 ? (rounds - 1) * 2 : 0; r <= last; r++) {
+    const cur = [];
+    if (r === 1) {
+      const drops = wbRound(1);
+      for (let i = 0; i < drops.length / 2; i++) {
+        cur.push(add({ id: `L1-${i}`, bracket: 'L', round: 1, winner: null,
+          slots: [{ type: 'loser', of: drops[i*2].id }, { type: 'loser', of: drops[i*2+1].id }] }));
+      }
+    } else if (r % 2 === 0) {
+      const drops = wbRound(r / 2 + 1);
+      // Reversed on alternating rounds to cut down on immediate rematches.
+      const dd = (r / 2) % 2 === 0 ? [...drops].reverse() : drops;
+      for (let i = 0; i < lbPrev.length; i++) {
+        cur.push(add({ id: `L${r}-${i}`, bracket: 'L', round: r, winner: null,
+          slots: [{ type: 'winner', of: lbPrev[i].id }, { type: 'loser', of: dd[i].id }] }));
+      }
+    } else {
+      for (let i = 0; i < lbPrev.length / 2; i++) {
+        cur.push(add({ id: `L${r}-${i}`, bracket: 'L', round: r, winner: null,
+          slots: [{ type: 'winner', of: lbPrev[i*2].id }, { type: 'winner', of: lbPrev[i*2+1].id }] }));
+      }
+    }
+    lbPrev = cur;
+  }
+  const lbFinal = lbPrev.length ? lbPrev[0] : null;
+
+  // A 2-player field has no losers bracket, so the opponent is the winners-final loser.
+  add({ id: 'GF', bracket: 'GF', round: 1, winner: null,
+    slots: [{ type: 'winner', of: wbFinal.id },
+            lbFinal ? { type: 'winner', of: lbFinal.id } : { type: 'loser', of: wbFinal.id }] });
+  add({ id: 'GF2', bracket: 'GF', round: 2, winner: null,
+    slots: [{ type: 'winner', of: 'GF' }, { type: 'loser', of: 'GF' }] });
+
+  numberMatches(matches, rounds);
+  return { matches, bySeed, size, rounds, playerCount: n, byeCount: size - n };
+}
+
+// Number matches in the order they'll actually be called, so "Match 12" means
+// something to whoever is running the tournament.
+function numberMatches(matches, rounds) {
+  const seq = [];
+  for (let r = 1; r <= rounds; r++) {
+    seq.push(...matches.filter(m => m.bracket === 'W' && m.round === r));
+    if (r === 1) seq.push(...matches.filter(m => m.bracket === 'L' && m.round === 1));
+    else {
+      seq.push(...matches.filter(m => m.bracket === 'L' && m.round === (r - 1) * 2));
+      seq.push(...matches.filter(m => m.bracket === 'L' && m.round === (r - 1) * 2 + 1));
+    }
+  }
+  seq.push(...matches.filter(m => m.bracket === 'GF'));
+  let no = 1;
+  for (const m of seq) if (!m.no) m.no = no++;
+}
+
+function resolve(b) {
+  const byId = Object.fromEntries(b.matches.map(m => [m.id, m]));
+  const nameOf = slot => {
+    if (slot.type === 'seed') return b.bySeed[slot.seed] ?? null;
+    const src = byId[slot.of];
+    if (!src || !src.resolved) return undefined;
+    return slot.type === 'winner' ? src.winnerName : src.loserName;
+  };
+
+  for (const m of b.matches) {
+    m.players = m.slots.map(nameOf);
+    m.resolved = false; m.autoWon = false; m.live = true;
+    m.winnerName = undefined; m.loserName = undefined;
+
+    // The reset is only played if the losers-bracket player took the first
+    // grand final — otherwise the winners-bracket player finished unbeaten.
+    if (m.id === 'GF2') {
+      const gf = byId['GF'];
+      m.live = gf.resolved && gf.winner === 1;
+      if (!m.live) { m.players = [undefined, undefined]; continue; }
+    }
+
+    const [a, c] = m.players;
+    if (a === undefined || c === undefined) continue;
+
+    if (a === null && c === null) { m.winnerName = null; m.loserName = null; m.resolved = true; m.autoWon = true; }
+    else if (c === null) { m.winnerName = a; m.loserName = null; m.resolved = true; m.autoWon = true; }
+    else if (a === null) { m.winnerName = c; m.loserName = null; m.resolved = true; m.autoWon = true; }
+    else if (m.winner === 0 || m.winner === 1) {
+      m.winnerName = m.players[m.winner];
+      m.loserName  = m.players[1 - m.winner];
+      m.resolved = true;
+    }
+  }
+  return b.matches;
+}
+
+function champion(b) {
+  const byId = Object.fromEntries(b.matches.map(m => [m.id, m]));
+  const gf = byId['GF'], gf2 = byId['GF2'];
+  if (!gf.resolved) return null;
+  if (gf.winner === 0) return gf.winnerName;
+  return gf2.resolved ? gf2.winnerName : null;
+}
+
+/* ── UI ── */
+let B = null;
+
+function parseNames() {
+  return document.getElementById('names').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+}
+function updateCount() {
+  const n = parseNames().length;
+  document.getElementById('count-meta').textContent = `${n} player${n === 1 ? '' : 's'}`;
+}
+
+function draw() {
+  const names = parseNames();
+  const hint = document.getElementById('hint');
+  if (names.length < 2) {
+    hint.textContent = 'Enter at least 2 names to draw a bracket.';
+    hint.style.color = 'var(--loss)';
+    return;
+  }
+  const dupes = names.filter((v, i) => names.indexOf(v) !== i);
+  hint.textContent = dupes.length
+    ? `Heads up: ${[...new Set(dupes)].join(', ')} appears more than once.`
+    : '';
+  hint.style.color = 'var(--text3)';
+
+  B = buildBracket(names);
+  ['redraw-btn','print-btn','clear-btn'].forEach(id => document.getElementById(id).disabled = false);
+  render();
+}
+
+function clearResults() {
+  if (!B) return;
+  B.matches.forEach(m => m.winner = null);
+  render();
+}
+
+function pick(id, slotIdx) {
+  const m = B.matches.find(x => x.id === id);
+  if (!m || m.autoWon || !m.live) return;
+  if (m.players[0] === undefined || m.players[1] === undefined) return;
+  m.winner = (m.winner === slotIdx) ? null : slotIdx;   // click again to undo
+  render();
+}
+
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function slotHTML(m, i) {
+  const v = m.players[i];
+  let cls = 'slot', label;
+  if (v === undefined)      { cls += ' empty locked'; label = '—'; }
+  else if (v === null)      { cls += ' bye locked';   label = 'Bye'; }
+  else {
+    label = esc(v);
+    if (m.resolved) cls += (m.winner === i || (m.autoWon && m.winnerName === v)) ? ' won' : ' lost';
+    if (m.autoWon) cls += ' locked';
+  }
+  return `<div class="${cls}" onclick="pick('${m.id}',${i})">
+    <span class="nm">${label}</span><span class="score-box"></span></div>`;
+}
+
+function matchHTML(m) {
+  const ready = !m.resolved && m.players[0] !== undefined && m.players[1] !== undefined;
+  const cls = 'match' + (m.resolved ? ' decided' : ready ? ' ready' : '');
+  return `<div class="${cls}"><span class="match-no">${m.no}</span>
+    ${slotHTML(m,0)}${slotHTML(m,1)}</div>`;
+}
+
+function roundsHTML(list, labelFor) {
+  const byRound = {};
+  list.forEach(m => (byRound[m.round] = byRound[m.round] || []).push(m));
+  return `<div class="rounds">` + Object.keys(byRound).sort((a,b)=>a-b).map(r =>
+    `<div class="round"><div class="round-label">${labelFor(+r, byRound[r].length)}</div>
+      ${byRound[r].map(matchHTML).join('')}</div>`).join('') + `</div>`;
+}
+
+function render() {
+  resolve(B);
+  const wb = B.matches.filter(m => m.bracket === 'W');
+  const lb = B.matches.filter(m => m.bracket === 'L');
+  const gf = B.matches.filter(m => m.bracket === 'GF' && m.live);
+
+  const wbLabel = (r) => r === B.rounds ? 'Winners Final'
+    : r === B.rounds - 1 ? 'Winners Semis' : `Winners R${r}`;
+  const lbLast = (B.rounds - 1) * 2;
+  const lbLabel = (r) => r === lbLast ? 'Losers Final'
+    : r === lbLast - 1 ? 'Losers Semis' : `Losers R${r}`;
+
+  const champ = champion(B);
+  const byeNote = B.byeCount ? ` · ${B.byeCount} bye${B.byeCount === 1 ? '' : 's'}` : '';
+
+  document.getElementById('print-head').innerHTML =
+    `<div class="t">Kemmerer Pool League — Double Elimination</div>
+     <div class="d">${B.playerCount} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
+
+  document.getElementById('out').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Winners Bracket</span>
+        <span class="card-meta">${B.playerCount} players${byeNote}</span>
+      </div>
+      <div class="bracket-scroll">${roundsHTML(wb, wbLabel)}</div>
+    </div>
+    ${lb.length ? `<div class="card">
+      <div class="card-header"><span class="card-title">Losers Bracket</span>
+        <span class="card-meta">Second loss ends your tournament</span></div>
+      <div class="bracket-scroll">${roundsHTML(lb, lbLabel)}</div>
+    </div>` : ''}
+    <div class="card">
+      <div class="card-header"><span class="card-title">Grand Final</span>
+        <span class="card-meta">${gf.length > 1 ? 'Reset in play' : 'Winners-bracket player needs one win'}</span></div>
+      <div class="bracket-scroll"><div class="rounds">
+        ${gf.map(m => `<div class="round"><div class="round-label">${m.round === 2 ? 'Reset' : 'Final'}</div>${matchHTML(m)}</div>`).join('')}
+      </div></div>
+    </div>
+    ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}`;
+}
+
+updateCount();
+</script>
+</body>
+</html>
