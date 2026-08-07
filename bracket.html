@@ -45,6 +45,13 @@
   .card-title { font-size: 15px; font-weight: 600; }
   .card-meta { font-size: 12px; color: var(--text3); }
   .pad { padding: 18px; }
+  .setup-head { cursor: pointer; user-select: none; }
+  .setup-head:hover .card-title { color: var(--green2); }
+  .head-right { display: flex; align-items: center; gap: 11px; }
+  .chev { font-size: 11px; color: var(--text3); display: inline-block; transition: transform .18s; }
+  /* Collapsed after the draw — the setup is done, the bracket is the point. */
+  .setup-card.collapsed .pad { display: none; }
+  .setup-card.collapsed .chev { transform: rotate(-90deg); }
 
   label.fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
     text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
@@ -72,7 +79,8 @@
   .payout.first { border-color: var(--accent); }
   .payout.first .amt { color: var(--green2); }
 
-  .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 16px 18px; }
+  .setup-card:not(.collapsed) .btn-row { border-top: 1px solid var(--border); }
   button.act { font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: .03em;
     padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border);
     background: var(--bg3); color: var(--text2); transition: background .15s, color .15s; }
@@ -192,9 +200,12 @@
   <div class="print-head" id="print-head"></div>
 
   <div class="card setup-card">
-    <div class="card-header">
-      <span class="card-title">Players</span>
-      <span class="card-meta" id="count-meta">0 players</span>
+    <div class="card-header setup-head" onclick="toggleSetup()" title="Show or hide setup">
+      <span class="card-title">Players and Entry Fee</span>
+      <span class="head-right">
+        <span class="card-meta" id="count-meta">0 players</span>
+        <span class="chev">▾</span>
+      </span>
     </div>
     <div class="pad">
       <label class="fl" for="names">One name per line</label>
@@ -212,13 +223,13 @@
             value="0" inputmode="decimal" oninput="onFeeChange()"></div>
         </div>
       </div>
-      <div class="btn-row">
-        <button class="act primary" id="draw-btn" onclick="draw()">Draw bracket</button>
-        <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
-        <button class="act" id="print-btn" onclick="window.print()" disabled>Print</button>
-        <button class="act" id="clear-btn" onclick="clearResults()" disabled>Clear results</button>
-        <span class="hint" id="hint"></span>
-      </div>
+    </div>
+    <div class="btn-row">
+      <button class="act primary" id="draw-btn" onclick="draw()">Draw bracket</button>
+      <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
+      <button class="act" id="print-btn" onclick="window.print()" disabled>Print</button>
+      <button class="act" id="clear-btn" onclick="clearResults()" disabled>Clear results</button>
+      <span class="hint" id="hint"></span>
     </div>
   </div>
 
@@ -228,7 +239,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.4</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.5</div>
 </footer>
 
 <script>
@@ -460,7 +471,7 @@ function payoutHTML(players, feeDollars, addOnDollars, champ) {
   </div>`;
 }
 
-function onFeeChange() { if (B) render(); }
+function onFeeChange() { updateCount(); if (B) render(); }
 
 /* ── UI ── */
 let B = null;
@@ -469,9 +480,21 @@ function parseNames() {
   return document.getElementById('names').value
     .split('\n').map(s => s.trim()).filter(Boolean);
 }
+function toggleSetup(force) {
+  const card = document.querySelector('.setup-card');
+  if (force === true)       card.classList.add('collapsed');
+  else if (force === false) card.classList.remove('collapsed');
+  else                      card.classList.toggle('collapsed');
+}
+
 function updateCount() {
   const n = parseNames().length;
-  document.getElementById('count-meta').textContent = `${n} player${n === 1 ? '' : 's'}`;
+  const fee = parseFloat((document.getElementById('fee') || {}).value) || 0;
+  const bar = parseFloat((document.getElementById('bar') || {}).value) || 0;
+  const bits = [`${n} player${n === 1 ? '' : 's'}`];
+  if (fee) bits.push('$' + fee + ' entry');
+  if (bar) bits.push('$' + bar + ' bar');
+  document.getElementById('count-meta').textContent = bits.join(' · ');
 }
 
 function draw() {
@@ -490,6 +513,7 @@ function draw() {
 
   B = buildBracket(names);
   ['redraw-btn','print-btn','clear-btn'].forEach(id => document.getElementById(id).disabled = false);
+  toggleSetup(true);
   render();
 }
 
