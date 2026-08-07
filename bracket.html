@@ -196,7 +196,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.0</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.1</div>
 </footer>
 
 <script>
@@ -540,6 +540,9 @@ const COL_W = 172, COL_GAP = 48, SLOT_H = 32, MATCH_H = SLOT_H * 2 + 2,
 /* A match sits at the vertical midpoint of whatever feeds it. Round one is
    evenly spaced; everything after is derived, so joins land dead centre between
    their two feeders and 1:1 feeds run perfectly straight. */
+// Vertical offset of a row's centre from the box centre.
+const rowOffset = i => (i + 0.5) * SLOT_H - MATCH_H / 2 + 1;
+
 function computeLayout(list, lane) {
   const rounds = [...new Set(list.map(m => m.round))].sort((a, b) => a - b);
   const pos = {};
@@ -550,9 +553,21 @@ function computeLayout(list, lane) {
       let y;
       if (!ri) y = HEAD_H + (i + 0.5) * lane;
       else {
-        const feeds = m.slots.filter(s => s.of && prevIds.includes(s.of)).map(s => pos[s.of].y);
-        y = feeds.length ? feeds.reduce((a, b) => a + b, 0) / feeds.length
-                         : HEAD_H + (i + 0.5) * lane;
+        const feeds = [];
+        m.slots.forEach((s, si) => {
+          if (s.of && prevIds.includes(s.of) && !feeds.some(f => f.id === s.of))
+            feeds.push({ id: s.of, y: pos[s.of].y, slot: si });
+        });
+        if (feeds.length === 1) {
+          // Only one player arrives along the bracket (the other drops in from
+          // the winners side). Sit the box so that feed is a straight line into
+          // its row, leaving the drop-in row above it.
+          y = feeds[0].y - rowOffset(feeds[0].slot);
+        } else if (feeds.length) {
+          y = feeds.reduce((a, f) => a + f.y, 0) / feeds.length;
+        } else {
+          y = HEAD_H + (i + 0.5) * lane;
+        }
       }
       pos[m.id] = { col: ri, y, round: r };
     });
@@ -563,8 +578,7 @@ function computeLayout(list, lane) {
 const colX = col => LEFT_PAD + col * (COL_W + COL_GAP);
 
 /* Every feed ends at the row that will hold that player, not the middle of the
-   box — that's what makes it read as a bracket. Players arriving from the other
-   bracket (winners dropouts) get a short inbound stub instead. */
+   box — that's what makes it read as a bracket. */
 function connectorHTML(list, pos) {
   const px = [];
   const line = (x, y, w, h) => px.push(
@@ -584,9 +598,9 @@ function connectorHTML(list, pos) {
         if (Math.abs(src.y - y) > 0.5)
           line(midX, Math.min(src.y, y), 1, Math.abs(src.y - y));         // step across to the row
         line(midX, y, myLeft - midX, 1);                                  // into the row
-      } else if (!src) {
-        line(myLeft - 20, y, 20, 1);                                      // dropping in from elsewhere
       }
+      // Rows fed from the other bracket get no line — the L-number already says
+      // which match that player fell out of, and a stub to nowhere just adds noise.
     });
   });
   return px.join('');
