@@ -68,6 +68,24 @@
     font-family: inherit; font-size: 14px; padding: 9px 0; }
   .fee-input input:focus { outline: none; }
 
+  /* ── Saving ── */
+  .name-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tname { width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; }
+  .tname:focus { outline: none; border-color: var(--accent); }
+  .tid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+    color: var(--text2); background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 9px 12px; letter-spacing: .04em; }
+  .saved-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .saved-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px;
+    background: var(--bg2); font-size: 14px; flex-wrap: wrap; }
+  .saved-row .sn { flex: 1; min-width: 140px; color: var(--cream); font-weight: 600; }
+  .saved-row .sm { font-size: 11px; color: var(--text3); }
+  .saved-row .sid { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text3); }
+  .saved-row.current { border-left: 3px solid var(--accent); }
+  .saved-empty { padding: 20px 18px; color: var(--text3); font-size: 13px; background: var(--bg2); }
+
   /* ── Payouts ── */
   .payouts { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 18px; }
   .payout { flex: 1; min-width: 128px; border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -234,6 +252,17 @@
       </span>
     </div>
     <div class="pad">
+      <div class="name-row">
+        <div style="flex:1;min-width:180px">
+          <label class="fl" for="tname">Tournament name</label>
+          <input id="tname" class="tname" type="text" spellcheck="false"
+            placeholder="e.g. Mike Kohout Memorial" oninput="onMetaChange()">
+        </div>
+        <div>
+          <label class="fl">ID</label>
+          <div class="tid" id="tid">—</div>
+        </div>
+      </div>
       <label class="fl" for="names">One name per line &mdash; add a number to set their race (races to 3 otherwise)</label>
       <textarea id="names" spellcheck="false" placeholder="Kirt&#10;Trevor&#10;TK 2&#10;Scott 2&#10;Tanner&#10;Cody"
         oninput="updateCount()"></textarea>
@@ -255,8 +284,21 @@
       <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
       <button class="act" id="print-btn" onclick="window.print()" disabled>Print</button>
       <button class="act" id="clear-btn" onclick="clearResults()" disabled>Clear results</button>
+      <button class="act" onclick="toggleSaved()">Saved</button>
+      <button class="act" onclick="exportJSON()">Export</button>
+      <button class="act" onclick="document.getElementById('importer').click()">Import</button>
+      <input type="file" id="importer" accept="application/json" style="display:none" onchange="importJSON(event)">
       <span class="hint" id="hint"></span>
+      <span class="hint" id="saved-note"></span>
     </div>
+  </div>
+
+  <div class="card" id="saved-panel" style="display:none">
+    <div class="card-header">
+      <span class="card-title">Saved tournaments</span>
+      <span class="card-meta" id="saved-count"></span>
+    </div>
+    <div id="saved-list" class="saved-list"></div>
   </div>
 
   <div id="out"></div>
@@ -265,7 +307,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.9</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v2.0</div>
 </footer>
 
 <script>
@@ -315,16 +357,23 @@ function shuffle(arr) {
   return a;
 }
 
-function buildBracket(names) {
-  const players = shuffle(names);
-  const n = players.length;
-  let size = 1;
-  while (size < n) size *= 2;
+function buildBracket(names, savedSeeds) {
+  // savedSeeds reproduces a draw exactly on reload; otherwise it's a fresh shuffle.
+  let bySeed, size, n;
+  if (savedSeeds) {
+    bySeed = { ...savedSeeds };
+    size = Object.keys(bySeed).length;
+    n = Object.values(bySeed).filter(Boolean).length;
+  } else {
+    const players = shuffle(names);
+    n = players.length;
+    size = 1;
+    while (size < n) size *= 2;
+    bySeed = {};
+    players.forEach((p, i) => bySeed[i + 1] = p);
+    for (let s = n + 1; s <= size; s++) bySeed[s] = null;   // null === bye
+  }
   const rounds = Math.log2(size);
-
-  const bySeed = {};
-  players.forEach((p, i) => bySeed[i + 1] = p);
-  for (let s = n + 1; s <= size; s++) bySeed[s] = null;   // null === bye
 
   const matches = [];
   const add = m => { matches.push(m); return m; };
@@ -599,6 +648,174 @@ function parseEntries() {
 }
 function parseNames() { return parseEntries().map(e => e.name); }
 const raceOf = (name) => (B && B.races && B.races[name]) || DEFAULT_RACE;
+
+/* ── Saving ──
+   Everything lives in this browser's local storage. A tournament running over
+   several days survives closing the tab, and past events stay browsable. Export
+   writes a real file — worth doing at the end of a night, because clearing the
+   browser's data would take the local copies with it. */
+const STORE_KEY = 'kpl-bracket';
+const INDEX_KEY = STORE_KEY + '-index';
+
+let currentId = null;
+let saveTimer = null;
+
+function newId() {
+  const d = new Date();
+  const stamp = String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `KPL-${stamp}-${rand}`;
+}
+
+function readIndex() {
+  try { return JSON.parse(localStorage.getItem(INDEX_KEY)) || []; } catch (e) { return []; }
+}
+function writeIndex(list) {
+  try { localStorage.setItem(INDEX_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+function snapshot() {
+  if (!B || !currentId) return null;
+  const winners = {};
+  B.matches.forEach(m => { if (m.winner === 0 || m.winner === 1) winners[m.id] = m.winner; });
+  return {
+    id: currentId,
+    name: (document.getElementById('tname').value || '').trim(),
+    kind: 'bracket',
+    saved: Date.now(),
+    bySeed: B.bySeed,
+    winners,
+    payoutsManual: B.payoutsManual || null,
+    fee: (document.getElementById('fee') || {}).value,
+    bar: (document.getElementById('bar') || {}).value,
+    
+    names: document.getElementById('names').value, races: B.races || {},
+  };
+}
+
+function saveState() {
+  const data = snapshot();
+  if (!data) return;
+  try {
+    localStorage.setItem(STORE_KEY + '-' + data.id, JSON.stringify(data));
+    const idx = readIndex().filter(e => e.id !== data.id);
+    idx.unshift({ id: data.id, name: data.name, saved: data.saved,
+                  players: Object.values(data.bySeed).filter(Boolean).length,
+                  champion: champion(B) || null });
+    writeIndex(idx);
+    const t = new Date(data.saved);
+    note(`Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`);
+  } catch (e) {
+    note('Could not save — storage may be full or blocked.', true);
+  }
+}
+
+// Called from render, so any change is captured without a Save button.
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 400);
+}
+
+function note(msg, bad) {
+  const el = document.getElementById('saved-note');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = bad ? 'var(--loss)' : 'var(--text3)';
+}
+
+function loadState(id) {
+  let d;
+  try { d = JSON.parse(localStorage.getItem(STORE_KEY + '-' + id)); } catch (e) {}
+  if (!d) { note('That saved tournament could not be read.', true); return; }
+
+  currentId = d.id;
+  document.getElementById('tid').textContent = d.id;
+  document.getElementById('tname').value = d.name || '';
+  if (d.fee !== undefined && document.getElementById('fee')) document.getElementById('fee').value = d.fee;
+  if (d.bar !== undefined && document.getElementById('bar')) document.getElementById('bar').value = d.bar;
+  
+
+  B = buildBracket(null, d.bySeed);
+  document.getElementById('names').value = d.names || ''; B.races = d.races || {};
+  B.payoutsManual = d.payoutsManual || null;
+  B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
+
+  ['redraw-btn','print-btn','clear-btn'].forEach(x => { const el = document.getElementById(x); if (el) el.disabled = false; });
+  location.hash = d.id;
+  toggleSetup(true);
+  document.getElementById('saved-panel').style.display = 'none';
+  updateCount();
+  render();
+  note(`Loaded ${d.id}`);
+}
+
+function deleteSaved(id) {
+  if (!confirm('Delete this saved tournament? This cannot be undone.')) return;
+  try { localStorage.removeItem(STORE_KEY + '-' + id); } catch (e) {}
+  writeIndex(readIndex().filter(e => e.id !== id));
+  renderSaved();
+  if (id === currentId) note('Deleted the tournament you had open.');
+}
+
+function toggleSaved() {
+  const p = document.getElementById('saved-panel');
+  const open = p.style.display === 'none';
+  p.style.display = open ? '' : 'none';
+  if (open) renderSaved();
+}
+
+function renderSaved() {
+  const idx = readIndex();
+  document.getElementById('saved-count').textContent =
+    idx.length ? `${idx.length} saved on this device` : '';
+  document.getElementById('saved-list').innerHTML = idx.length ? idx.map(e => {
+    const when = new Date(e.saved).toLocaleString('en-US',
+      { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    return `<div class="saved-row${e.id === currentId ? ' current' : ''}">
+      <span class="sn">${esc(e.name || 'Untitled')}</span>
+      <span class="sid">${esc(e.id)}</span>
+      <span class="sm">${e.players} players · ${when}${e.champion ? ' · won by ' + esc(e.champion) : ''}</span>
+      <button class="act" onclick="loadState('${esc(e.id)}')">Open</button>
+      <button class="linkish" onclick="deleteSaved('${esc(e.id)}')">Delete</button>
+    </div>`;
+  }).join('') : '<div class="saved-empty">Nothing saved yet. Build a bracket and it saves as you go.</div>';
+}
+
+function exportJSON() {
+  const data = snapshot();
+  if (!data) { note('Nothing to export yet.', true); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${(data.name || data.id).replace(/[^\w-]+/g, '_')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  note('Exported.');
+}
+
+function importJSON(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    let d;
+    try { d = JSON.parse(fr.result); } catch (e) { note('That file was not readable JSON.', true); return; }
+    if (!d || !d.bySeed) { note('That file is not a saved tournament.', true); return; }
+    try {
+      localStorage.setItem(STORE_KEY + '-' + d.id, JSON.stringify(d));
+      const idx = readIndex().filter(e => e.id !== d.id);
+      idx.unshift({ id: d.id, name: d.name, saved: d.saved || Date.now(),
+                    players: Object.values(d.bySeed).filter(Boolean).length, champion: d.champion || null });
+      writeIndex(idx);
+      loadState(d.id);
+    } catch (e) { note('Could not store the imported file.', true); }
+  };
+  fr.readAsText(file);
+  ev.target.value = '';
+}
+
+function onMetaChange() { if (B) queueSave(); }
+
 function toggleSetup(force) {
   const card = document.querySelector('.setup-card');
   if (force === true)       card.classList.add('collapsed');
@@ -631,6 +848,9 @@ function draw() {
   hint.style.color = 'var(--text3)';
 
   B = buildBracket(names);
+  currentId = newId();
+  document.getElementById('tid').textContent = currentId;
+  location.hash = currentId;
   B.races = {};
   parseEntries().forEach(e => { B.races[e.name] = e.race; });
   ['redraw-btn','print-btn','clear-btn'].forEach(id => document.getElementById(id).disabled = false);
@@ -865,6 +1085,7 @@ function bracketHTML(list, labelFor, lane) {
 
 function render() {
   resolve(B);
+  queueSave();
   const wb = B.matches.filter(m => m.bracket === 'W');
   const lb = B.matches.filter(m => m.bracket === 'L');
   const gf = B.matches.filter(m => m.bracket === 'GF' && m.live);
@@ -916,6 +1137,12 @@ function render() {
 }
 
 updateCount();
+
+// A bookmarked or shared link reopens that tournament on this device.
+(function () {
+  const id = (location.hash || '').replace(/^#/, '');
+  if (id && localStorage.getItem(STORE_KEY + '-' + id)) loadState(id);
+})();
 </script>
 </body>
 </html>
