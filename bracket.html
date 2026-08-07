@@ -48,7 +48,7 @@
   .setup-head { cursor: pointer; user-select: none; }
   .setup-head:hover .card-title { color: var(--green2); }
   .head-right { display: flex; align-items: center; gap: 11px; }
-  .chev { font-size: 11px; color: var(--text3); display: inline-block; transition: transform .18s; }
+  .chev { font-size: 20px; line-height: 1; color: var(--text2); display: inline-block; transition: transform .18s; }
   /* Collapsed after the draw — the setup is done, the bracket is the point. */
   .setup-card.collapsed .pad { display: none; }
   .setup-card.collapsed .chev { transform: rotate(-90deg); }
@@ -124,8 +124,11 @@
     color: var(--cream); background: var(--bg2); border: 1px solid var(--accent);
     border-radius: 3px; padding: 3px 6px; }
   .slot-input:focus { outline: none; }
-  .score-box { width: 24px; height: 20px; flex-shrink: 0; border: 1px solid var(--border);
-    border-radius: 3px; background: var(--bg2); }
+  .race-box { width: 24px; height: 21px; flex-shrink: 0; border: 1px solid var(--border);
+    border-radius: 3px; background: var(--bg2); display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 700; color: var(--text2);
+    font-variant-numeric: tabular-nums; }
+  .slot.won .race-box { border-color: var(--accent); color: var(--green2); }
 
   .gf-col { border-left: 1px solid var(--border); padding-left: 26px; }
   .gf-col .round-label { color: var(--accent); }
@@ -167,8 +170,7 @@
     .slot { padding: 5px 7px 5px 22px; min-height: 26px; }
     .slot.won .nm { font-weight: 700; }
     .slot.lost .nm { text-decoration: line-through; }
-    /* Blank boxes so scores can be filled in by hand. */
-    .score-box { border: 1px solid #666; }
+    .race-box { border: 1px solid #666; color: #000; }
     .champion { border: 1px solid #000; }
     .print-head { display: block !important; }
   }
@@ -208,8 +210,8 @@
       </span>
     </div>
     <div class="pad">
-      <label class="fl" for="names">One name per line</label>
-      <textarea id="names" spellcheck="false" placeholder="Teddy Deason&#10;Cody Baker&#10;Johnnie Colangelo&#10;Mark Scott"
+      <label class="fl" for="names">One name per line &mdash; add a number to set their race (races to 3 otherwise)</label>
+      <textarea id="names" spellcheck="false" placeholder="Kirt&#10;Trevor&#10;TK 2&#10;Scott 2&#10;Tanner&#10;Cody"
         oninput="updateCount()"></textarea>
       <div class="fee-row">
         <div>
@@ -239,7 +241,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.5</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.6</div>
 </footer>
 
 <script>
@@ -476,10 +478,20 @@ function onFeeChange() { updateCount(); if (B) render(); }
 /* ── UI ── */
 let B = null;
 
-function parseNames() {
-  return document.getElementById('names').value
-    .split('\n').map(s => s.trim()).filter(Boolean);
+const DEFAULT_RACE = 3;
+
+/* "Kirt 2" races Kirt to 2. A bare name races to 3. */
+function parseEntry(line) {
+  const m = line.trim().match(/^(.+?)\s+(\d{1,2})$/);
+  return m ? { name: m[1].trim(), race: parseInt(m[2], 10) }
+           : { name: line.trim(), race: DEFAULT_RACE };
 }
+function parseEntries() {
+  return document.getElementById('names').value
+    .split('\n').map(s => s.trim()).filter(Boolean).map(parseEntry);
+}
+function parseNames() { return parseEntries().map(e => e.name); }
+const raceOf = (name) => (B && B.races && B.races[name]) || DEFAULT_RACE;
 function toggleSetup(force) {
   const card = document.querySelector('.setup-card');
   if (force === true)       card.classList.add('collapsed');
@@ -512,6 +524,8 @@ function draw() {
   hint.style.color = 'var(--text3)';
 
   B = buildBracket(names);
+  B.races = {};
+  parseEntries().forEach(e => { B.races[e.name] = e.race; });
   ['redraw-btn','print-btn','clear-btn'].forEach(id => document.getElementById(id).disabled = false);
   toggleSetup(true);
   render();
@@ -554,9 +568,10 @@ function slotHTML(m, i) {
     if (m.autoWon) cls += ' locked';
     if (seedSlot !== null) cls += ' named';           // right-click to correct a name
   }
+  const race = (v !== undefined && v !== null) ? raceOf(v) : '';
   return `<div class="${cls}" data-m="${m.id}" data-i="${i}" onclick="${click}"${
     seedSlot !== null ? ` oncontextmenu="editBye('${m.id}',${i});return false"` : ''}>
-    <span class="nm">${label}</span><span class="score-box"></span></div>`;
+    <span class="nm">${label}</span><span class="race-box">${race}</span></div>`;
 }
 
 /* Where an undecided slot's player will come from — "L14" is the loser of
@@ -576,9 +591,11 @@ function editBye(mid, i) {
   const el = document.querySelector(`.slot[data-m="${mid}"][data-i="${i}"]`);
   if (!el || el.querySelector('input')) return;
 
-  const current = B.bySeed[seed] || '';
+  const cur = B.bySeed[seed] || '';
+  const curRace = cur ? raceOf(cur) : DEFAULT_RACE;
+  const current = cur && curRace !== DEFAULT_RACE ? `${cur} ${curRace}` : cur;
   el.innerHTML = `<input class="slot-input" value="${esc(current)}"
-    placeholder="Player name" spellcheck="false">`;
+    placeholder="Name, or Name 2 for a race" spellcheck="false">`;
   const inp = el.querySelector('input');
   inp.focus(); inp.select();
 
@@ -586,9 +603,11 @@ function editBye(mid, i) {
   const commit = (save) => {
     if (done) return; done = true;
     if (save) {
-      const name = inp.value.trim();
+      const raw = inp.value.trim();
+      const { name, race } = parseEntry(raw);
       const changed = (B.bySeed[seed] || '') !== name;
       B.bySeed[seed] = name || null;        // blank puts the bye back
+      if (name) B.races[name] = race;
       if (changed) clearDownstream(mid);
       syncNames();
     }
@@ -625,9 +644,14 @@ function clearDownstream(mid) {
 
 /* Keep the roster box in step so a redraw includes latecomers. */
 function syncNames() {
-  const names = [];
-  for (let s = 1; s <= B.size; s++) if (B.bySeed[s]) names.push(B.bySeed[s]);
-  document.getElementById('names').value = names.join('\n');
+  const lines = [];
+  for (let s = 1; s <= B.size; s++) {
+    const n = B.bySeed[s];
+    if (!n) continue;
+    const r = raceOf(n);
+    lines.push(r === DEFAULT_RACE ? n : `${n} ${r}`);   // only write a race worth keeping
+  }
+  document.getElementById('names').value = lines.join('\n');
   updateCount();
 }
 
