@@ -97,6 +97,14 @@
   .rrow .x:hover { color: var(--loss); }
   .rrow.manual .f { color: var(--text2); }
 
+  /* ── Tournament header ── */
+  .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .th-name { font-size: 20px; font-weight: 700; color: var(--cream); line-height: 1.2; }
+  .th-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .th-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+  .th-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
   /* ── Saving ── */
   .name-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
   .tname { width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
@@ -222,7 +230,10 @@
       --accent: #000; --cream: #000; --green2: #000; --loss: #000; --on-accent: #000;
     }
     html, body { background: #fff; font-size: 9.5pt; }
-    header, .setup-card, .btn-row, .theme-btn, .header-felt { display: none !important; }
+    header, .setup-card, .btn-row, .theme-btn, .header-felt,
+    #saved-panel, .payout.add, .linkish, .th-actions { display: none !important; }
+    .th-name { font-size: 15pt; color: #000; }
+    .th-meta { font-size: 8pt; color: #555; }
     main { padding: 0; }
     .wrap { max-width: none; padding: 0; }
     .card { border: none; margin-bottom: 10px; break-inside: avoid; }
@@ -285,7 +296,7 @@
         <div style="flex:1;min-width:180px">
           <label class="fl" for="tname">Tournament name</label>
           <input id="tname" class="tname" type="text" spellcheck="false"
-            placeholder="e.g. Mike Kohout Memorial" oninput="onMetaChange()">
+            placeholder="e.g. Kemmerer Classic" oninput="onMetaChange()">
         </div>
         <div>
           <label class="fl">ID</label>
@@ -328,11 +339,10 @@
     <div class="btn-row">
       <button class="act primary" id="draw-btn" onclick="draw()">Go — build bracket</button>
       <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
-      <button class="act" id="print-btn" onclick="window.print()" disabled>Print</button>
       <button class="act" id="clear-btn" onclick="clearResults()" disabled>Clear results</button>
-      <button class="act" onclick="toggleSaved()">Saved</button>
-      <button class="act" onclick="exportJSON()">Export</button>
-      <button class="act" onclick="document.getElementById('importer').click()">Import</button>
+      <button class="act" onclick="newTournament()">New</button>
+      <button class="act" onclick="toggleSaved()">Open saved</button>
+      <button class="act" onclick="document.getElementById('importer').click()">Import file</button>
       <input type="file" id="importer" accept="application/json" style="display:none" onchange="importJSON(event)">
       <span class="hint" id="hint"></span>
       <span class="hint" id="saved-note"></span>
@@ -353,7 +363,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.03</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.04</div>
 </footer>
 
 <script>
@@ -958,8 +968,10 @@ function saveState() {
                   progress: data.progress, champion: data.champion });
     writeIndex(idx);
     const t = new Date(data.saved);
-    note(`Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`
-       + ` · ${data.progress.played}/${data.progress.total} matches played`);
+    const msg = `Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`
+              + ` · ${data.progress.played}/${data.progress.total} matches played`;
+    const sm = document.getElementById('save-meta');
+    if (sm) sm.textContent = ' · ' + msg; else note(msg);
   } catch (e) {
     note('Could not save — storage may be full or blocked.', true);
   }
@@ -995,7 +1007,7 @@ function loadState(id) {
   B.payoutsManual = d.payoutsManual || null;
   B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
 
-  ['redraw-btn','print-btn','clear-btn'].forEach(x => { const el = document.getElementById(x); if (el) el.disabled = false; });
+  ['redraw-btn','clear-btn'].forEach(x => { const el = document.getElementById(x); if (el) el.disabled = false; });
   location.hash = d.id;
   toggleSetup(true);
   document.getElementById('saved-panel').style.display = 'none';
@@ -1081,6 +1093,23 @@ function importJSON(ev) {
 
 function onMetaChange() { if (B) queueSave(); }
 
+/* Clears the slate so the next draw is a separate tournament rather than
+   overwriting the one that's open. */
+function newTournament() {
+  if (B && !confirm('Start a new tournament? The one open now is already saved.')) return;
+  currentId = null;
+  B = null;
+  document.getElementById('tname').value = '';
+  document.getElementById('tid').textContent = '—';
+  document.getElementById('out').innerHTML = '';
+  location.hash = '';
+  roster = []; renderRoster();
+  ['redraw-btn','clear-btn'].forEach(x => { const el = document.getElementById(x); if (el) el.disabled = true; });
+  toggleSetup(false);
+  note('');
+  updateCount();
+}
+
 function toggleSetup(force) {
   const card = document.querySelector('.setup-card');
   if (force === true)       card.classList.add('collapsed');
@@ -1115,10 +1144,12 @@ function draw() {
   hint.style.color = 'var(--text3)';
 
   B = buildBracket(names);
-  currentId = newId();
+  // Keep the existing ID so a redraw replaces this tournament instead of
+  // stacking up another copy. "New" is the only thing that mints a fresh one.
+  if (!currentId) currentId = newId();
   document.getElementById('tid').textContent = currentId;
   location.hash = currentId;
-  ['redraw-btn','print-btn','clear-btn'].forEach(id => document.getElementById(id).disabled = false);
+  ['redraw-btn','clear-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
   toggleSetup(true);
   render();
 }
@@ -1385,7 +1416,20 @@ function render() {
   const fee = parseFloat(document.getElementById('fee').value) || 0;
   const bar = parseFloat(document.getElementById('bar').value) || 0;
 
+  const tName = (document.getElementById('tname').value || '').trim();
+
   document.getElementById('out').innerHTML = `
+    <div class="tourney-head">
+      <div class="th-left">
+        <div class="th-name">${tName ? esc(tName) : 'Untitled tournament'}</div>
+        <div class="th-meta"><span class="th-id">${esc(currentId || '')}</span>
+          <span id="save-meta"></span></div>
+      </div>
+      <div class="th-actions">
+        <button class="act" onclick="exportJSON()">Export</button>
+        <button class="act" onclick="window.print()">Print</button>
+      </div>
+    </div>
     ${payoutHTML(live, fee, bar, champ)}
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}
     <div class="card">
