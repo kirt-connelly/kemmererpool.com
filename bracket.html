@@ -52,6 +52,27 @@
     line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: 10px 12px; }
   textarea:focus { outline: none; border-color: var(--accent); }
+  .fee-row { margin-top: 14px; }
+  .fee-input { display: inline-flex; align-items: center; gap: 6px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
+  .fee-input:focus-within { border-color: var(--accent); }
+  .fee-input span { color: var(--text3); font-size: 14px; }
+  .fee-input input { width: 76px; border: none; background: none; color: var(--text);
+    font-family: inherit; font-size: 14px; padding: 9px 0; }
+  .fee-input input:focus { outline: none; }
+
+  /* ── Payouts ── */
+  .payouts { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 18px; }
+  .payout { flex: 1; min-width: 128px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); padding: 12px 14px; }
+  .payout .place { font-size: 10px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text3); }
+  .payout .amt { font-size: 22px; font-weight: 700; color: var(--cream); margin-top: 3px;
+    font-variant-numeric: tabular-nums; }
+  .payout .who { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .payout.first { border-color: var(--accent); }
+  .payout.first .amt { color: var(--green2); }
+
   .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
   button.act { font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: .03em;
     padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border);
@@ -180,6 +201,11 @@
       <label class="fl" for="names">One name per line</label>
       <textarea id="names" spellcheck="false" placeholder="Teddy Deason&#10;Cody Baker&#10;Johnnie Colangelo&#10;Mark Scott"
         oninput="updateCount()"></textarea>
+      <div class="fee-row">
+        <label class="fl" for="fee">Entry fee per player</label>
+        <div class="fee-input"><span>$</span><input id="fee" type="number" min="0" step="1"
+          value="10" inputmode="decimal" oninput="onFeeChange()"></div>
+      </div>
       <div class="btn-row">
         <button class="act primary" id="draw-btn" onclick="draw()">Draw bracket</button>
         <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
@@ -196,7 +222,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.1</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.2</div>
 </footer>
 
 <script>
@@ -381,6 +407,47 @@ function champion(b) {
   if (gf.winner === 0) return gf.winnerName;
   return gf2.resolved ? gf2.winnerName : null;
 }
+
+/* ── Payouts ──
+   First takes half the pot. The other half splits two-thirds / one-third between
+   second and third — which is the same as a straight 1/2, 1/3, 1/6 of the whole.
+   Second and third round to whole dollars and first takes the remainder, so the
+   three payouts always add up to exactly what was collected. */
+function computePayouts(players, feeDollars) {
+  const pot = Math.round(players * feeDollars * 100);        // cents, no float drift
+  if (pot <= 0) return null;
+  const second = Math.round(pot / 3 / 100) * 100;
+  const third  = Math.round(pot / 6 / 100) * 100;
+  const first  = pot - second - third;
+  return { pot, first, second, third };
+}
+
+const money = (cents) => {
+  const v = cents / 100;
+  return '$' + (Number.isInteger(v) ? v.toLocaleString('en-US')
+                                    : v.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+};
+
+function payoutHTML(players, feeDollars, champ) {
+  const p = computePayouts(players, feeDollars);
+  if (!p) return '';
+  return `<div class="card">
+    <div class="card-header">
+      <span class="card-title">Payouts</span>
+      <span class="card-meta">${players} × ${money(Math.round(feeDollars*100))} = ${money(p.pot)} pot</span>
+    </div>
+    <div class="payouts">
+      <div class="payout first"><div class="place">1st</div><div class="amt">${money(p.first)}</div>
+        <div class="who">${champ ? esc(champ) : 'Half the pot'}</div></div>
+      <div class="payout"><div class="place">2nd</div><div class="amt">${money(p.second)}</div>
+        <div class="who">Two-thirds of the rest</div></div>
+      <div class="payout"><div class="place">3rd</div><div class="amt">${money(p.third)}</div>
+        <div class="who">One-third of the rest</div></div>
+    </div>
+  </div>`;
+}
+
+function onFeeChange() { if (B) render(); }
 
 /* ── UI ── */
 let B = null;
@@ -661,7 +728,10 @@ function render() {
     `<div class="t">Kemmerer Pool League — Double Elimination</div>
      <div class="d">${live} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
+  const fee = parseFloat(document.getElementById('fee').value) || 0;
+
   document.getElementById('out').innerHTML = `
+    ${payoutHTML(live, fee, champ)}
     <div class="card">
       <div class="card-header">
         <span class="card-title">Winners Bracket</span>
@@ -670,8 +740,7 @@ function render() {
       <div class="bracket-scroll">${bracketHTML(wbAll, wbLabel, LANE)}</div>
     </div>
     ${lb.length ? `<div class="card">
-      <div class="card-header"><span class="card-title">Losers Bracket</span>
-        <span class="card-meta">Second loss ends your tournament</span></div>
+      <div class="card-header"><span class="card-title">Losers Bracket</span></div>
       <div class="bracket-scroll">${bracketHTML(lb, lbLabel, lbLane)}</div>
     </div>` : ''}
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}`;
