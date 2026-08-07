@@ -211,7 +211,11 @@
     .card-header { background: transparent; border-bottom: 1px solid #000; padding: 0 0 4px; }
     .card-title { font-size: 11pt; }
     .bracket-scroll { overflow: visible; padding: 8px 0 0; }
-    .line { background: #666; }
+    /* Browsers drop background colours when printing, and the connectors are
+       coloured divs — without this the bracket prints as boxes with no lines. */
+    .line { background: #000 !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .race-box, .match { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     /* Canvas widths are fixed pixels, so shrink to fit the page. zoom reflows
        (transform would leave the original height as blank space). */
     .canvas { zoom: .74; }
@@ -307,7 +311,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.3</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.4</div>
 </footer>
 
 <script>
