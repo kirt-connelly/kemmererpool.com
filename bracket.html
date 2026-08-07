@@ -90,6 +90,8 @@
   .score-box { width: 24px; height: 20px; flex-shrink: 0; border: 1px solid var(--border);
     border-radius: 3px; background: var(--bg2); }
 
+  .gf-col { border-left: 1px solid var(--border); padding-left: 26px; }
+  .gf-col .round-label { color: var(--accent); }
   .champion { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 20px;
     border: 1px solid var(--accent); border-radius: var(--radius); background: var(--bg2); margin-top: 4px; }
   .champion .lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); }
@@ -271,8 +273,11 @@ function buildBracket(names) {
       }
     } else if (r % 2 === 0) {
       const drops = wbRound(r / 2 + 1);
-      // Reversed on alternating rounds to cut down on immediate rematches.
-      const dd = (r / 2) % 2 === 0 ? [...drops].reverse() : drops;
+      // Cross-over: losers dropping out of the winners bracket must not land on
+      // the side holding the players they just beat. Reversing the drop order on
+      // the first major round (and alternating after) sends them to the opposite
+      // end of the losers bracket.
+      const dd = (r / 2) % 2 === 1 ? [...drops].reverse() : drops;
       for (let i = 0; i < lbPrev.length; i++) {
         cur.push(add({ id: `L${r}-${i}`, bracket: 'L', round: r, winner: null,
           slots: [{ type: 'winner', of: lbPrev[i].id }, { type: 'loser', of: dd[i].id }] }));
@@ -428,12 +433,15 @@ function matchHTML(m) {
     ${slotHTML(m,0)}${slotHTML(m,1)}</div>`;
 }
 
-function roundsHTML(list, labelFor) {
+function roundColumns(list, labelFor) {
   const byRound = {};
   list.forEach(m => (byRound[m.round] = byRound[m.round] || []).push(m));
-  return `<div class="rounds">` + Object.keys(byRound).sort((a,b)=>a-b).map(r =>
+  return Object.keys(byRound).sort((a,b)=>a-b).map(r =>
     `<div class="round"><div class="round-label">${labelFor(+r, byRound[r].length)}</div>
-      ${byRound[r].map(matchHTML).join('')}</div>`).join('') + `</div>`;
+      ${byRound[r].map(matchHTML).join('')}</div>`).join('');
+}
+function roundsHTML(list, labelFor) {
+  return `<div class="rounds">${roundColumns(list, labelFor)}</div>`;
 }
 
 function render() {
@@ -455,26 +463,24 @@ function render() {
     `<div class="t">Kemmerer Pool League — Double Elimination</div>
      <div class="d">${B.playerCount} players${byeNote} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
+  // The grand final continues the winners-bracket row rather than sitting in a
+  // section of its own — that's where the eye expects a bracket to end.
+  const gfCols = gf.map(m =>
+    `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Reset' : 'Grand Final'}</div>${matchHTML(m)}</div>`).join('');
+
   document.getElementById('out').innerHTML = `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Winners Bracket</span>
         <span class="card-meta">${B.playerCount} players${byeNote}</span>
       </div>
-      <div class="bracket-scroll">${roundsHTML(wb, wbLabel)}</div>
+      <div class="bracket-scroll"><div class="rounds">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
     </div>
     ${lb.length ? `<div class="card">
       <div class="card-header"><span class="card-title">Losers Bracket</span>
         <span class="card-meta">Second loss ends your tournament</span></div>
       <div class="bracket-scroll">${roundsHTML(lb, lbLabel)}</div>
     </div>` : ''}
-    <div class="card">
-      <div class="card-header"><span class="card-title">Grand Final</span>
-        <span class="card-meta">${gf.length > 1 ? 'Reset in play' : 'Winners-bracket player needs one win'}</span></div>
-      <div class="bracket-scroll"><div class="rounds">
-        ${gf.map(m => `<div class="round"><div class="round-label">${m.round === 2 ? 'Reset' : 'Final'}</div>${matchHTML(m)}</div>`).join('')}
-      </div></div>
-    </div>
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}`;
 }
 
