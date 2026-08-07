@@ -71,7 +71,8 @@
     margin-bottom: 10px; flex-shrink: 0; }
   /* Matches spread evenly down the column so each pair lines up with the single
      match it feeds in the next column. */
-  .round-body { flex: 1; display: flex; flex-direction: column; justify-content: space-around; }
+  .round-body { flex: 1; display: flex; flex-direction: column; justify-content: space-around;
+    min-height: var(--bh, 0px); }
   .pair { flex: 1; display: flex; flex-direction: column; justify-content: space-around; position: relative; }
 
   /* ── Connectors ──
@@ -151,6 +152,7 @@
     .bracket-scroll { overflow: visible; padding: 8px 0 0; }
     .rounds { gap: 22px; }
     .round { min-width: 0; }
+    .round-body { min-height: 0 !important; }
     .match::after, .match::before, .pair::after { background: #666; }
     .pair.single .match::after { right: -22px; width: 22px; }
     .match::after { right: -11px; width: 11px; }
@@ -596,6 +598,11 @@ function render() {
 
   // The grand final continues the winners-bracket row rather than sitting in a
   // section of its own — that's where the eye expects a bracket to end.
+  // One "lane" per winners round-1 match. The losers bracket reuses the same
+  // total height, so its half-as-many matches sit at double the spacing —
+  // which is what lines the two brackets up and gives the connectors room.
+  const bh = (B.size / 2) * 78;
+
   const gfCols = gf.map(m =>
     `<div class="round gf-col"><div class="round-label">${m.round === 2 ? 'Final #2' : 'Final'}</div>
        <div class="round-body"><div class="pair single">${matchHTML(m)}</div></div></div>`).join('');
@@ -606,12 +613,12 @@ function render() {
         <span class="card-title">Winners Bracket</span>
         <span class="card-meta">${live} players${byeNote}</span>
       </div>
-      <div class="bracket-scroll"><div class="rounds">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
+      <div class="bracket-scroll"><div class="rounds" style="--bh:${bh}px">${roundColumns(wb, wbLabel)}${gfCols}</div></div>
     </div>
     ${lb.length ? `<div class="card">
       <div class="card-header"><span class="card-title">Losers Bracket</span>
         <span class="card-meta">Second loss ends your tournament</span></div>
-      <div class="bracket-scroll">${roundsHTML(lb, lbLabel)}</div>
+      <div class="bracket-scroll"><div class="rounds" style="--bh:${bh}px">${roundColumns(lb, lbLabel)}</div></div>
     </div>` : ''}
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}`;
 }
