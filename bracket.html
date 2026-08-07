@@ -104,6 +104,8 @@
   .slot.won .nm { color: var(--green2); }
   .slot.lost .nm { color: var(--text3); text-decoration: line-through; }
   .slot.empty .nm, .slot.bye .nm { color: var(--text3); font-weight: 400; font-style: italic; }
+  .slot .src { font-size: 11px; font-weight: 600; font-style: normal; letter-spacing: .04em;
+    color: var(--text3); opacity: .8; }
   .slot.locked { cursor: default; }
   .slot.bye.open { cursor: pointer; }
   .slot.bye.open .nm { color: var(--accent); font-style: normal; font-weight: 600; }
@@ -447,7 +449,10 @@ function slotHTML(m, i) {
   const seedSlot = m.slots[i].type === 'seed' ? m.slots[i].seed : null;
   let cls = 'slot', label, click = `pick('${m.id}',${i})`;
 
-  if (v === undefined)      { cls += ' empty locked'; label = '—'; }
+  if (v === undefined) {
+    cls += ' empty locked';
+    label = `<span class="src">${sourceLabel(m.slots[i])}</span>`;
+  }
   else if (v === null) {
     // A first-round bye can be filled in when someone turns up late. Byes
     // further down the losers bracket are consequences, not open slots.
@@ -463,6 +468,15 @@ function slotHTML(m, i) {
   return `<div class="${cls}" data-m="${m.id}" data-i="${i}" onclick="${click}"${
     seedSlot !== null ? ` oncontextmenu="editBye('${m.id}',${i});return false"` : ''}>
     <span class="nm">${label}</span><span class="score-box"></span></div>`;
+}
+
+/* Where an undecided slot's player will come from — "L14" is the loser of
+   match 14, "W9" the winner of match 9. Lets you trace the bracket on paper. */
+function sourceLabel(slot) {
+  if (!slot.of) return '—';
+  const src = B.matches.find(m => m.id === slot.of);
+  if (!src) return '—';
+  return (slot.type === 'loser' ? 'L' : 'W') + src.no;
 }
 
 /* Replace a slot with an input so a latecomer can be typed straight in. */
