@@ -353,7 +353,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.02</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.03</div>
 </footer>
 
 <script>
@@ -927,11 +927,16 @@ function snapshot() {
   if (!B || !currentId) return null;
   const winners = {};
   B.matches.forEach(m => { if (m.winner === 0 || m.winner === 1) winners[m.id] = m.winner; });
+  const total  = B.matches.filter(m => m.live).length;
+  const played = B.matches.filter(m => m.live && m.resolved && !m.autoWon).length;
   return {
+    format: 1,                       // bump if the shape ever changes
     id: currentId,
     name: (document.getElementById('tname').value || '').trim(),
     kind: 'tournament',
     saved: Date.now(),
+    progress: { played, total },
+    champion: champion(B) || null,
     bySeed: B.bySeed,
     winners,
     payoutsManual: B.payoutsManual || null,
@@ -950,10 +955,11 @@ function saveState() {
     const idx = readIndex().filter(e => e.id !== data.id);
     idx.unshift({ id: data.id, name: data.name, saved: data.saved,
                   players: Object.values(data.bySeed).filter(Boolean).length,
-                  champion: champion(B) || null });
+                  progress: data.progress, champion: data.champion });
     writeIndex(idx);
     const t = new Date(data.saved);
-    note(`Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`);
+    note(`Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`
+       + ` · ${data.progress.played}/${data.progress.total} matches played`);
   } catch (e) {
     note('Could not save — storage may be full or blocked.', true);
   }
@@ -1023,7 +1029,9 @@ function renderSaved() {
     return `<div class="saved-row${e.id === currentId ? ' current' : ''}">
       <span class="sn">${esc(e.name || 'Untitled')}</span>
       <span class="sid">${esc(e.id)}</span>
-      <span class="sm">${e.players} players · ${when}${e.champion ? ' · won by ' + esc(e.champion) : ''}</span>
+      <span class="sm">${e.players} players · ${when}${
+        e.progress ? ` · ${e.progress.played}/${e.progress.total} played` : ''}${
+        e.champion ? ' · won by ' + esc(e.champion) : ''}</span>
       <button class="act" onclick="loadState('${esc(e.id)}')">Open</button>
       <button class="linkish" onclick="deleteSaved('${esc(e.id)}')">Delete</button>
     </div>`;
@@ -1036,10 +1044,12 @@ function exportJSON() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${(data.name || data.id).replace(/[^\w-]+/g, '_')}.json`;
+  const d = new Date();
+  const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  a.download = `${(data.name || data.id).replace(/[^\w-]+/g, '_')}_${stamp}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
-  note('Exported.');
+  note(`Exported — ${data.progress.played} of ${data.progress.total} matches played.`);
 }
 
 function importJSON(ev) {
@@ -1050,11 +1060,17 @@ function importJSON(ev) {
     let d;
     try { d = JSON.parse(fr.result); } catch (e) { note('That file was not readable JSON.', true); return; }
     if (!d || !d.bySeed) { note('That file is not a saved tournament.', true); return; }
+    if (d.kind && d.kind !== 'tournament') {
+      const other = d.kind === 'tournament' ? 'tournament.html' : 'bracket.html';
+      note(`That file was saved from ${other} — open it there instead.`, true);
+      return;
+    }
     try {
       localStorage.setItem(STORE_KEY + '-' + d.id, JSON.stringify(d));
       const idx = readIndex().filter(e => e.id !== d.id);
       idx.unshift({ id: d.id, name: d.name, saved: d.saved || Date.now(),
-                    players: Object.values(d.bySeed).filter(Boolean).length, champion: d.champion || null });
+                    players: Object.values(d.bySeed).filter(Boolean).length,
+                    progress: d.progress || null, champion: d.champion || null });
       writeIndex(idx);
       loadState(d.id);
     } catch (e) { note('Could not store the imported file.', true); }
