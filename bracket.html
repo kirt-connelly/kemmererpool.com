@@ -68,6 +68,29 @@
     font-family: inherit; font-size: 14px; padding: 9px 0; }
   .fee-input input:focus { outline: none; }
 
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green2); margin-right: 7px; vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+  .notice-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px; color: var(--text2); font-size: 14px; }
+  .th-live { color: var(--green2); font-weight: 600; }
+  .ro-banner { padding: 10px 14px; margin-bottom: 14px; border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); background: var(--bg2); color: var(--text2);
+    font-size: 13px; font-weight: 500; }
+  body.read-only .slot { cursor: default; }
+  body.read-only .slot:hover:not(.locked) { background: none; }
+  body.read-only .payout .place, body.read-only .payout .amt { cursor: default; }
+  body.read-only .payout .place:hover, body.read-only .payout .amt:hover { background: none; }
+
+  .code-entry { max-width: 420px; margin: 40px auto; }
+  .code-row { display: flex; gap: 10px; }
+  .code-input { flex: 1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 26px; font-weight: 700; letter-spacing: .3em; text-align: center;
+    text-transform: uppercase; color: var(--cream); background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .code-input:focus { outline: none; border-color: var(--accent); }
+
   /* ── Tournament header ── */
   .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
     gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -254,70 +277,32 @@
 
   <div class="print-head" id="print-head"></div>
 
-  <div class="card setup-card">
-    <div class="card-header setup-head" onclick="toggleSetup()" title="Show or hide setup">
-      <span class="card-title">Players and Entry Fee</span>
-      <span class="head-right">
-        <span class="card-meta" id="count-meta">0 players</span>
-        <span class="chev">▾</span>
-      </span>
-    </div>
+  <!-- Nothing in the address bar: let someone type a code -->
+  <div class="card code-entry" id="code-entry">
+    <div class="card-header"><span class="card-title">Open a tournament</span></div>
     <div class="pad">
-      <div class="name-row">
-        <div style="flex:1;min-width:180px">
-          <label class="fl" for="tname">Tournament name</label>
-          <input id="tname" class="tname" type="text" spellcheck="false"
-            placeholder="e.g. Kemmerer Classic" oninput="onMetaChange()">
-        </div>
-        <div>
-          <label class="fl">ID</label>
-          <div class="tid" id="tid">—</div>
-        </div>
+      <label class="fl" for="code-in">Tournament code</label>
+      <div class="code-row">
+        <input id="code-in" class="code-input" type="text" maxlength="4" spellcheck="false"
+          autocomplete="off" placeholder="ABCD" oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')goToCode()">
+        <button class="act primary" onclick="goToCode()">Open</button>
       </div>
-      <label class="fl" for="names">One name per line &mdash; add a number to set their race (races to 3 otherwise)</label>
-      <textarea id="names" spellcheck="false" placeholder="Kirt&#10;Trevor&#10;TK 2&#10;Scott 2&#10;Tanner&#10;Cody"
-        oninput="updateCount()"></textarea>
-      <div class="fee-row">
-        <div>
-          <label class="fl" for="fee">Entry fee per player</label>
-          <div class="fee-input"><span>$</span><input id="fee" type="number" min="0" step="1"
-            value="10" inputmode="decimal" oninput="onFeeChange()"></div>
-        </div>
-        <div>
-          <label class="fl" for="bar">Bar add-on</label>
-          <div class="fee-input"><span>$</span><input id="bar" type="number" min="0" step="5"
-            value="0" inputmode="decimal" oninput="onFeeChange()"></div>
-        </div>
-      </div>
+      <div class="hint" id="hint" style="margin-top:10px"></div>
+      <div class="hint" id="saved-note"></div>
+      <div class="hint" style="margin-top:12px">Four characters, printed on the bracket sheet.</div>
     </div>
-    <div class="btn-row">
-      <button class="act primary" id="draw-btn" onclick="draw()">Draw bracket</button>
-      <button class="act" id="redraw-btn" onclick="draw()" disabled>Redraw</button>
-      <button class="act" id="clear-btn" onclick="clearResults()" disabled>Clear results</button>
-      <button class="act" onclick="newTournament()">New</button>
-      <button class="act" onclick="toggleSaved()">Open saved</button>
-      <button class="act" onclick="document.getElementById('importer').click()">Import file</button>
-      <input type="file" id="importer" accept="application/json" style="display:none" onchange="importJSON(event)">
-      <span class="hint" id="hint"></span>
-      <span class="hint" id="saved-note"></span>
-    </div>
-  </div>
-
-  <div class="card" id="saved-panel" style="display:none">
-    <div class="card-header">
-      <span class="card-title">Saved tournaments</span>
-      <span class="card-meta" id="saved-count"></span>
-    </div>
-    <div id="saved-list" class="saved-list"></div>
   </div>
 
   <div id="out"></div>
+  <input type="hidden" id="tname"><span id="tid" style="display:none"></span>
+  <input type="hidden" id="fee"><input type="hidden" id="bar">
 
 </div>
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.05</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.09</div>
 </footer>
 
 <script>
@@ -367,7 +352,8 @@ function shuffle(arr) {
   return a;
 }
 
-function buildBracket(names, savedSeeds) {
+function buildBracket(names, savedSeeds, format) {
+  const isSingle = format === 'single';
   // savedSeeds reproduces a draw exactly on reload; otherwise it's a fresh shuffle.
   let bySeed, size, n;
   if (savedSeeds) {
@@ -403,6 +389,12 @@ function buildBracket(names, savedSeeds) {
     prev = cur;
   }
   const wbFinal = prev[0];
+
+  // Single elimination stops here: the last winners match is the final.
+  if (isSingle) {
+    numberMatches(matches, rounds, true);
+    return { matches, bySeed, size, rounds, playerCount: n, byeCount: size - n, format: 'single' };
+  }
 
   // Losers bracket alternates minor rounds (survivors meet) with major rounds
   // (survivors meet the players just knocked out of the winners bracket).
@@ -445,15 +437,16 @@ function buildBracket(names, savedSeeds) {
     slots: [{ type: 'winner', of: 'GF' }, { type: 'loser', of: 'GF' }] });
 
   numberMatches(matches, rounds);
-  return { matches, bySeed, size, rounds, playerCount: n, byeCount: size - n };
+  return { matches, bySeed, size, rounds, playerCount: n, byeCount: size - n, format: 'double' };
 }
 
 // Number matches in the order they'll actually be called, so "Match 12" means
 // something to whoever is running the tournament.
-function numberMatches(matches, rounds) {
+function numberMatches(matches, rounds, isSingle) {
   const seq = [];
   for (let r = 1; r <= rounds; r++) {
     seq.push(...matches.filter(m => m.bracket === 'W' && m.round === r));
+    if (isSingle) continue;
     if (r === 1) seq.push(...matches.filter(m => m.bracket === 'L' && m.round === 1));
     else {
       seq.push(...matches.filter(m => m.bracket === 'L' && m.round === (r - 1) * 2));
@@ -483,6 +476,7 @@ function resolve(b) {
     // grand final — otherwise the winners-bracket player finished unbeaten.
     if (m.id === 'GF2') {
       const gf = byId['GF'];
+      if (!gf) { m.live = false; m.players = [undefined, undefined]; continue; }
       m.live = gf.resolved && gf.winner === 1;
       if (!m.live) { m.players = [undefined, undefined]; continue; }
     }
@@ -504,8 +498,12 @@ function resolve(b) {
 
 function champion(b) {
   const byId = Object.fromEntries(b.matches.map(m => [m.id, m]));
+  if (b.format === 'single') {
+    const final = b.matches.filter(m => m.bracket === 'W' && m.round === b.rounds)[0];
+    return final && final.resolved ? final.winnerName : null;
+  }
   const gf = byId['GF'], gf2 = byId['GF2'];
-  if (!gf.resolved) return null;
+  if (!gf || !gf.resolved) return null;
   if (gf.winner === 0) return gf.winnerName;
   return gf2.resolved ? gf2.winnerName : null;
 }
@@ -560,6 +558,7 @@ function goManual(players, fee, addOn) {
 }
 
 function editPayout(idx, field) {
+  if (readOnly) return;
   const el = document.querySelector(`.payout[data-idx="${idx}"] .${field === 'label' ? 'place' : 'amt'}`);
   if (!el || el.querySelector('input')) return;
   const rows = goManual(lastPayoutCtx.players, lastPayoutCtx.fee, lastPayoutCtx.addOn);
@@ -594,6 +593,7 @@ function editPayout(idx, field) {
 }
 
 function addPayout() {
+  if (readOnly) return;
   const rows = goManual(lastPayoutCtx.players, lastPayoutCtx.fee, lastPayoutCtx.addOn);
   rows.push({ label: 'Prize', cents: 0 });
   render();
@@ -647,42 +647,17 @@ let B = null;
 const DEFAULT_RACE = 3;
 
 /* "Kirt 2" races Kirt to 2. A bare name races to 3. */
-function parseEntry(line) {
-  const m = line.trim().match(/^(.+?)\s+(\d{1,2})$/);
-  return m ? { name: m[1].trim(), race: parseInt(m[2], 10) }
-           : { name: line.trim(), race: DEFAULT_RACE };
-}
-function parseEntries() {
-  return document.getElementById('names').value
-    .split('\n').map(s => s.trim()).filter(Boolean).map(parseEntry);
-}
-function parseNames() { return parseEntries().map(e => e.name); }
+// Races come from the tournament as it was created on the admin page.
 const raceOf = (name) => (B && B.races && B.races[name]) || DEFAULT_RACE;
 
-/* ── Saving ──
-   Everything lives in this browser's local storage. A tournament running over
-   several days survives closing the tab, and past events stay browsable. Export
-   writes a real file — worth doing at the end of a night, because clearing the
-   browser's data would take the local copies with it. */
-const STORE_KEY = 'kpl-bracket';
-const INDEX_KEY = STORE_KEY + '-index';
 
 let currentId = null;
-let saveTimer = null;
 
-function newId() {
-  const d = new Date();
-  const stamp = String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `KPL-${stamp}-${rand}`;
-}
+/* Five characters, no 0 and no I — so nothing gets misread when an ID is
+   read down the phone or copied off a printed sheet. Dropping those two also
+   makes O and 1 unambiguous, since there's nothing left to confuse them with. */
+const ID_ALPHABET = 'ABCDEFGHJKLMNOPQRSTUVWXYZ123456789';
 
-function readIndex() {
-  try { return JSON.parse(localStorage.getItem(INDEX_KEY)) || []; } catch (e) { return []; }
-}
-function writeIndex(list) {
-  try { localStorage.setItem(INDEX_KEY, JSON.stringify(list)); } catch (e) {}
-}
 
 function snapshot() {
   if (!B || !currentId) return null;
@@ -691,7 +666,9 @@ function snapshot() {
   const total  = B.matches.filter(m => m.live).length;
   const played = B.matches.filter(m => m.live && m.resolved && !m.autoWon).length;
   return {
-    format: 1,                       // bump if the shape ever changes
+    schema: 1,                       // bump if the shape ever changes
+    format: B.format,                // single or double elimination
+    code: serverCode || currentId,
     id: currentId,
     name: (document.getElementById('tname').value || '').trim(),
     kind: 'bracket',
@@ -704,35 +681,13 @@ function snapshot() {
     fee: (document.getElementById('fee') || {}).value,
     bar: (document.getElementById('bar') || {}).value,
     
-    names: document.getElementById('names').value, races: B.races || {},
+    races: B.races || {},           // carried through so the server copy stays complete
   };
 }
 
-function saveState() {
-  const data = snapshot();
-  if (!data) return;
-  try {
-    localStorage.setItem(STORE_KEY + '-' + data.id, JSON.stringify(data));
-    const idx = readIndex().filter(e => e.id !== data.id);
-    idx.unshift({ id: data.id, name: data.name, saved: data.saved,
-                  players: Object.values(data.bySeed).filter(Boolean).length,
-                  progress: data.progress, champion: data.champion });
-    writeIndex(idx);
-    const t = new Date(data.saved);
-    const msg = `Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`
-              + ` · ${data.progress.played}/${data.progress.total} matches played`;
-    const sm = document.getElementById('save-meta');
-    if (sm) sm.textContent = ' · ' + msg; else note(msg);
-  } catch (e) {
-    note('Could not save — storage may be full or blocked.', true);
-  }
-}
 
 // Called from render, so any change is captured without a Save button.
-function queueSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveState, 400);
-}
+function queueSave() { queuePush(); }
 
 function note(msg, bad) {
   const el = document.getElementById('saved-note');
@@ -741,177 +696,137 @@ function note(msg, bad) {
   el.style.color = bad ? 'var(--loss)' : 'var(--text3)';
 }
 
-function loadState(id) {
-  let d;
-  try { d = JSON.parse(localStorage.getItem(STORE_KEY + '-' + id)); } catch (e) {}
-  if (!d) { note('That saved tournament could not be read.', true); return; }
 
-  currentId = d.id;
-  document.getElementById('tid').textContent = d.id;
-  document.getElementById('tname').value = d.name || '';
-  if (d.fee !== undefined && document.getElementById('fee')) document.getElementById('fee').value = d.fee;
-  if (d.bar !== undefined && document.getElementById('bar')) document.getElementById('bar').value = d.bar;
-  
 
-  B = buildBracket(null, d.bySeed);
-  document.getElementById('names').value = d.names || ''; B.races = d.races || {};
-  B.payoutsManual = d.payoutsManual || null;
-  B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
 
-  ['redraw-btn','clear-btn'].forEach(x => { const el = document.getElementById(x); if (el) el.disabled = false; });
-  location.hash = d.id;
-  toggleSetup(true);
-  document.getElementById('saved-panel').style.display = 'none';
-  updateCount();
-  render();
-  note(`Loaded ${d.id}`);
-}
 
-function deleteSaved(id) {
-  if (!confirm('Delete this saved tournament? This cannot be undone.')) return;
-  try { localStorage.removeItem(STORE_KEY + '-' + id); } catch (e) {}
-  writeIndex(readIndex().filter(e => e.id !== id));
-  renderSaved();
-  if (id === currentId) note('Deleted the tournament you had open.');
-}
 
-function toggleSaved() {
-  const p = document.getElementById('saved-panel');
-  const open = p.style.display === 'none';
-  p.style.display = open ? '' : 'none';
-  if (open) renderSaved();
-}
 
-function renderSaved() {
-  const idx = readIndex();
-  document.getElementById('saved-count').textContent =
-    idx.length ? `${idx.length} saved on this device` : '';
-  document.getElementById('saved-list').innerHTML = idx.length ? idx.map(e => {
-    const when = new Date(e.saved).toLocaleString('en-US',
-      { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-    return `<div class="saved-row${e.id === currentId ? ' current' : ''}">
-      <span class="sn">${esc(e.name || 'Untitled')}</span>
-      <span class="sid">${esc(e.id)}</span>
-      <span class="sm">${e.players} players · ${when}${
-        e.progress ? ` · ${e.progress.played}/${e.progress.total} played` : ''}${
-        e.champion ? ' · won by ' + esc(e.champion) : ''}</span>
-      <button class="act" onclick="loadState('${esc(e.id)}')">Open</button>
-      <button class="linkish" onclick="deleteSaved('${esc(e.id)}')">Delete</button>
-    </div>`;
-  }).join('') : '<div class="saved-empty">Nothing saved yet. Build a bracket and it saves as you go.</div>';
-}
+/* ── Sharing ──
+   The tournament is gzipped into the link itself, so a shared URL needs no
+   server and keeps working forever. Around 650 characters for 16 players. */
 
-function exportJSON() {
-  const data = snapshot();
-  if (!data) { note('Nothing to export yet.', true); return; }
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const d = new Date();
-  const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  a.download = `${(data.name || data.id).replace(/[^\w-]+/g, '_')}_${stamp}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  note(`Exported — ${data.progress.played} of ${data.progress.total} matches played.`);
-}
 
-function importJSON(ev) {
-  const file = ev.target.files && ev.target.files[0];
-  if (!file) return;
-  const fr = new FileReader();
-  fr.onload = () => {
-    let d;
-    try { d = JSON.parse(fr.result); } catch (e) { note('That file was not readable JSON.', true); return; }
-    if (!d || !d.bySeed) { note('That file is not a saved tournament.', true); return; }
-    if (d.kind && d.kind !== 'bracket') {
-      const other = d.kind === 'tournament' ? 'tournament.html' : 'bracket.html';
-      note(`That file was saved from ${other} — open it there instead.`, true);
+
+
+/* A shared link opens the tournament for viewing only — no advancing players,
+   no editing payouts. "Save a copy" turns it into an editable tournament here. */
+let readOnly = false;
+
+
+/* Turn a shared, read-only view into an editable tournament on this device. */
+
+/* ── Server tournaments ──
+   A tournament created on the admin page is opened here by its code.
+     ?t=ABCD          anyone — read only
+     ?t=ABCD&a=WXYZ   whoever is scoring — can advance players
+   Without a code the page works standalone on local storage as before. */
+let serverCode = null;      // set when opened from a link
+let adminCode  = null;      // set when that link carried a scoring code
+let livePoll   = null;
+let liveStamp  = 0;
+
+async function openFromServer(code, admin) {
+  serverCode = code;
+  adminCode = admin || null;
+  readOnly = !adminCode;
+  note('Loading ' + code + '…');
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(code), {
+      headers: adminCode ? { 'X-Admin-Code': adminCode } : {},
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) {
+      document.getElementById('code-entry').style.display = 'none';
+      document.getElementById('out').innerHTML = `<div class="notice-card">${
+        j.code === 'not_configured'
+          ? 'Tournaments are not set up on this site yet.'
+          : 'No tournament with code <strong>' + esc(code) + '</strong>.'}</div>`;
       return;
     }
-    try {
-      localStorage.setItem(STORE_KEY + '-' + d.id, JSON.stringify(d));
-      const idx = readIndex().filter(e => e.id !== d.id);
-      idx.unshift({ id: d.id, name: d.name, saved: d.saved || Date.now(),
-                    players: Object.values(d.bySeed).filter(Boolean).length,
-                    progress: d.progress || null, champion: d.champion || null });
-      writeIndex(idx);
-      loadState(d.id);
-    } catch (e) { note('Could not store the imported file.', true); }
-  };
-  fr.readAsText(file);
-  ev.target.value = '';
+    if (adminCode && !j.canScore) {
+      adminCode = null; readOnly = true;
+      note('That admin code was not accepted — showing it read only.', true);
+    }
+    applyServer(j.data);
+    // Watchers poll; whoever is scoring already has the current copy.
+    if (readOnly && !livePoll) livePoll = setInterval(pollServer, 20000);
+  } catch (e) {
+    document.getElementById('code-entry').style.display = 'none';
+    document.getElementById('out').innerHTML = '<div class="notice-card">Could not reach the server.</div>';
+  }
 }
 
-function onMetaChange() { if (B) queueSave(); }
+async function pollServer() {
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(serverCode));
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok && (j.data.saved || 0) !== liveStamp) applyServer(j.data);
+  } catch (e) {}
+}
+
+function applyServer(d) {
+  liveStamp = d.saved || 0;
+  currentId = d.code || d.id || serverCode;
+  document.getElementById('tname').value = d.name || '';
+  document.getElementById('tid').textContent = currentId;
+  if (document.getElementById('fee')) document.getElementById('fee').value = d.fee ?? '';
+  if (document.getElementById('bar')) document.getElementById('bar').value = d.bar ?? '';
+  
+  B = buildBracket(null, d.bySeed, d.format);
+  B.races = d.races || {};        // races were set when the tournament was created
+  B.payoutsManual = d.payoutsManual || null;
+  B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
+  document.getElementById('code-entry').style.display = 'none';
+  document.body.classList.toggle('read-only', readOnly);
+  updateCount();
+  render();
+}
+
+/* Scoring pushes straight back to the server, so watchers see it within
+   twenty seconds without anyone pressing save. */
+async function pushToServer() {
+  if (!serverCode || !adminCode) return;
+  const data = snapshot();
+  if (!data) return;
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(serverCode), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Code': adminCode },
+      body: JSON.stringify(data),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) {
+      liveStamp = data.saved;
+      const t = new Date();
+      const sm = document.getElementById('save-meta');
+      const msg = ` · Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`
+                + ` · ${data.progress.played}/${data.progress.total} played`;
+      if (sm) sm.textContent = msg;
+    } else if (j.code === 'bad_admin') {
+      note('That admin code stopped working — reload the link.', true);
+    }
+  } catch (e) { note('Could not reach the server — that result is not saved yet.', true); }
+}
+
+let pushTimer = null;
+function queuePush() {
+  if (!serverCode || !adminCode) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushToServer, 600);
+}
+
 
 /* Clears the slate so the next draw is a separate tournament rather than
    overwriting the one that's open. */
-function newTournament() {
-  if (B && !confirm('Start a new tournament? The one open now is already saved.')) return;
-  currentId = null;
-  B = null;
-  document.getElementById('tname').value = '';
-  document.getElementById('tid').textContent = '—';
-  document.getElementById('out').innerHTML = '';
-  location.hash = '';
-  document.getElementById('names').value = '';
-  ['redraw-btn','clear-btn'].forEach(x => { const el = document.getElementById(x); if (el) el.disabled = true; });
-  toggleSetup(false);
-  note('');
-  updateCount();
-}
 
-function toggleSetup(force) {
-  const card = document.querySelector('.setup-card');
-  if (force === true)       card.classList.add('collapsed');
-  else if (force === false) card.classList.remove('collapsed');
-  else                      card.classList.toggle('collapsed');
-}
 
-function updateCount() {
-  const n = parseNames().length;
-  const fee = parseFloat((document.getElementById('fee') || {}).value) || 0;
-  const bar = parseFloat((document.getElementById('bar') || {}).value) || 0;
-  const bits = [`${n} player${n === 1 ? '' : 's'}`];
-  if (fee) bits.push('$' + fee + ' entry');
-  if (bar) bits.push('$' + bar + ' bar');
-  document.getElementById('count-meta').textContent = bits.join(' · ');
-}
+function updateCount() {}
 
-function draw() {
-  const names = parseNames();
-  const hint = document.getElementById('hint');
-  if (names.length < 2) {
-    hint.textContent = 'Enter at least 2 names to draw a bracket.';
-    hint.style.color = 'var(--loss)';
-    return;
-  }
-  const dupes = names.filter((v, i) => names.indexOf(v) !== i);
-  hint.textContent = dupes.length
-    ? `Heads up: ${[...new Set(dupes)].join(', ')} appears more than once.`
-    : '';
-  hint.style.color = 'var(--text3)';
 
-  B = buildBracket(names);
-  // Keep the existing ID so a redraw replaces this tournament instead of
-  // stacking up another copy. "New" is the only thing that mints a fresh one.
-  if (!currentId) currentId = newId();
-  document.getElementById('tid').textContent = currentId;
-  location.hash = currentId;
-  B.races = {};
-  parseEntries().forEach(e => { B.races[e.name] = e.race; });
-  ['redraw-btn','clear-btn'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
-  toggleSetup(true);
-  render();
-}
-
-function clearResults() {
-  if (!B) return;
-  B.matches.forEach(m => m.winner = null);
-  render();
-}
 
 function pick(id, slotIdx) {
+  if (readOnly) return;
   const m = B.matches.find(x => x.id === id);
   if (!m || m.autoWon || !m.live) return;
   if (m.players[0] === undefined || m.players[1] === undefined) return;
@@ -959,6 +874,7 @@ function sourceLabel(slot) {
 
 /* Replace a slot with an input so a latecomer can be typed straight in. */
 function editBye(mid, i) {
+  if (readOnly) return;
   const m = B.matches.find(x => x.id === mid);
   if (!m || m.slots[i].type !== 'seed') return;
   const seed = m.slots[i].seed;
@@ -1017,17 +933,6 @@ function clearDownstream(mid) {
 }
 
 /* Keep the roster box in step so a redraw includes latecomers. */
-function syncNames() {
-  const lines = [];
-  for (let s = 1; s <= B.size; s++) {
-    const n = B.bySeed[s];
-    if (!n) continue;
-    const r = raceOf(n);
-    lines.push(r === DEFAULT_RACE ? n : `${n} ${r}`);   // only write a race worth keeping
-  }
-  document.getElementById('names').value = lines.join('\n');
-  updateCount();
-}
 
 function matchHTML(m) {
   const ready = !m.resolved && m.players[0] !== undefined && m.players[1] !== undefined;
@@ -1143,9 +1048,12 @@ function render() {
   const gfShifted = gf.map(m => ({ ...m, round: wbRounds + m.round }));
   const wbAll = [...wb, ...gfShifted];
 
+  const single = B.format === 'single';
   const wbLabel = (r) => r > wbRounds ? (r === wbRounds + 2 ? 'Final #2' : 'Final')
-    : r === wbRounds ? 'Winners Final'
-    : r === wbRounds - 1 ? 'Winners Semis' : `Winners R${r}`;
+    : r === wbRounds ? (single ? 'Final' : 'Winners Final')
+    : r === wbRounds - 1 ? (single ? 'Semifinals' : 'Winners Semis')
+    : r === wbRounds - 2 && single ? 'Quarterfinals'
+    : single ? `Round ${r}` : `Winners R${r}`;
   const lbLast = (B.rounds - 1) * 2;
   const lbLabel = (r) => r === lbLast ? 'Losers Final'
     : r === lbLast - 1 ? 'Losers Semis' : `Losers R${r}`;
@@ -1168,8 +1076,12 @@ function render() {
   const bar = parseFloat(document.getElementById('bar').value) || 0;
 
   const tName = (document.getElementById('tname').value || '').trim();
+  const scoring = !!(serverCode && adminCode);
 
   document.getElementById('out').innerHTML = `
+    ${scoring
+        ? `<div class="ro-banner"><span class="live-dot"></span>Scoring — tap a name to advance them. Anyone watching sees it within twenty seconds.</div>`
+        : ''}
     <div class="tourney-head">
       <div class="th-left">
         <div class="th-name">${tName ? esc(tName) : 'Untitled tournament'}</div>
@@ -1177,7 +1089,7 @@ function render() {
           <span id="save-meta"></span></div>
       </div>
       <div class="th-actions">
-        <button class="act" onclick="exportJSON()">Export</button>
+        ${scoring ? `<button class="act" onclick="copyViewLink()">Copy view link</button>` : ''}
         <button class="act" onclick="window.print()">Print</button>
       </div>
     </div>
@@ -1185,7 +1097,7 @@ function render() {
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}
     <div class="card">
       <div class="card-header">
-        <span class="card-title">Winners Bracket</span>
+        <span class="card-title">${single ? 'Bracket' : 'Winners Bracket'}</span>
         <span class="card-meta">${live} players${byeNote}</span>
       </div>
       <div class="bracket-scroll">${bracketHTML(wbAll, wbLabel, LANE)}</div>
@@ -1198,10 +1110,21 @@ function render() {
 
 updateCount();
 
-// A bookmarked or shared link reopens that tournament on this device.
+// ?t=… is a shared tournament packed into the link; #ID reopens a local one.
+function goToCode() {
+  const v = (document.getElementById('code-in').value || '').trim().toUpperCase();
+  if (v.length !== 4) {
+    const h = document.getElementById('hint');
+    h.textContent = 'Codes are four characters.'; h.style.color = 'var(--loss)';
+    return;
+  }
+  location.search = '?t=' + v;
+}
+
 (function () {
-  const id = (location.hash || '').replace(/^#/, '');
-  if (id && localStorage.getItem(STORE_KEY + '-' + id)) loadState(id);
+  const q = new URLSearchParams(location.search);
+  const code = (q.get('t') || '').toUpperCase();
+  if (code) openFromServer(code, (q.get('a') || '').toUpperCase());
 })();
 </script>
 </body>

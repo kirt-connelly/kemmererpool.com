@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Admin — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #141414; --bg2: #1e1e1e; --bg3: #262626; --bg4: #2e2e2e;
+    --border: #363636; --border2: #464646;
+    --text: #ffffff; --text2: #b0a898; --text3: #666058;
+    --accent: #27855a; --cream: #e8ddd0; --green2: #32a870; --loss: #cc4444;
+    --on-accent: #ffffff;
+    --radius: 8px; --radius-sm: 5px;
+  }
+  html[data-theme="light"] {
+    --bg: #f5f3ef; --bg2: #ffffff; --bg3: #eae6df; --bg4: #ddd8ce;
+    --border: #d6d0c5; --border2: #bcb4a6;
+    --text: #1a1714; --text2: #5a5348; --text3: #8b8376;
+    --accent: #1f6b48; --cream: #2b2419; --green2: #1a7a4e; --loss: #b23636;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0,#154d28 4px,#1a5c32 8px); opacity: .5; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 12px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
+  .theme-btn { width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    cursor: pointer; font-size: 13px; padding: 0; }
+  .theme-btn:hover { background: var(--bg4); color: var(--text); }
+
+  main { padding: 22px 0 70px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-meta { font-size: 12px; color: var(--text3); }
+  .pad { padding: 18px; }
+  .setup-head { cursor: pointer; user-select: none; }
+  .setup-head:hover .card-title { color: var(--green2); }
+  .head-right { display: flex; align-items: center; gap: 11px; }
+  .chev { font-size: 20px; line-height: 1; color: var(--text2); display: inline-block; transition: transform .18s; }
+  /* Collapsed after the draw — the setup is done, the bracket is the point. */
+  .setup-card.collapsed .pad { display: none; }
+  .setup-card.collapsed .chev { transform: rotate(-90deg); }
+
+  label.fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 150px; resize: vertical; font-family: inherit; font-size: 14px;
+    line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .fee-row { margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .fee-input { display: inline-flex; align-items: center; gap: 6px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
+  .fee-input:focus-within { border-color: var(--accent); }
+  .fee-input span { color: var(--text3); font-size: 14px; }
+  .fee-input input { width: 76px; border: none; background: none; color: var(--text);
+    font-family: inherit; font-size: 14px; padding: 9px 0; }
+  .fee-input input:focus { outline: none; }
+  .fee-input select { border: none; background: none; color: var(--text); font-family: inherit;
+    font-size: 14px; padding: 9px 0; cursor: pointer; }
+  .fee-input select:focus { outline: none; }
+/* ── Player lookup ── */
+  .lookup { display: flex; gap: 10px; flex-wrap: wrap; }
+  .lookup input { flex: 1; min-width: 200px; font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; }
+  .lookup input:focus { outline: none; border-color: var(--accent); }
+  .results { display: flex; flex-direction: column; gap: 1px; margin-top: 10px; background: var(--border);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .results:empty { display: none; }
+  .result { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 12px; background: var(--bg); cursor: pointer; font-size: 14px; }
+  .result:hover, .result.sel { background: var(--bg3); }
+  .result .rn { color: var(--cream); font-weight: 600; }
+  .result .rd { font-size: 11px; color: var(--text3); }
+  .result .rr { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .roster { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+  .roster:empty { display: none; }
+  .rrow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; }
+  .rrow .n { flex: 1; color: var(--cream); font-weight: 600; }
+  .rrow .f { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rrow .d { font-size: 11px; color: var(--text3); }
+  .rrow .x { background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 16px; line-height: 1; padding: 0 2px; }
+  .rrow .x:hover { color: var(--loss); }
+  .rrow.manual .f { color: var(--text2); }
+
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green2); margin-right: 7px; vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+  .notice-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px; color: var(--text2); font-size: 14px; }
+  .th-live { color: var(--green2); font-weight: 600; }
+  .ro-banner { padding: 10px 14px; margin-bottom: 14px; border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); background: var(--bg2); color: var(--text2);
+    font-size: 13px; font-weight: 500; }
+  body.read-only .slot { cursor: default; }
+  body.read-only .slot:hover:not(.locked) { background: none; }
+  body.read-only .payout .place, body.read-only .payout .amt { cursor: default; }
+  body.read-only .payout .place:hover, body.read-only .payout .amt:hover { background: none; }
+
+  /* ── Tournament header ── */
+  .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .th-name { font-size: 20px; font-weight: 700; color: var(--cream); line-height: 1.2; }
+  .th-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .th-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+  .th-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ── Saving ── */
+  .name-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tname { width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; }
+  .tname:focus { outline: none; border-color: var(--accent); }
+  .tid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+    color: var(--text2); background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 9px 12px; letter-spacing: .04em; }
+  .saved-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .saved-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px;
+    background: var(--bg2); font-size: 14px; flex-wrap: wrap; }
+  .saved-row .sn { flex: 1; min-width: 140px; color: var(--cream); font-weight: 600; }
+  .saved-row .sm { font-size: 11px; color: var(--text3); }
+  .saved-row .sid { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text3); }
+  .saved-row.current { border-left: 3px solid var(--accent); }
+  .saved-empty { padding: 20px 18px; color: var(--text3); font-size: 13px; background: var(--bg2); }
+
+  /* ── Admin ── */
+  .gate { max-width: 420px; margin: 60px auto; }
+  .field-lbl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  .inp { width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; }
+  .inp:focus { outline: none; border-color: var(--accent); }
+  textarea.inp { min-height: 150px; resize: vertical; line-height: 1.7; }
+  select.inp { cursor: pointer; }
+
+  .modes { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .mode { flex: 1; min-width: 220px; text-align: left; padding: 14px 16px; cursor: pointer;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+    font-family: inherit; color: var(--text2); transition: border-color .15s, background .15s; }
+  .mode:hover { background: var(--bg3); }
+  .mode.on { border-color: var(--accent); background: var(--bg3); }
+  .mode .mt { font-size: 14px; font-weight: 600; color: var(--cream); }
+  .mode.on .mt { color: var(--green2); }
+  .mode .md { font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+
+  .links { display: flex; flex-direction: column; gap: 12px; }
+  .link-row { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+    padding: 14px 16px; }
+  .link-row.admin { border-color: var(--accent); }
+  .link-lbl { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text3); }
+  .link-row.admin .link-lbl { color: var(--green2); }
+  .link-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 26px;
+    font-weight: 700; color: var(--cream); letter-spacing: .12em; margin: 6px 0 4px; }
+  .link-url { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text2);
+    word-break: break-all; }
+  .link-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+  .tlist { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .trow { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--bg2);
+    flex-wrap: wrap; font-size: 14px; }
+  .trow .tn { flex: 1; min-width: 150px; color: var(--cream); font-weight: 600; }
+  .trow .tc { font-family: ui-monospace, monospace; font-size: 13px; color: var(--text2);
+    letter-spacing: .08em; }
+  .trow .tm { font-size: 11px; color: var(--text3); }
+  .tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3); }
+  .tag.done { border-color: var(--accent); color: var(--green2); }
+  .empty { padding: 24px 18px; color: var(--text3); font-size: 13px; background: var(--bg2); }
+  .hint { font-size: 12px; color: var(--text3); }
+  footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
+    font-size: 11px; color: var(--text3); letter-spacing: .05em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-felt"></div>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <h1>Admin</h1>
+        <div class="sub">Kemmerer Pool League</div>
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <!-- Officer sign-in -->
+  <div id="gate" class="gate">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Officers</span></div>
+      <div class="pad">
+        <label class="field-lbl" for="lkey">League key</label>
+        <input id="lkey" class="inp" type="password" autocomplete="current-password"
+          placeholder="Ask another officer" onkeydown="if(event.key==='Enter')signIn()">
+        <div class="btn-row" style="padding:14px 0 0">
+          <button class="act primary" onclick="signIn()">Sign in</button>
+          <span class="hint" id="gate-msg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create -->
+  <div id="admin" style="display:none">
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-header">
+        <span class="card-title">New tournament</span>
+        <button class="linkish" onclick="signOut()">Sign out</button>
+      </div>
+      <div class="pad">
+        <div class="modes">
+          <button class="mode on" id="mode-bracket" onclick="setMode('bracket')">
+            <div class="mt">Bracket with races</div>
+            <div class="md">You set each player's race. No ratings needed.</div>
+          </button>
+          <button class="mode" id="mode-tournament" onclick="setMode('tournament')">
+            <div class="mt">Fargo rated races</div>
+            <div class="md">Looks players up and works races out from the chart.</div>
+          </button>
+        </div>
+
+        <div class="grid" style="margin-bottom:16px">
+          <div>
+            <label class="field-lbl" for="format">Format</label>
+            <select id="format" class="inp">
+              <option value="double" selected>Double elimination</option>
+              <option value="single">Single elimination</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="field-lbl" for="tname">Tournament name</label>
+        <input id="tname" class="inp" type="text" placeholder="e.g. Kemmerer Classic" style="margin-bottom:16px">
+
+        <!-- Bracket mode: typed names -->
+        <div id="pane-bracket">
+          <label class="field-lbl" for="names">Players — one per line, add a number to set their race (3 otherwise)</label>
+          <textarea id="names" class="inp" spellcheck="false"
+            placeholder="Kirt&#10;Trevor&#10;TK 2&#10;Scott 2&#10;Tanner&#10;Cody" oninput="updateCount()"></textarea>
+        </div>
+
+        <!-- Fargo mode: lookup -->
+        <div id="pane-tournament" style="display:none">
+          <label class="field-lbl">Players — search the Jenkins divisions</label>
+          <div class="lookup">
+            <input id="search" class="inp" type="text" spellcheck="false" autocomplete="off"
+              placeholder="Type a player's name…" oninput="onSearch()" onkeydown="onSearchKey(event)">
+            <button class="act" onclick="onSearch(true)">Search</button>
+            <button class="act" onclick="manualAdd()">Add manually</button>
+          </div>
+          <div id="search-status" class="hint"></div>
+          <div id="results" class="results"></div>
+          <div id="roster" class="roster"></div>
+        </div>
+
+        <div class="grid" style="margin-top:16px">
+          <div>
+            <label class="field-lbl" for="fee">Entry fee</label>
+            <input id="fee" class="inp" type="number" min="0" step="1" value="10">
+          </div>
+          <div>
+            <label class="field-lbl" for="bar">Bar add-on</label>
+            <input id="bar" class="inp" type="number" min="0" step="5" value="0">
+          </div>
+          <div id="chart-wrap" style="display:none">
+            <label class="field-lbl" for="chart">Race chart</label>
+            <select id="chart" class="inp">
+              <option value="R2">R2 — hot</option>
+              <option value="R3" selected>R3 — hot</option>
+              <option value="R4">R4 — hot</option>
+              <option value="R5">R5 — hot</option>
+              <option value="R6">R6 — hot</option>
+              <option value="R7">R7 — hot</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="act primary" onclick="createTournament()">Randomize &amp; create</button>
+        <span class="hint" id="count">0 players</span>
+        <span class="hint" id="create-msg"></span>
+      </div>
+    </div>
+
+    <!-- Links for what was just created -->
+    <div class="card" id="made" style="display:none;margin-bottom:18px">
+      <div class="card-header">
+        <span class="card-title" id="made-name">Created</span>
+        <span class="card-meta">Keep the admin code to yourself</span>
+      </div>
+      <div class="pad links" id="made-links"></div>
+    </div>
+
+    <!-- Everything on the server -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">All tournaments</span>
+        <span class="card-meta" id="list-count"></span>
+      </div>
+      <div id="tlist" class="tlist"></div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.00</div>
+</footer>
+
+<script>
+/* ── Theme ── */
+function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
+}
+function toggleTheme() { applyTheme(isLight() ? 'dark' : 'light'); }
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
+  if (saved !== 'light' && saved !== 'dark') {
+    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
+})();
+
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const PROXY = '/proxy?url=';
+const LMS   = 'https://lms.fargorate.com/PublicReport';
+
+/* Jenkins divisions the lookup searches. IDs change each season — refresh from
+   the division dropdown on the LMS league page when a new one starts. */
+const DIVISIONS = [
+  ['e9b068bc-155c-4b51-aea7-b37d01026668', 'Afton 8-Ball 25/26'],
+  ['5607ca18-56b5-45a1-a8a0-b203003df484', 'Bridger Valley A 24-25'],
+  ['19e3dc05-7d67-4c77-8f36-b3b600f992cf', 'Dubois 25/26'],
+  ['18e0f3a3-3c8a-4d3c-a769-b42f00b35c96', "Evanston Spring 10-Ball '26"],
+  ['1dc8b2aa-62eb-41a6-a8f6-b379014efe83', 'Kemmerer 8-Ball 25-26'],
+  ['c97cf1bf-ff08-44a0-b916-b4520124b3e6', 'Kemmerer 10-Ball 2026'],
+  ['915b2c1d-72c3-4365-9130-b30e01504c6c', 'Lander Summer 9-Ball'],
+  ['77b7699b-2970-4094-8012-b370010637cd', 'Lander Valley 8-Ball 25/26'],
+  ['6b247e98-1e1b-4939-9126-b37201326a31', 'Riverton A 25-26'],
+  ['8d5b74fb-0d6a-4822-bda2-b37201393295', 'Riverton B 25-26'],
+  ['b2f40913-6cee-4653-a691-b36e010710e1', 'Sublette 8-Ball 25/26'],
+  ['be575a0e-cd22-48b9-a1ee-b233017afc43', 'Sublette 24/25'],
+  ['e32cc8d3-222d-4c0e-b065-b38c016a32ab', 'Sublette Top Gun 25/26'],
+  ['111465aa-9e4f-4ade-9994-b3600166c88f', 'SWC 10-Ball Capped 25-26'],
+  ['19ce8161-03b2-4f79-84cf-b3600168abe6', 'SWC 10-Ball No Cap 25-26'],
+  ['8b9cf341-bc42-40ad-a7ce-b35e01346dee', 'SWC A 8-Ball 25-26'],
+  ['54ea8a12-5fc9-433e-8712-b3600163ce04', 'SWC B-10 8-Ball 25-26'],
+  ['7b490715-8070-49f0-9dfd-b360015c9a6f', 'SWC B-12 8-Ball 25-26'],
+];
+
+let playerIndex = null;      // [{name, rating, division}] across every division
+let indexLoading = null;
+let roster = [];             // [{name, rating, division|null}]
+
+/* ── Fargo lookup ── */
+function parsePlayerList(html, divLabel) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  const table = d.querySelector('table');
+  if (!table) return [];
+
+  const rows = [...table.querySelectorAll('tr')];
+  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
+  if (!headers.length && rows[0]) headers = [...rows[0].querySelectorAll('td')].map(td => td.textContent.trim());
+  const ratingIdx = headers.findIndex(h => /rating|fargo/i.test(h));
+  const nameIdx   = headers.findIndex(h => /name/i.test(h));
+
+  const out = [];
+  rows.slice(1).forEach(tr => {
+    const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.replace(/\s+/g,' ').trim());
+    if (!cells.length) return;
+    const raw = cells[nameIdx >= 0 ? nameIdx : 1] || cells[0];
+    const rating = parseInt(cells[ratingIdx >= 0 ? ratingIdx : cells.length - 1], 10);
+    if (!raw || !rating) return;
+    // FargoRate lists names "Last, First" — flip for searching
+    const name = /,\s/.test(raw) ? raw.replace(/^([^,]+),\s*(.+)$/, '$2 $1') : raw;
+    out.push({ name, rating, division: divLabel });
+  });
+  return out;
+}
+
+async function loadIndex() {
+  if (playerIndex) return playerIndex;
+  if (indexLoading) return indexLoading;
+
+  setStatus('Loading player lists from FargoRate…');
+  indexLoading = (async () => {
+    const all = [];
+    let failed = 0;
+    await Promise.all(DIVISIONS.map(async ([id, label]) => {
+      try {
+        const r = await fetch(PROXY + encodeURIComponent(`${LMS}/GeneratePlayerListReport/${id}`));
+        if (!r.ok) throw new Error(r.status);
+        all.push(...parsePlayerList(await r.text(), label));
+      } catch (e) { failed++; }
+    }));
+
+    // Same player can appear in several divisions — keep the highest rating.
+    const byKey = {};
+    all.forEach(p => {
+      const k = p.name.toLowerCase();
+      if (!byKey[k] || p.rating > byKey[k].rating) byKey[k] = p;
+    });
+    playerIndex = Object.values(byKey).sort((a, b) => a.name.localeCompare(b.name));
+
+    setStatus(playerIndex.length
+      ? `${playerIndex.length} players loaded${failed ? ` · ${failed} division${failed>1?'s':''} unavailable` : ''}`
+      : 'No players came back — check the proxy, or add players manually.');
+    return playerIndex;
+  })();
+  return indexLoading;
+}
+
+function setStatus(msg, bad) {
+  const el = document.getElementById('search-status');
+  el.textContent = msg || '';
+  el.style.color = bad ? 'var(--loss)' : 'var(--text3)';
+}
+
+let searchSel = 0;
+async function onSearch(force) {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const box = document.getElementById('results');
+  if (q.length < 2 && !force) { box.innerHTML = ''; return; }
+  const idx = await loadIndex();
+  const hits = idx.filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
+  searchSel = 0;
+  if (!hits.length) {
+    box.innerHTML = '';
+    if (q) setStatus(`No one matching "${q}" — use Add manually if they're not in a Jenkins league.`);
+    return;
+  }
+  box.innerHTML = hits.map((p, i) => `<div class="result${i===0?' sel':''}" onclick="addFromIndex('${esc(p.name).replace(/'/g,"\\'")}')">
+    <span><span class="rn">${esc(p.name)}</span> <span class="rd">${esc(p.division)}</span></span>
+    <span class="rr">${p.rating}</span></div>`).join('');
+}
+
+function onSearchKey(e) {
+  const items = [...document.querySelectorAll('#results .result')];
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (items[searchSel]) items[searchSel].click(); else onSearch(true);
+  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!items.length) return;
+    searchSel = (searchSel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    items.forEach((el, i) => el.classList.toggle('sel', i === searchSel));
+  }
+}
+
+function addFromIndex(name) {
+  const p = (playerIndex || []).find(x => x.name === name);
+  if (!p) return;
+  addToRoster(p.name, p.rating, p.division);
+}
+
+function manualAdd() {
+  const name = (document.getElementById('search').value || '').trim();
+  if (!name) { setStatus('Type a name first, then Add manually.', true); return; }
+  const r = prompt(`Fargo rating for ${name}?`, '450');
+  if (r === null) return;
+  const rating = parseInt(r, 10);
+  if (!rating) { setStatus('That rating did not look like a number.', true); return; }
+  addToRoster(name, rating, null);
+}
+
+function addToRoster(name, rating, division) {
+  if (roster.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    setStatus(`${name} is already entered.`, true); return;
+  }
+  roster.push({ name, rating, division });
+  document.getElementById('search').value = '';
+  document.getElementById('results').innerHTML = '';
+  setStatus(`Added ${name} (${rating}).`);
+  renderRoster();
+  document.getElementById('search').focus();
+}
+
+function removeFromRoster(i) { roster.splice(i, 1); renderRoster(); }
+
+function editRating(i) {
+  const p = roster[i];
+  const r = prompt(`Fargo rating for ${p.name}?`, p.rating);
+  if (r === null) return;
+  const v = parseInt(r, 10);
+  if (v) { p.rating = v; renderRoster(); if (B) render(); }
+}
+
+function renderRoster() {
+  document.getElementById('roster').innerHTML = roster.map((p, i) => `
+    <div class="rrow${p.division ? '' : ' manual'}">
+      <span class="n">${esc(p.name)}</span>
+      <span class="d">${p.division ? esc(p.division) : 'entered by hand'}</span>
+      <span class="f" onclick="editRating(${i})" title="Change rating" style="cursor:pointer">${p.rating}</span>
+      <button class="x" onclick="removeFromRoster(${i})" title="Remove">✕</button>
+    </div>`).join('');
+  updateCount();
+}
+
+/* ── Races typed alongside a name ── */
+const DEFAULT_RACE = 3;
+function parseEntry(line) {
+  const m = line.trim().match(/^(.+?)\s+(\d{1,2})$/);
+  return m ? { name: m[1].trim(), race: parseInt(m[2], 10) }
+           : { name: line.trim(), race: DEFAULT_RACE };
+}
+function parseEntries() {
+  return document.getElementById('names').value
+    .split('\n').map(s => s.trim()).filter(Boolean).map(parseEntry);
+}
+
+/* ── Officer sign-in ──
+   The league key is only needed to create tournaments and see this list.
+   Scoring a tournament uses that tournament's own admin code instead. */
+const KEY_STORE = 'kpl-league-key';
+const leagueKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch (e) { return ''; } };
+
+async function signIn() {
+  const k = document.getElementById('lkey').value.trim();
+  if (!k) return;
+  const msg = document.getElementById('gate-msg');
+  msg.textContent = 'Checking…'; msg.style.color = 'var(--text3)';
+  try {
+    const r = await fetch('/api/t', { headers: { 'X-League-Key': k } });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) {
+      try { localStorage.setItem(KEY_STORE, k); } catch (e) {}
+      showAdmin(j.tournaments);
+    } else if (j.code === 'not_configured') {
+      msg.textContent = 'Tournament storage is not set up on the server yet.';
+      msg.style.color = 'var(--loss)';
+    } else {
+      msg.textContent = 'That key was not accepted.';
+      msg.style.color = 'var(--loss)';
+    }
+  } catch (e) {
+    msg.textContent = 'Could not reach the server.';
+    msg.style.color = 'var(--loss)';
+  }
+}
+
+function signOut() {
+  try { localStorage.removeItem(KEY_STORE); } catch (e) {}
+  location.reload();
+}
+
+function showAdmin(list) {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('admin').style.display = '';
+  renderList(list || []);
+}
+
+/* ── Mode ── */
+let mode = 'bracket';
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode-bracket').classList.toggle('on', m === 'bracket');
+  document.getElementById('mode-tournament').classList.toggle('on', m === 'tournament');
+  document.getElementById('pane-bracket').style.display = m === 'bracket' ? '' : 'none';
+  document.getElementById('pane-tournament').style.display = m === 'tournament' ? '' : 'none';
+  document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
+  updateCount();
+}
+
+function updateCount() {
+  const n = mode === 'bracket' ? parseEntries().length : roster.length;
+  document.getElementById('count').textContent = `${n} player${n === 1 ? '' : 's'}`;
+}
+
+/* ── Create ──
+   Only the draw is worked out here: players shuffled into seeds, byes filling
+   the rest. The viewing pages rebuild the whole match graph from that, so the
+   bracket logic lives in one place rather than being duplicated. */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function createTournament() {
+  const msg = document.getElementById('create-msg');
+  const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? 'var(--loss)' : 'var(--text3)'; };
+
+  const entries = mode === 'bracket' ? parseEntries() : roster.map(p => ({ name: p.name }));
+  if (entries.length < 2) { say('Add at least 2 players.', true); return; }
+
+  const names = shuffle(entries.map(e => e.name));
+  let size = 1; while (size < names.length) size *= 2;
+  const bySeed = {};
+  names.forEach((n, i) => bySeed[i + 1] = n);
+  for (let s = names.length + 1; s <= size; s++) bySeed[s] = null;
+
+  const data = {
+    schema: 1,
+    name: (document.getElementById('tname').value || '').trim(),
+    kind: mode,
+    saved: Date.now(),
+    format: document.getElementById('format').value,
+    bySeed,
+    winners: {},
+    payoutsManual: null,
+    progress: { played: 0, total: 0 },
+    champion: null,
+    fee: document.getElementById('fee').value,
+    bar: document.getElementById('bar').value,
+  };
+  if (mode === 'bracket') {
+    data.races = Object.fromEntries(parseEntries().map(e => [e.name, e.race]));
+    data.names = document.getElementById('names').value;
+  } else {
+    data.roster = roster;
+    data.chart = document.getElementById('chart').value;
+  }
+
+  say('Creating…');
+  try {
+    const r = await fetch('/api/t', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-League-Key': leagueKey() },
+      body: JSON.stringify(data),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { say(j.error || 'Could not create it.', true); return; }
+    say('');
+    showLinks(data.name, data.kind, j.code, j.adminCode);
+    refreshList();
+  } catch (e) { say('Could not reach the server.', true); }
+}
+
+const pageFor = kind => kind === 'tournament' ? 'tournament.html' : 'bracket.html';
+
+function showLinks(name, kind, code, adminCode) {
+  const base = `${location.origin}/${pageFor(kind)}`;
+  const view  = `${base}?t=${code}`;
+  const admin = `${base}?t=${code}&a=${adminCode}`;
+  document.getElementById('made-name').textContent = name || 'Created';
+  document.getElementById('made-links').innerHTML = `
+    <div class="link-row">
+      <div class="link-lbl">Public — anyone can watch</div>
+      <div class="link-code">${esc(code)}</div>
+      <div class="link-url">${esc(view)}</div>
+      <div class="link-actions">
+        <button class="act" onclick="copyText('${esc(view)}', this)">Copy link</button>
+        <a class="act" href="${esc(view)}" target="_blank" rel="noopener">Open</a>
+      </div>
+    </div>
+    <div class="link-row admin">
+      <div class="link-lbl">Admin — enters winners</div>
+      <div class="link-code">${esc(code)}-${esc(adminCode)}</div>
+      <div class="link-url">${esc(admin)}</div>
+      <div class="link-actions">
+        <button class="act" onclick="copyText('${esc(admin)}', this)">Copy link</button>
+        <a class="act primary" href="${esc(admin)}" target="_blank" rel="noopener">Open to score</a>
+      </div>
+    </div>`;
+  document.getElementById('made').style.display = '';
+  document.getElementById('made').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function copyText(t, btn) {
+  try { await navigator.clipboard.writeText(t); const o = btn.textContent;
+    btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1400); }
+  catch (e) { prompt('Copy this:', t); }
+}
+
+/* ── The list ── */
+async function refreshList() {
+  try {
+    const r = await fetch('/api/t', { headers: { 'X-League-Key': leagueKey() } });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) renderList(j.tournaments);
+  } catch (e) {}
+}
+
+function renderList(list) {
+  document.getElementById('list-count').textContent = list.length ? `${list.length} on the server` : '';
+  document.getElementById('tlist').innerHTML = list.length ? list.map(t => {
+    const when = new Date(t.updated).toLocaleString('en-US',
+      { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const done = t.champion ? `<span class="tag done">Won by ${esc(t.champion)}</span>` : '';
+    const prog = t.progress ? `${t.progress.played}/${t.progress.total} played` : '';
+    return `<div class="trow">
+      <span class="tn">${esc(t.name || 'Untitled')}</span>
+      <span class="tc">${esc(t.code)}</span>
+      <span class="tag">${t.kind === 'tournament' ? 'Fargo' : 'Races'}</span>
+      <span class="tag">${t.format === 'single' ? 'Single elim' : 'Double elim'}</span>
+      ${done}
+      <span class="tm">${t.players} players · ${prog} · ${when}</span>
+      <a class="act" href="/${pageFor(t.kind)}?t=${esc(t.code)}" target="_blank" rel="noopener">View</a>
+      <button class="linkish" onclick="removeTournament('${esc(t.code)}')">Delete</button>
+    </div>`;
+  }).join('') : '<div class="empty">Nothing created yet.</div>';
+}
+
+async function removeTournament(code) {
+  if (!confirm(`Delete tournament ${code}? This cannot be undone.`)) return;
+  try {
+    await fetch('/api/t/' + encodeURIComponent(code), {
+      method: 'DELETE', headers: { 'X-League-Key': leagueKey() } });
+    refreshList();
+  } catch (e) {}
+}
+
+/* Already signed in on this device? Go straight in. */
+(async function () {
+  if (!leagueKey()) return;
+  try {
+    const r = await fetch('/api/t', { headers: { 'X-League-Key': leagueKey() } });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) showAdmin(j.tournaments);
+  } catch (e) {}
+})();
+
+setMode('bracket');
+</script>
+</body>
+</html>
