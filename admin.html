@@ -233,7 +233,7 @@
     <div class="card">
       <div class="card-header"><span class="card-title">Officers</span></div>
       <div class="pad">
-        <label class="field-lbl" for="lkey">League key</label>
+        <label class="field-lbl" for="lkey">League password</label>
         <input id="lkey" class="inp" type="password" autocomplete="current-password"
           placeholder="Ask another officer" onkeydown="if(event.key==='Enter')signIn()">
         <div class="btn-row" style="padding:14px 0 0">
@@ -349,7 +349,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.01</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.02</div>
 </footer>
 
 <script>
@@ -563,7 +563,7 @@ function parseEntries() {
 }
 
 /* ── Officer sign-in ──
-   The league key is only needed to create tournaments and see this list.
+   The league password is only needed to create tournaments and see this list.
    Scoring a tournament uses that tournament's own admin code instead. */
 const KEY_STORE = 'kpl-league-key';
 const leagueKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch (e) { return ''; } };
@@ -583,7 +583,7 @@ async function signIn() {
       msg.textContent = 'Tournament storage is not set up on the server yet.';
       msg.style.color = 'var(--loss)';
     } else {
-      msg.textContent = 'That key was not accepted.';
+      msg.textContent = 'That password was not accepted.';
       msg.style.color = 'var(--loss)';
     }
   } catch (e) {
