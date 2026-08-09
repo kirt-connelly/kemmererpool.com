@@ -408,6 +408,22 @@
           </div>
         </div>
 
+        <div class="section" id="race-bands-wrap" style="display:none">
+          <div class="section-head">
+            <span>Races by Fargo rating</span>
+            <span id="race-bands-msg" class="pct-total"></span>
+          </div>
+          <div id="race-band-rows" class="band-rows"></div>
+          <div class="band-actions">
+            <button class="act" onclick="addRaceBand()">Add a band</button>
+            <button class="linkish" onclick="resetRaceBands()">Back to the default</button>
+          </div>
+          <div class="hint" style="padding:0 16px 14px">
+            Used when you bring in a signup list — everyone's race comes from their rating.
+            Typing a number after a name still wins.
+          </div>
+        </div>
+
         <div class="section" id="bands-wrap" style="display:none">
           <div class="section-head">
             <span>Chips by Fargo rating</span>
@@ -489,7 +505,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.09</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.10</div>
 </footer>
 
 <script>
@@ -763,7 +779,9 @@ function setMode(m) {
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
   document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
   document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
+  document.getElementById('race-bands-wrap').style.display = m === 'bracket' ? '' : 'none';
   if (m === 'chip') renderBands();
+  if (m === 'bracket') renderRaceBands();
   // A chip tournament has no bracket to seed, so format doesn't apply.
   document.getElementById('format').closest('.grid').style.display =
     (m === 'chip' || m === 'signup') ? 'none' : '';
@@ -840,6 +858,72 @@ function shuffle(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+/* ── Races by Fargo rating ──
+   Only matters for a manual-race bracket built from a signup list: the sheet
+   gives you ratings, and these turn them into races. */
+const STANDARD_RACES = [{ max: 399, race: 2 }, { max: null, race: 3 }];
+let raceBands = STANDARD_RACES.map(b => ({ ...b }));
+
+function raceFor(rating, list) {
+  const rows = (list && list.length ? list : raceBands);
+  // Nobody without a rating should get the short race meant for weaker players,
+  // so an unknown falls to the top band.
+  if (!rating) return rows[rows.length - 1].race;
+  for (const b of rows) if (b.max === null || b.max === undefined || rating <= b.max) return b.race;
+  return rows[rows.length - 1].race;
+}
+
+function renderRaceBands() {
+  document.getElementById('race-band-rows').innerHTML = raceBands.map((b, i) => {
+    const last = i === raceBands.length - 1;
+    const from = i === 0 ? 0 : (Number(raceBands[i - 1].max) || 0) + 1;
+    return `<div class="band-row${last ? ' last' : ''}">
+      <span class="bl">${last ? `${from} and above` : `${from} to`}</span>
+      ${last ? '' : `<input class="inp bmax" type="number" min="0" max="1200" step="1"
+        value="${b.max ?? ''}" data-i="${i}" data-f="max" oninput="onRaceBandEdit(this)">`}
+      <span class="bl">&rarr; race to</span>
+      <input class="inp bchips" type="number" min="1" max="30" step="1"
+        value="${b.race}" data-i="${i}" data-f="race" oninput="onRaceBandEdit(this)">
+      ${raceBands.length > 1 && !last
+        ? `<button class="bx" title="Remove this band" onclick="removeRaceBand(${i})">&#10005;</button>` : ''}
+    </div>`;
+  }).join('');
+  checkRaceBands();
+}
+
+function onRaceBandEdit(el) {
+  const i = Number(el.dataset.i);
+  if (el.dataset.f === 'max') raceBands[i].max = el.value === '' ? null : Number(el.value);
+  else raceBands[i].race = Number(el.value) || 0;
+  renderRaceBands();
+  const back = document.querySelector(`#race-band-rows [data-i="${el.dataset.i}"][data-f="${el.dataset.f}"]`);
+  if (back) { back.focus(); back.setSelectionRange?.(back.value.length, back.value.length); }
+}
+
+function addRaceBand() {
+  const prev = raceBands[raceBands.length - 2];
+  const base = prev && prev.max ? Number(prev.max) + 100 : 400;
+  raceBands.splice(raceBands.length - 1, 0, { max: base, race: raceBands[raceBands.length - 1].race });
+  renderRaceBands();
+}
+function removeRaceBand(i) { raceBands.splice(i, 1); renderRaceBands(); }
+function resetRaceBands() { raceBands = STANDARD_RACES.map(b => ({ ...b })); renderRaceBands(); }
+
+function checkRaceBands() {
+  const msg = document.getElementById('race-bands-msg');
+  let problem = '';
+  raceBands.forEach((b, i) => {
+    if (!(b.race >= 1)) problem = problem || 'Every band needs a race of at least 1.';
+    if (i < raceBands.length - 1) {
+      if (b.max === null || isNaN(b.max)) problem = problem || 'Every band needs an upper rating.';
+      else if (i > 0 && raceBands[i - 1].max !== null && Number(b.max) <= Number(raceBands[i - 1].max))
+        problem = problem || 'Ratings have to climb down the list.';
+    }
+  });
+  if (msg) { msg.textContent = problem; msg.className = 'pct-total ' + (problem ? 'off' : 'ok'); }
+  return !problem;
 }
 
 /* ── Chips by Fargo rating ──
@@ -948,6 +1032,7 @@ async function createTournament() {
   if (entries.length < 2) { say('Add at least 2 players.', true); return; }
   if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
 
+  if (mode === 'bracket' && !checkRaceBands()) { say('Check the race bands before creating.', true); return; }
   if (mode === 'chip') {
     if (!checkBands()) { say('Check the chip bands before creating.', true); return; }
     await createChip(say);
@@ -1152,7 +1237,10 @@ function loadEntries(data) {
   if (!use.length) { msg.textContent = 'Nobody in that division.'; msg.style.color = 'var(--loss)'; return; }
 
   roster = use.map(e => ({ name: e.name, rating: e.rating || 0, division: e.division || null }));
-  document.getElementById('names').value = use.map(e => e.name).join('\n');
+  // In a manual-race bracket each player's race comes from the bands above,
+  // written after their name the way the box expects.
+  document.getElementById('names').value = use.map(e =>
+    mode === 'bracket' ? `${e.name} ${raceFor(e.rating)}` : e.name).join('\n');
   if (!document.getElementById('tname').value.trim()) {
     document.getElementById('tname').value = data.name || '';
   }
@@ -1161,8 +1249,15 @@ function loadEntries(data) {
   document.getElementById('sheet-pick').style.display = 'none';
 
   const missing = use.filter(e => !e.rating).length;
-  msg.textContent = `${use.length} player${use.length === 1 ? '' : 's'} brought in`
-    + (missing ? ` — ${missing} without a rating, so Fargo races won't work for them.` : '.');
+  let tail = '.';
+  if (missing && mode === 'bracket') {
+    tail = ` — ${missing} without a rating, given the longest race. Check those lines.`;
+  } else if (missing) {
+    tail = ` — ${missing} without a rating, so Fargo races won't work for them.`;
+  } else if (mode === 'bracket') {
+    tail = ', with races set from their ratings.';
+  }
+  msg.textContent = `${use.length} player${use.length === 1 ? '' : 's'} brought in` + tail;
   msg.style.color = missing ? 'var(--loss)' : 'var(--text3)';
 }
 
@@ -1334,6 +1429,7 @@ async function removeTournament(code) {
 
 setMode('bracket');
 onSpotsChange();
+renderRaceBands();
 </script>
 </body>
 </html>
