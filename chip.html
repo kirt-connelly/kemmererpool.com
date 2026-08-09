@@ -395,7 +395,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.03</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.04</div>
 </footer>
 
 <script>
@@ -453,22 +453,38 @@ function rebalance(S) {
   const live = alive(S).length;
   const wanted = Math.max(1, Math.min(S.tableCount, Math.floor(live / 2)));
 
-  // Close surplus tables that aren't mid-match, putting anyone sitting there
-  // back at the front of the queue so they don't lose their turn.
-  for (let t = S.tables.length - 1; t >= wanted; t--) {
-    const seat = S.tables[t].filter(Boolean);
-    if (seat.length === 2) continue;                 // a match is under way here
-    seat.forEach(n => { if (!S.queue.includes(n)) S.queue.unshift(n); });
-    S.tables[t] = [null, null];
+  // Tables with two players are mid-match and are never disturbed.
+  const busy = S.tables.map(t => !!(t[0] && t[1]));
+  let active = busy.filter(Boolean).length;
+
+  // A winner sitting alone keeps their table and takes the next in line —
+  // lowest table number first when several free up at once.
+  for (let t = 0; t < S.tables.length && S.queue.length; t++) {
+    if (busy[t] || active >= wanted) continue;
+    const sitting = S.tables[t].filter(Boolean);
+    if (sitting.length !== 1) continue;
+    S.tables[t] = [sitting[0], S.queue.shift()];
+    busy[t] = true; active++;
   }
 
-  // Fill empty seats from the front of the queue, lowest table number first.
-  for (let t = 0; t < wanted; t++) {
-    for (let s = 0; s < 2; s++) {
-      if (S.tables[t][s]) continue;
-      if (!S.queue.length) break;
-      S.tables[t][s] = S.queue.shift();
-    }
+  // Anyone still on their own has nobody left to play. Close that table and put
+  // them at the front of the queue rather than leaving them stranded there.
+  const stranded = [];
+  S.tables.forEach((t, i) => {
+    if (busy[i]) return;
+    t.forEach(n => { if (n) stranded.push(n); });
+    S.tables[i] = [null, null];
+  });
+  if (stranded.length) {
+    S.queue = [...stranded, ...S.queue.filter(n => !stranded.includes(n))];
+  }
+
+  // Then seat whole pairs from the front of the queue, lowest table first. This
+  // is what folds the field onto fewer tables as players are knocked out.
+  for (let t = 0; t < S.tables.length; t++) {
+    if (busy[t] || active >= wanted || S.queue.length < 2) continue;
+    S.tables[t] = [S.queue.shift(), S.queue.shift()];
+    busy[t] = true; active++;
   }
   return S;
 }
