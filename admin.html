@@ -419,7 +419,8 @@
             <button class="linkish" onclick="resetRaceBands()">Back to the default</button>
           </div>
           <div class="hint" style="padding:0 16px 14px">
-            Used when you bring in a signup list — everyone's race comes from their rating.
+            Everyone brought in from the list gets their race from their rating.
+            Change these and press <strong>Use a signup list</strong> again to re-apply.
             Typing a number after a name still wins.
           </div>
         </div>
@@ -505,7 +506,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.10</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.11</div>
 </footer>
 
 <script>
@@ -779,9 +780,8 @@ function setMode(m) {
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
   document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
   document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
-  document.getElementById('race-bands-wrap').style.display = m === 'bracket' ? '' : 'none';
+  document.getElementById('race-bands-wrap').style.display = 'none';
   if (m === 'chip') renderBands();
-  if (m === 'bracket') renderRaceBands();
   // A chip tournament has no bracket to seed, so format doesn't apply.
   document.getElementById('format').closest('.grid').style.display =
     (m === 'chip' || m === 'signup') ? 'none' : '';
@@ -1186,7 +1186,10 @@ async function copyText(t, btn) {
 async function openSheetPicker() {
   const panel = document.getElementById('sheet-pick');
   const msg = document.getElementById('use-list-msg');
+  const bands = document.getElementById('race-bands-wrap');
   if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  // A signup list gives ratings, not races — so this is where the bands matter.
+  if (mode === 'bracket') { bands.style.display = ''; renderRaceBands(); }
   msg.textContent = 'Looking…'; msg.style.color = 'var(--text3)';
   try {
     const r = await fetch('/api/t', { headers: { 'X-League-Key': leagueKey() } });
@@ -1247,6 +1250,7 @@ function loadEntries(data) {
   renderRoster();
   updateCount();
   document.getElementById('sheet-pick').style.display = 'none';
+  if (mode === 'bracket') document.getElementById('race-bands-wrap').style.display = '';
 
   const missing = use.filter(e => !e.rating).length;
   let tail = '.';
@@ -1429,7 +1433,6 @@ async function removeTournament(code) {
 
 setMode('bracket');
 onSpotsChange();
-renderRaceBands();
 </script>
 </body>
 </html>
