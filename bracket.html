@@ -23,13 +23,7 @@
     --accent: #1f6b48; --cream: #2b2419; --green2: #1a7a4e; --loss: #b23636;
   }
 
-  /* One knob for text size. Phones stay at 1 — 15px reads fine at arm's length
-     — while wider screens step up, where the same size looks cramped. */
-  :root { --fs: 1; }
-  @media (min-width: 1000px) { :root { --fs: 1.12; } }
-  @media (min-width: 1500px) { :root { --fs: 1.2; } }
-
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: calc(15px * var(--fs)); line-height: 1.5; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -38,31 +32,31 @@
   header { background: var(--bg2); border-bottom: 1px solid var(--border); }
   .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0,#154d28 4px,#1a5c32 8px); opacity: .5; }
   .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 12px; }
-  h1 { font-size: calc(21px * var(--fs)); font-weight: 700; letter-spacing: -.02em; }
-  .sub { font-size: calc(10px * var(--fs)); color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
   .theme-btn { width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center;
     border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
-    cursor: pointer; font-size: calc(13px * var(--fs)); padding: 0; }
+    cursor: pointer; font-size: 13px; padding: 0; }
   .theme-btn:hover { background: var(--bg4); color: var(--text); }
 
   main { padding: 22px 0 70px; }
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 18px; }
   .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 13px 18px; border-bottom: 1px solid var(--border); background: var(--bg3); }
-  .card-title { font-size: calc(15px * var(--fs)); font-weight: 600; }
-  .card-meta { font-size: calc(12px * var(--fs)); color: var(--text3); }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-meta { font-size: 12px; color: var(--text3); }
   .pad { padding: 18px; }
   .setup-head { cursor: pointer; user-select: none; }
   .setup-head:hover .card-title { color: var(--green2); }
   .head-right { display: flex; align-items: center; gap: 11px; }
-  .chev { font-size: calc(20px * var(--fs)); line-height: 1; color: var(--text2); display: inline-block; transition: transform .18s; }
+  .chev { font-size: 20px; line-height: 1; color: var(--text2); display: inline-block; transition: transform .18s; }
   /* Collapsed after the draw — the setup is done, the bracket is the point. */
   .setup-card.collapsed .pad { display: none; }
   .setup-card.collapsed .chev { transform: rotate(-90deg); }
 
-  label.fl { display: block; font-size: calc(11px * var(--fs)); font-weight: 600; letter-spacing: .07em;
+  label.fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
     text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
-  textarea { width: 100%; min-height: 150px; resize: vertical; font-family: inherit; font-size: calc(14px * var(--fs));
+  textarea { width: 100%; min-height: 150px; resize: vertical; font-family: inherit; font-size: 14px;
     line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: 10px 12px; }
   textarea:focus { outline: none; border-color: var(--accent); }
@@ -70,9 +64,9 @@
   .fee-input { display: inline-flex; align-items: center; gap: 6px; background: var(--bg);
     border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
   .fee-input:focus-within { border-color: var(--accent); }
-  .fee-input span { color: var(--text3); font-size: calc(14px * var(--fs)); }
+  .fee-input span { color: var(--text3); font-size: 14px; }
   .fee-input input { width: 76px; border: none; background: none; color: var(--text);
-    font-family: inherit; font-size: calc(14px * var(--fs)); padding: 9px 0; }
+    font-family: inherit; font-size: 14px; padding: 9px 0; }
   .fee-input input:focus { outline: none; }
 
   .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
@@ -80,11 +74,11 @@
     animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
   .notice-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 26px; color: var(--text2); font-size: calc(14px * var(--fs)); }
+    padding: 26px; color: var(--text2); font-size: 14px; }
   .th-live { color: var(--green2); font-weight: 600; }
   .ro-banner { padding: 10px 14px; margin-bottom: 14px; border: 1px solid var(--accent);
     border-radius: var(--radius-sm); background: var(--bg2); color: var(--text2);
-    font-size: calc(13px * var(--fs)); font-weight: 500; }
+    font-size: 13px; font-weight: 500; }
   body.read-only .slot { cursor: default; }
   body.read-only .slot:hover:not(.locked) { background: none; }
   body.read-only .payout .place, body.read-only .payout .amt { cursor: default; }
@@ -97,70 +91,70 @@
      otherwise, which pushed the button outside the card. */
   .code-input { display: block; width: 100%; min-width: 0;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: calc(30px * var(--fs)); font-weight: 700; letter-spacing: .34em; text-indent: .34em;
+    font-size: 30px; font-weight: 700; letter-spacing: .34em; text-indent: .34em;
     text-align: center; text-transform: uppercase; color: var(--cream);
     background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 14px 10px; }
   .code-input::placeholder { color: var(--text3); }
   .code-input:focus { outline: none; border-color: var(--accent); }
   .code-go { display: block; width: 100%; margin-top: 12px; padding: 13px;
-    font-size: calc(15px * var(--fs)); text-align: center; }
-  .code-help { margin-top: 14px; text-align: center; font-size: calc(12px * var(--fs));
+    font-size: 15px; text-align: center; }
+  .code-help { margin-top: 14px; text-align: center; font-size: 12px;
     color: var(--text3); line-height: 1.6; }
   .code-entry .hint:not(:empty) { margin-top: 10px; text-align: center; }
 
   /* ── Tournament header ── */
   .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
     gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
-  .th-name { font-size: calc(20px * var(--fs)); font-weight: 700; color: var(--cream); line-height: 1.2; }
-  .th-meta { font-size: calc(11px * var(--fs)); color: var(--text3); margin-top: 4px; }
+  .th-name { font-size: 20px; font-weight: 700; color: var(--cream); line-height: 1.2; }
+  .th-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
   .th-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
   .th-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
   /* ── Saving ── */
   .name-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
-  .tname { width: 100%; font-family: inherit; font-size: calc(14px * var(--fs)); color: var(--text);
+  .tname { width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
     background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 9px 12px; }
   .tname:focus { outline: none; border-color: var(--accent); }
-  .tid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: calc(13px * var(--fs));
+  .tid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
     color: var(--text2); background: var(--bg); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: 9px 12px; letter-spacing: .04em; }
   .saved-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
   .saved-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px;
-    background: var(--bg2); font-size: calc(14px * var(--fs)); flex-wrap: wrap; }
+    background: var(--bg2); font-size: 14px; flex-wrap: wrap; }
   .saved-row .sn { flex: 1; min-width: 140px; color: var(--cream); font-weight: 600; }
-  .saved-row .sm { font-size: calc(11px * var(--fs)); color: var(--text3); }
-  .saved-row .sid { font-family: ui-monospace, monospace; font-size: calc(11px * var(--fs)); color: var(--text3); }
+  .saved-row .sm { font-size: 11px; color: var(--text3); }
+  .saved-row .sid { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text3); }
   .saved-row.current { border-left: 3px solid var(--accent); }
-  .saved-empty { padding: 20px 18px; color: var(--text3); font-size: calc(13px * var(--fs)); background: var(--bg2); }
+  .saved-empty { padding: 20px 18px; color: var(--text3); font-size: 13px; background: var(--bg2); }
 
   /* ── Payouts ── */
   .payouts { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 18px; }
   .payout { flex: 1; min-width: 128px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--bg); padding: 12px 14px; }
-  .payout .place { font-size: calc(10px * var(--fs)); font-weight: 700; letter-spacing: .09em;
+  .payout .place { font-size: 10px; font-weight: 700; letter-spacing: .09em;
     text-transform: uppercase; color: var(--text3); }
-  .payout .amt { font-size: calc(22px * var(--fs)); font-weight: 700; color: var(--cream); margin-top: 3px;
+  .payout .amt { font-size: 22px; font-weight: 700; color: var(--cream); margin-top: 3px;
     font-variant-numeric: tabular-nums; }
   .payout .place, .payout .amt { cursor: pointer; border-radius: 3px; }
   .payout .place:hover, .payout .amt:hover { background: var(--bg3); }
   .payout.add { flex: 0 0 auto; min-width: 48px; display: flex; align-items: center;
-    justify-content: center; font-size: calc(20px * var(--fs)); font-family: inherit; color: var(--text3);
+    justify-content: center; font-size: 20px; font-family: inherit; color: var(--text3);
     cursor: pointer; border: 1px dashed var(--border2); border-radius: var(--radius-sm);
     background: none; padding: 12px 14px; }
   .payout.add:hover { color: var(--green2); border-color: var(--accent); }
   .pay-input { width: 100%; font-family: inherit; background: var(--bg2); color: var(--text);
     border: 1px solid var(--accent); border-radius: 3px; padding: 1px 4px; }
   .pay-input:focus { outline: none; }
-  .pay-input.place, .pay-input.label { font-size: calc(11px * var(--fs)); font-weight: 700; letter-spacing: .09em; }
-  .pay-input.amt { font-size: calc(20px * var(--fs)); font-weight: 700; }
+  .pay-input.place, .pay-input.label { font-size: 11px; font-weight: 700; letter-spacing: .09em; }
+  .pay-input.amt { font-size: 20px; font-weight: 700; }
   .payout-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px;
     flex-wrap: wrap; padding: 0 18px 16px; }
-  .tally { font-size: calc(12px * var(--fs)); font-weight: 600; }
+  .tally { font-size: 12px; font-weight: 600; }
   .tally.ok { color: var(--text3); }
   .tally.off { color: var(--loss); }
-  .linkish { background: none; border: none; font-family: inherit; font-size: calc(12px * var(--fs));
+  .linkish { background: none; border: none; font-family: inherit; font-size: 12px;
     color: var(--text3); cursor: pointer; text-decoration: underline; padding: 0; }
   .linkish:hover { color: var(--text); }
   .payout.first { border-color: var(--accent); }
@@ -168,21 +162,21 @@
 
   .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 16px 18px; }
   .setup-card:not(.collapsed) .btn-row { border-top: 1px solid var(--border); }
-  button.act { font-family: inherit; font-size: calc(13px * var(--fs)); font-weight: 600; letter-spacing: .03em;
+  button.act { font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: .03em;
     padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border);
     background: var(--bg3); color: var(--text2); transition: background .15s, color .15s; }
   button.act:hover { background: var(--bg4); color: var(--text); }
   button.act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   button.act.primary:hover { opacity: .87; color: var(--on-accent); }
   button.act:disabled { opacity: .45; cursor: default; }
-  .hint { font-size: calc(12px * var(--fs)); color: var(--text3); }
+  .hint { font-size: 12px; color: var(--text3); }
 
   /* ── Bracket ── */
   .bracket-scroll { overflow-x: auto; padding: 4px 18px 22px; }
   /* Positions are computed in JS and set inline — flexbox can't align a bracket
      reliably once rounds stop halving (losers-bracket major rounds feed 1:1). */
   .canvas { position: relative; min-width: min-content; }
-  .round-label { position: absolute; top: 0; font-size: calc(10px * var(--fs)); font-weight: 700;
+  .round-label { position: absolute; top: 0; font-size: 10px; font-weight: 700;
     letter-spacing: .09em; text-transform: uppercase; color: var(--text3);
     text-align: center; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
   .line { position: absolute; background: var(--border2); }
@@ -190,30 +184,30 @@
     background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
   .match.decided { border-color: var(--border2); }
   .match.ready { border-color: var(--accent); }
-  .match-no { position: absolute; top: -1px; left: -1px; font-size: calc(9px * var(--fs)); font-weight: 700;
+  .match-no { position: absolute; top: -1px; left: -1px; font-size: 9px; font-weight: 700;
     background: var(--bg3); color: var(--text3); padding: 1px 5px; border-radius: var(--radius-sm) 0 var(--radius-sm) 0;
     letter-spacing: .04em; }
   .slot { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 0 9px 0 26px; font-size: calc(13px * var(--fs)); cursor: pointer; border-bottom: 1px solid var(--border); }
+    padding: 0 9px 0 26px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); }
   .slot:last-child { border-bottom: none; }
   .slot:hover:not(.locked) { background: var(--bg3); }
   .slot .nm { font-weight: 600; color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .slot.won .nm { color: var(--green2); }
   .slot.lost .nm { color: var(--text3); text-decoration: line-through; }
   .slot.empty .nm, .slot.bye .nm { color: var(--text3); font-weight: 400; font-style: italic; }
-  .slot .src { font-size: calc(11px * var(--fs)); font-weight: 600; font-style: normal; letter-spacing: .04em;
+  .slot .src { font-size: 11px; font-weight: 600; font-style: normal; letter-spacing: .04em;
     color: var(--text3); opacity: .8; }
   .slot.locked { cursor: default; }
   .slot.bye.open { cursor: pointer; }
   .slot.bye.open .nm { color: var(--accent); font-style: normal; font-weight: 600; }
   .slot.bye.open:hover { background: var(--bg3); }
-  .slot-input { width: 100%; font-family: inherit; font-size: calc(13px * var(--fs)); font-weight: 600;
+  .slot-input { width: 100%; font-family: inherit; font-size: 13px; font-weight: 600;
     color: var(--cream); background: var(--bg2); border: 1px solid var(--accent);
     border-radius: 3px; padding: 3px 6px; }
   .slot-input:focus { outline: none; }
   .race-box { width: 24px; height: 21px; flex-shrink: 0; border: 1px solid var(--border);
     border-radius: 3px; background: var(--bg2); display: flex; align-items: center;
-    justify-content: center; font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--text2);
+    justify-content: center; font-size: 12px; font-weight: 700; color: var(--text2);
     font-variant-numeric: tabular-nums; }
   .slot.won .race-box { border-color: var(--accent); color: var(--green2); }
 
@@ -221,14 +215,14 @@
   .gf-col .round-label { color: var(--accent); }
   .champion { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 20px;
     border: 1px solid var(--accent); border-radius: var(--radius); background: var(--bg2); margin-bottom: 18px; }
-  .champion .lbl { font-size: calc(10px * var(--fs)); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); }
-  .champion .nm { font-size: calc(24px * var(--fs)); font-weight: 700; color: var(--green2); }
+  .champion .lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); }
+  .champion .nm { font-size: 24px; font-weight: 700; color: var(--green2); }
 
-  .empty-state { padding: 46px 18px; text-align: center; color: var(--text3); font-size: calc(14px * var(--fs)); }
+  .empty-state { padding: 46px 18px; text-align: center; color: var(--text3); font-size: 14px; }
 
   @media (max-width: 640px) {
     .wrap { padding: 0 14px; }
-    h1 { font-size: calc(18px * var(--fs)); }
+    h1 { font-size: 18px; }
     .round { min-width: 165px; }
   }
 
@@ -269,7 +263,7 @@
     .print-head { display: block !important; }
   }
   footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
-    font-size: calc(11px * var(--fs)); color: var(--text3); letter-spacing: .05em; }
+    font-size: 11px; color: var(--text3); letter-spacing: .05em; }
   .print-head { display: none; margin-bottom: 10px; }
   .print-head .t { font-size: 14pt; font-weight: 700; }
   .print-head .d { font-size: 9pt; color: #555; }
@@ -319,7 +313,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.14</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.13</div>
 </footer>
 
 <script>

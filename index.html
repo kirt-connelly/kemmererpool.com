@@ -51,14 +51,8 @@
       --overlay:   rgba(0,0,0,.72);
     }
 
-  /* One knob for text size. Phones stay at 1 — 15px reads fine at arm's length
-     — while wider screens step up, where the same size looks cramped. */
-  :root { --fs: 1; }
-  @media (min-width: 1000px) { :root { --fs: 1.12; } }
-  @media (min-width: 1500px) { :root { --fs: 1.2; } }
-
     html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: calc(15px * var(--fs)); }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -70,33 +64,33 @@
     .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px); opacity: .5; }
     .header-inner { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0 0; gap: 12px; flex-wrap: nowrap; }
     .logo-block { display: flex; align-items: center; gap: 0; min-width: 0; }
-    .league-name { font-size: calc(22px * var(--fs)); font-weight: 700; color: var(--text); letter-spacing: -.02em; line-height: 1.2; }
-    .league-sub { font-size: calc(10px * var(--fs)); color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 3px; }
+    .league-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.02em; line-height: 1.2; }
+    .league-sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 3px; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
-    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 10px; font-size: calc(11px * var(--fs)); font-weight: 600; white-space: nowrap; }
+    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
     .live-pill.live { background: rgba(50,168,112,.12); border: 1px solid rgba(50,168,112,.3); color: var(--green2); }
     .live-pill.demo { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
     .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .live-pill.live .dot { background: var(--green2); }
     .live-pill.demo .dot { background: var(--text3); }
-    .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: calc(13px * var(--fs)); line-height: 1; padding: 0; transition: background .15s, color .15s; }
+    .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: background .15s, color .15s; }
     .theme-btn:hover { background: var(--bg4); color: var(--text); }
-    .refresh-note { font-size: calc(11px * var(--fs)); color: var(--text3); }
+    .refresh-note { font-size: 11px; color: var(--text3); }
 
     /* ── League tabs ── */
     .league-tabs { display: flex; gap: 3px; padding-top: 14px; }
-    .ltab { padding: 8px 18px; cursor: pointer; font-size: calc(14px * var(--fs)); font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--bg3); color: var(--text2); transition: all .15s; white-space: nowrap; }
+    .ltab { padding: 8px 18px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--bg3); color: var(--text2); transition: all .15s; white-space: nowrap; }
     .ltab:hover:not(.active) { color: var(--text); background: var(--bg4); }
     .ltab.inactive-league { color: var(--text2); background: var(--bg3); }
     .ltab.inactive-league:hover { color: var(--text); background: var(--bg4); }
     .ltab.active { background: var(--bg); color: var(--text); border-color: var(--border); border-bottom-color: var(--bg); position: relative; bottom: -1px; font-weight: 600; }
-    .ltab .badge { font-size: calc(9px * var(--fs)); background: var(--green); color: var(--on-accent); border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
+    .ltab .badge { font-size: 9px; background: var(--green); color: var(--on-accent); border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
 
     /* ── View tabs ── */
     .view-bar { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; overflow-x: auto; }
     .view-bar::-webkit-scrollbar { display: none; }
     .view-bar-inner { display: flex; gap: 2px; padding: 8px 0; white-space: nowrap; min-width: min-content; }
-    .vtab { padding: 7px 14px; cursor: pointer; font-size: calc(13px * var(--fs)); font-weight: 400; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text2); transition: all .12s; white-space: nowrap; flex-shrink: 0; }
+    .vtab { padding: 7px 14px; cursor: pointer; font-size: 13px; font-weight: 400; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text2); transition: all .12s; white-space: nowrap; flex-shrink: 0; }
     .vtab:hover:not(.active) { color: var(--text); background: var(--bg3); }
     .vtab.active { background: var(--bg3); color: var(--text); font-weight: 600; border-left: 2px solid var(--accent); padding-left: 12px; }
 
@@ -106,17 +100,17 @@
     /* ── Card ── */
     .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg3); }
-    .card-title { font-size: calc(15px * var(--fs)); font-weight: 600; color: var(--text); }
-    .card-meta { font-size: calc(12px * var(--fs)); color: var(--text3); }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .card-meta { font-size: 12px; color: var(--text3); }
 
     /* ── Table ── */
     .tbl { width: 100%; border-collapse: collapse; }
-    .tbl th { text-align: left; padding: 10px 16px; font-size: calc(11px * var(--fs)); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
-    .tbl td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: calc(14px * var(--fs)); vertical-align: middle; color: var(--text2); }
+    .tbl th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tbl td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; color: var(--text2); }
     .tbl tbody tr:last-child td { border-bottom: none; }
     .tbl tbody tr:hover td { background: var(--bg3); }
     .num { font-variant-numeric: tabular-nums; }
-    .rank-num { font-size: calc(12px * var(--fs)); font-weight: 500; color: var(--text3); width: 24px; display: inline-block; text-align: right; }
+    .rank-num { font-size: 12px; font-weight: 500; color: var(--text3); width: 24px; display: inline-block; text-align: right; }
 
     /* ── Bar ── */
     .bar-wrap { display: flex; align-items: center; gap: 10px; }
@@ -127,17 +121,17 @@
     .fargo-wrap { display: flex; align-items: center; gap: 10px; }
     .fargo-track { width: 90px; height: 7px; border-radius: 4px; background: var(--bg); overflow: hidden; flex-shrink: 0; }
     .fargo-fill { height: 100%; border-radius: 4px; }
-    .fargo-num { font-size: calc(14px * var(--fs)); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .fargo-num { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
     /* ── Team section (Players/Team) ── */
-    .team-section-hdr { padding: 9px 16px; background: var(--bg3); border-bottom: 1px solid var(--border); font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--cream); letter-spacing: .05em; text-transform: uppercase; border-left: 3px solid var(--accent); }
+    .team-section-hdr { padding: 9px 16px; background: var(--bg3); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--cream); letter-spacing: .05em; text-transform: uppercase; border-left: 3px solid var(--accent); }
 
     /* ── Schedule ── */
     .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
+    .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
     .sched-block.sched-next { border-color: var(--accent); }
-    .next-pill { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: calc(10px * var(--fs)); font-weight: 700; letter-spacing: .06em; vertical-align: middle; }
-    .sched-count { font-weight: 400; color: var(--text3); font-size: calc(11px * var(--fs)); }
+    .next-pill { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 10px; font-weight: 700; letter-spacing: .06em; vertical-align: middle; }
+    .sched-count { font-weight: 400; color: var(--text3); font-size: 11px; }
     .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); }
     @media (max-width: 700px) { .match-grid { grid-template-columns: 1fr; } }
     .match-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px 16px; background: var(--bg2); min-height: 110px; }
@@ -145,17 +139,17 @@
     .match-teams-row { display: flex; align-items: center; justify-content: center; width: 100%; }
     .match-home { width: 160px; text-align: right; padding-right: 14px; display: flex; flex-direction: column; align-items: flex-end; }
     .match-away { width: 160px; text-align: left; padding-left: 14px; display: flex; flex-direction: column; align-items: flex-start; }
-    .match-name { font-size: calc(14px * var(--fs)); font-weight: 700; color: var(--cream); line-height: 1.2; }
-    .match-label { font-size: calc(10px * var(--fs)); color: var(--text3); margin-top: 3px; letter-spacing: .06em; text-transform: uppercase; }
+    .match-name { font-size: 14px; font-weight: 700; color: var(--cream); line-height: 1.2; }
+    .match-label { font-size: 10px; color: var(--text3); margin-top: 3px; letter-spacing: .06em; text-transform: uppercase; }
     .vs-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: calc(11px * var(--fs)); font-weight: 800; color: var(--on-accent); letter-spacing: .08em; }
+    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; color: var(--on-accent); letter-spacing: .08em; }
     .result-btn {
       background: var(--bg3);
       border: 1px solid var(--accent);
       color: var(--accent);
       padding: 4px 10px;
       border-radius: 20px;
-      font-size: calc(11px * var(--fs));
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       margin-top: 4px;
@@ -167,7 +161,7 @@
       background: var(--accent);
       color: var(--on-accent);
     }
-    .venue-label { font-size: calc(13px * var(--fs)); color: var(--text2); text-align: center; font-weight: 500; }
+    .venue-label { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500; }
 
     /* ── Print toolbar ── */
     .sched-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
@@ -175,7 +169,7 @@
     .print-btn {
       background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
       padding: 6px 14px; border-radius: var(--radius-sm); font-family: inherit;
-      font-size: calc(13px * var(--fs)); font-weight: 500; cursor: pointer; transition: background .15s, color .15s;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s;
     }
     .print-btn:hover { background: var(--bg4); color: var(--text); }
 
@@ -183,35 +177,35 @@
     .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 80px 0; }
     .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner-label { color: var(--text3); font-size: calc(13px * var(--fs)); }
+    .spinner-label { color: var(--text3); font-size: 13px; }
 
     /* ── Notice ── */
-    .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; color: var(--text2); font-size: calc(14px * var(--fs)); line-height: 1.8; }
+    .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; color: var(--text2); font-size: 14px; line-height: 1.8; }
 
     /* ── Responsive ── */
     @media (max-width: 640px) {
       .header-inner { padding: 12px 0 0; gap: 8px; }
-      .league-name { font-size: calc(20px * var(--fs)); }
+      .league-name { font-size: 20px; }
       .league-sub { display: none; }
-      .live-pill { font-size: calc(10px * var(--fs)); padding: 3px 9px; }
-      .refresh-note { font-size: calc(10px * var(--fs)); }
+      .live-pill { font-size: 10px; padding: 3px 9px; }
+      .refresh-note { font-size: 10px; }
       .league-tabs { padding-top: 12px; }
-      .ltab { padding: 7px 14px; font-size: calc(13px * var(--fs)); }
-      .vtab { padding: 6px 10px; font-size: calc(12px * var(--fs)); }
+      .ltab { padding: 7px 14px; font-size: 13px; }
+      .vtab { padding: 6px 10px; font-size: 12px; }
       .vtab.active { padding-left: 9px; }
-      .tbl th { padding: 8px 8px; font-size: calc(10px * var(--fs)); }
-      .tbl td { padding: 10px 8px; font-size: calc(13px * var(--fs)); }
+      .tbl th { padding: 8px 8px; font-size: 10px; }
+      .tbl td { padding: 10px 8px; font-size: 13px; }
       .match-card { grid-template-columns: 1fr 50px 1fr; gap: 4px; padding: 10px 10px; }
-      .match-name { font-size: calc(12px * var(--fs)); }
+      .match-name { font-size: 12px; }
       .fargo-track { width: 50px; }
       .bar-track { width: 50px !important; }
     }
 
     /* ── Suggestion form ── */
     .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: calc(11px * var(--fs)); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .field label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
     .field input, .field textarea {
-      font-family: inherit; font-size: calc(14px * var(--fs)); color: var(--text);
+      font-family: inherit; font-size: 14px; color: var(--text);
       background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
       padding: 9px 12px; width: 100%; transition: border-color .15s;
     }
@@ -223,11 +217,11 @@
     .submit-btn {
       background: var(--accent); color: var(--on-accent); border: none;
       padding: 10px 22px; border-radius: var(--radius-sm); font-family: inherit;
-      font-size: calc(13px * var(--fs)); font-weight: 600; letter-spacing: .03em; cursor: pointer; transition: opacity .15s;
+      font-size: 13px; font-weight: 600; letter-spacing: .03em; cursor: pointer; transition: opacity .15s;
     }
     .submit-btn:hover:not(:disabled) { opacity: .85; }
     .submit-btn:disabled { opacity: .5; cursor: default; }
-    .form-status { font-size: calc(13px * var(--fs)); font-weight: 500; }
+    .form-status { font-size: 13px; font-weight: 500; }
 
     /* ── Lightbox ── */
     .lightbox-overlay {
@@ -241,7 +235,7 @@
       box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
     }
     .lightbox-close {
-      position: fixed; top: 18px; right: 22px; font-size: calc(28px * var(--fs)); color: var(--on-accent);
+      position: fixed; top: 18px; right: 22px; font-size: 28px; color: var(--on-accent);
       cursor: pointer; line-height: 1; opacity: .8; z-index: 1001;
     }
     .lightbox-close:hover { opacity: 1; }
@@ -283,7 +277,7 @@
     }
 
     /* ── Footer ── */
-    footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: calc(11px * var(--fs)); color: var(--text3); letter-spacing: .05em; }
+    footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
     .footer-inner { display: flex; flex-direction: column; align-items: center; gap: 9px; }
     .footer-status { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
     footer a { color: var(--text2); text-decoration: none; }
@@ -337,7 +331,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v1.97
+      &nbsp;·&nbsp; v1.96
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -510,7 +504,7 @@ function renderTeams(data) {
               const pv = parseFloat(cell)||0;
               return `<td><div class="bar-wrap">
                 <div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pv}%;background:${winColor(cell)}"></div></div>
-                <span class="num" style="font-size:calc(13px * var(--fs));color:${winColor(cell)};font-weight:600">${cell}</span>
+                <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
               </div></td>`;
             }
             return `<td class="num" style="color:var(--text2)">${cell}</td>`;
@@ -544,7 +538,7 @@ function renderPlayers(data) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
               <div class="bar-track" style="width:65px"><div class="bar-fill" style="width:${pv}%;background:${winColor(cell)}"></div></div>
-              <span class="num" style="font-size:calc(13px * var(--fs));color:${winColor(cell)};font-weight:600">${cell}</span>
+              <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
             </div></td>`;
           }
           const hdr = t.headers[ci] || '';
@@ -590,7 +584,7 @@ function renderByTeam(data) {
     teamCount++;
     html += `<div class="card">
       <div class="card-header" style="border-left:3px solid var(--accent)">
-        <span class="card-title" style="color:var(--cream);font-size:calc(15px * var(--fs))">${currentTeam}</span>
+        <span class="card-title" style="color:var(--cream);font-size:15px">${currentTeam}</span>
         <span class="card-meta">${currentPlayers.length} player${currentPlayers.length!==1?'s':''}</span>
       </div>
       <div style="overflow-x:auto"><table class="tbl">
@@ -619,7 +613,7 @@ function renderByTeam(data) {
                   const pvStr = cell.includes('%') ? cell : pvNorm.toFixed(0) + '%';
                   return `<td style="text-align:center"><div class="bar-wrap" style="justify-content:center">
                     <div class="bar-track" style="width:55px"><div class="bar-fill" style="width:${pvNorm}%;background:${winColor(pvNorm+'%')}"></div></div>
-                    <span class="num" style="font-size:calc(13px * var(--fs));color:${winColor(pvNorm+'%')};font-weight:600;min-width:36px">${pvStr}</span>
+                    <span class="num" style="font-size:13px;color:${winColor(pvNorm+'%')};font-weight:600;min-width:36px">${pvStr}</span>
                   </div></td>`;
                 }
                 // Highlight non-zero BR/TR type cols
@@ -827,7 +821,7 @@ async function loadMatchResult(matchId, title) {
   // Store schedule HTML so we can go back
   document.getElementById('content').innerHTML = `
     <div style="margin-bottom:12px">
-      <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:calc(13px * var(--fs))">
+      <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
         ← Back to Schedule
       </button>
     </div>
@@ -841,7 +835,7 @@ async function loadMatchResult(matchId, title) {
     document.getElementById('content').innerHTML =
       renderMatchResult(html, title) +
       `<div style="margin-top:16px">
-        <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:calc(13px * var(--fs))">
+        <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
           ← Back to Schedule
         </button>
       </div>`;
@@ -997,17 +991,17 @@ function renderMatchResult(html, title) {
         const db2a = getBroke(p2breaks, 0);
         const db2b = getBroke(p2breaks, 1);
 
-        const nameStyle = 'color:var(--cream);font-weight:600;font-size:calc(14px * var(--fs))';
-        const dotStyle = (active) => `color:${active?'var(--green2)':'var(--border2)'};font-size:calc(9px * var(--fs))`;
+        const nameStyle = 'color:var(--cream);font-weight:600;font-size:14px';
+        const dotStyle = (active) => `color:${active?'var(--green2)':'var(--border2)'};font-size:9px`;
 
         rows += `<tr>
           <td style="padding-bottom:2px">
             <div style="${nameStyle}"><span style="${dotStyle(db1a)};margin-right:5px">●</span>${dp1a}</div>
             <div style="${nameStyle}"><span style="${dotStyle(db1b)};margin-right:5px">●</span>${dp1b}</div>
           </td>
-          <td class="num" style="text-align:center;font-size:calc(17px * var(--fs));font-weight:700;color:${w1?'var(--green2)':w2?'var(--loss)':'var(--text2)'}">${s1}</td>
-          <td style="text-align:center;color:var(--text3);font-size:calc(18px * var(--fs));font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:calc(17px * var(--fs));font-weight:700;color:${w2?'var(--green2)':w1?'var(--loss)':'var(--text2)'}">${s2}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'var(--loss)':'var(--text2)'}">${s1}</td>
+          <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'var(--loss)':'var(--text2)'}">${s2}</td>
           <td style="text-align:right;padding-bottom:2px">
             <div style="${nameStyle}">${dp2a}<span style="${dotStyle(db2a)};margin-left:5px">●</span></div>
             <div style="${nameStyle}">${dp2b}<span style="${dotStyle(db2b)};margin-left:5px">●</span></div>
@@ -1015,8 +1009,8 @@ function renderMatchResult(html, title) {
         </tr>`;
       } else {
         // Display adornment codes as green badges
-      const displayS1 = adornWin1 ? `<span style="font-size:calc(11px * var(--fs));background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s1}</span>` : s1;
-      const displayS2 = adornWin2 ? `<span style="font-size:calc(11px * var(--fs));background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s2}</span>` : s2;
+      const displayS1 = adornWin1 ? `<span style="font-size:11px;background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s1}</span>` : s1;
+      const displayS2 = adornWin2 ? `<span style="font-size:11px;background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s2}</span>` : s2;
       const aw1 = adornWin1 || w1;
       const aw2 = adornWin2 || w2;
 
@@ -1028,13 +1022,13 @@ function renderMatchResult(html, title) {
 
       rows += `<tr>
           <td style="color:var(--cream);font-weight:600">
-            <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:calc(9px * var(--fs));margin-right:5px">●</span>${p1}
+            <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${p1}
           </td>
-          <td class="num" style="text-align:center;font-size:calc(17px * var(--fs));font-weight:700;color:${aw1?'var(--green2)':aw2?'var(--loss)':'var(--text2)'}">${displayS1}</td>
-          <td style="text-align:center;color:var(--text3);font-size:calc(18px * var(--fs));font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:calc(17px * var(--fs));font-weight:700;color:${aw2?'var(--green2)':aw1?'var(--loss)':'var(--text2)'}">${displayS2}</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw1?'var(--green2)':aw2?'var(--loss)':'var(--text2)'}">${displayS1}</td>
+          <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
+          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw2?'var(--green2)':aw1?'var(--loss)':'var(--text2)'}">${displayS2}</td>
           <td style="text-align:right;color:var(--cream);font-weight:600">
-            ${p2}<span style="color:${broke2?'var(--green2)':'var(--border2)'};font-size:calc(9px * var(--fs));margin-left:5px">●</span>
+            ${p2}<span style="color:${broke2?'var(--green2)':'var(--border2)'};font-size:9px;margin-left:5px">●</span>
           </td>
         </tr>`;
       }
@@ -1070,12 +1064,12 @@ function renderMatchResult(html, title) {
     // Handicap row (8-ball only, when there's an actual handicap)
     if (use8BallScoring && roundHdcpAmt > 0) {
       rows += `<tr style="background:var(--bg3);border-top:1px solid var(--border)">
-        <td style="font-weight:600;color:var(--green2);font-size:calc(12px * var(--fs));text-transform:uppercase;letter-spacing:.06em">Handicap</td>
-        <td class="num" style="text-align:center;font-weight:700;font-size:calc(15px * var(--fs));color:${team1GetsHdcp?'var(--green2)':'var(--text3)'}">
+        <td style="font-weight:600;color:var(--green2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Handicap</td>
+        <td class="num" style="text-align:center;font-weight:700;font-size:15px;color:${team1GetsHdcp?'var(--green2)':'var(--text3)'}">
           ${team1GetsHdcp ? '+' + roundHdcpAmt : '—'}
         </td>
         <td></td>
-        <td class="num" style="text-align:center;font-weight:700;font-size:calc(15px * var(--fs));color:${team2GetsHdcp?'var(--green2)':'var(--text3)'}">
+        <td class="num" style="text-align:center;font-weight:700;font-size:15px;color:${team2GetsHdcp?'var(--green2)':'var(--text3)'}">
           ${team2GetsHdcp ? '+' + roundHdcpAmt : '—'}
         </td>
         <td></td>
@@ -1088,22 +1082,22 @@ function renderMatchResult(html, title) {
       ? `<span style="color:var(--green2);font-weight:700">${roundWinner} wins</span>`
       : `<span style="color:var(--text2);font-weight:600">Tie</span>`;
     const tag1 = totW1
-      ? ` <span style="font-size:calc(11px * var(--fs));font-weight:700;color:var(--green2)">(W)</span>`
-      : (!totW2 ? ` <span style="font-size:calc(11px * var(--fs));font-weight:600;color:var(--text2)">(T)</span>` : '');
+      ? ` <span style="font-size:11px;font-weight:700;color:var(--green2)">(W)</span>`
+      : (!totW2 ? ` <span style="font-size:11px;font-weight:600;color:var(--text2)">(T)</span>` : '');
     const tag2 = totW2
-      ? ` <span style="font-size:calc(11px * var(--fs));font-weight:700;color:var(--green2)">(W)</span>`
-      : (!totW1 ? ` <span style="font-size:calc(11px * var(--fs));font-weight:600;color:var(--text2)">(T)</span>` : '');
+      ? ` <span style="font-size:11px;font-weight:700;color:var(--green2)">(W)</span>`
+      : (!totW1 ? ` <span style="font-size:11px;font-weight:600;color:var(--text2)">(T)</span>` : '');
     rows += `<tr style="background:var(--bg);border-top:2px solid var(--accent)">
-      <td style="font-weight:700;color:var(--text2);font-size:calc(12px * var(--fs));text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
-      <td class="num" style="text-align:center;font-weight:800;font-size:calc(18px * var(--fs));color:${totW1?'var(--green2)':totW2?'var(--loss)':'var(--text2)'}">${tot1}${tag1}</td>
+      <td style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
+      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW1?'var(--green2)':totW2?'var(--loss)':'var(--text2)'}">${tot1}${tag1}</td>
       <td></td>
-      <td class="num" style="text-align:center;font-weight:800;font-size:calc(18px * var(--fs));color:${totW2?'var(--green2)':totW1?'var(--loss)':'var(--text2)'}">${tot2}${tag2}</td>
-      <td style="font-size:calc(11px * var(--fs));text-align:right">${roundLabel}</td>
+      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW2?'var(--green2)':totW1?'var(--loss)':'var(--text2)'}">${tot2}${tag2}</td>
+      <td style="font-size:11px;text-align:right">${roundLabel}</td>
     </tr>`;
 
     out += `<div class="card" style="margin-bottom:12px">
       <div class="card-header">
-        <span class="card-title">Round ${rn}${isDoubles?' <span style="font-size:calc(11px * var(--fs));color:var(--text3);font-weight:400;margin-left:6px">Doubles</span>':''}</span>
+        <span class="card-title">Round ${rn}${isDoubles?' <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">Doubles</span>':''}</span>
         <span class="card-meta">${games.length} game${games.length!==1?'s':''}</span>
       </div>
       <div style="overflow-x:auto"><table class="tbl">
@@ -1144,32 +1138,32 @@ function renderMatchResult(html, title) {
 
   // (W)/(T) tags for total games row
   const finTag1 = mw1
-    ? ` <span style="font-size:calc(13px * var(--fs));font-weight:700;color:var(--green2)">(W)</span>`
-    : (!mw2 ? ` <span style="font-size:calc(13px * var(--fs));font-weight:600;color:var(--text2)">(T)</span>` : '');
+    ? ` <span style="font-size:13px;font-weight:700;color:var(--green2)">(W)</span>`
+    : (!mw2 ? ` <span style="font-size:13px;font-weight:600;color:var(--text2)">(T)</span>` : '');
   const finTag2 = mw2
-    ? ` <span style="font-size:calc(13px * var(--fs));font-weight:700;color:var(--green2)">(W)</span>`
-    : (!mw1 ? ` <span style="font-size:calc(13px * var(--fs));font-weight:600;color:var(--text2)">(T)</span>` : '');
+    ? ` <span style="font-size:13px;font-weight:700;color:var(--green2)">(W)</span>`
+    : (!mw1 ? ` <span style="font-size:13px;font-weight:600;color:var(--text2)">(T)</span>` : '');
 
   out += `<div class="card" style="margin-top:4px">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px">
-      <span style="font-weight:700;color:var(--cream);font-size:calc(15px * var(--fs))">${team1}</span>
+      <span style="font-weight:700;color:var(--cream);font-size:15px">${team1}</span>
       <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:calc(26px * var(--fs));font-weight:800;color:${mw1?'var(--green2)':mw2?'var(--loss)':'var(--text2)'}">${fin1}${finTag1}</span>
-        <span style="color:var(--text3);font-size:calc(11px * var(--fs));font-weight:600;text-align:center;line-height:1.3">TOTAL<br>GAMES</span>
-        <span style="font-size:calc(26px * var(--fs));font-weight:800;color:${mw2?'var(--green2)':mw1?'var(--loss)':'var(--text2)'}">${fin2}${finTag2}</span>
+        <span style="font-size:26px;font-weight:800;color:${mw1?'var(--green2)':mw2?'var(--loss)':'var(--text2)'}">${fin1}${finTag1}</span>
+        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">TOTAL<br>GAMES</span>
+        <span style="font-size:26px;font-weight:800;color:${mw2?'var(--green2)':mw1?'var(--loss)':'var(--text2)'}">${fin2}${finTag2}</span>
       </div>
-      <span style="font-weight:700;color:var(--cream);font-size:calc(15px * var(--fs))">${team2}</span>
+      <span style="font-weight:700;color:var(--cream);font-size:15px">${team2}</span>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;border-top:1px solid var(--border)">
-      <span style="font-size:calc(12px * var(--fs));color:var(--text3)"></span>
+      <span style="font-size:12px;color:var(--text3)"></span>
       <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:calc(26px * var(--fs));font-weight:800;color:${rwWin1?'var(--green2)':rwWin2?'var(--loss)':'var(--text2)'}">${rw1str}</span>
-        <span style="color:var(--text3);font-size:calc(11px * var(--fs));font-weight:600;text-align:center;line-height:1.3">ROUNDS<br>WON</span>
-        <span style="font-size:calc(26px * var(--fs));font-weight:800;color:${rwWin2?'var(--green2)':rwWin1?'var(--loss)':'var(--text2)'}">${rw2str}</span>
+        <span style="font-size:26px;font-weight:800;color:${rwWin1?'var(--green2)':rwWin2?'var(--loss)':'var(--text2)'}">${rw1str}</span>
+        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">ROUNDS<br>WON</span>
+        <span style="font-size:26px;font-weight:800;color:${rwWin2?'var(--green2)':rwWin1?'var(--loss)':'var(--text2)'}">${rw2str}</span>
       </div>
-      <span style="font-size:calc(12px * var(--fs));color:var(--text3)"></span>
+      <span style="font-size:12px;color:var(--text3)"></span>
     </div>
-    <div style="padding:0 20px 14px;text-align:center;font-size:calc(12px * var(--fs));color:${rwWin1||rwWin2?'var(--green2)':'var(--text3)'};font-weight:600;letter-spacing:.05em;text-transform:uppercase">
+    <div style="padding:0 20px 14px;text-align:center;font-size:12px;color:${rwWin1||rwWin2?'var(--green2)':'var(--text3)'};font-weight:600;letter-spacing:.05em;text-transform:uppercase">
       ${matchResult}
     </div>
   </div>`;
@@ -1177,11 +1171,11 @@ function renderMatchResult(html, title) {
   return `
     <div class="card" style="margin-bottom:14px">
       <div class="card-header">
-        <span class="card-title" style="color:var(--cream);font-size:calc(16px * var(--fs))">${team1} vs ${team2}</span>
+        <span class="card-title" style="color:var(--cream);font-size:16px">${team1} vs ${team2}</span>
         <span class="card-meta">${matchDate}</span>
       </div>
-      <div style="padding:10px 20px;font-size:calc(12px * var(--fs));color:var(--text3);border-top:1px solid var(--border)">
-        <span style="color:var(--green2);font-size:calc(10px * var(--fs));margin-right:4px">●</span> Green dot = that player breaks
+      <div style="padding:10px 20px;font-size:12px;color:var(--text3);border-top:1px solid var(--border)">
+        <span style="color:var(--green2);font-size:10px;margin-right:4px">●</span> Green dot = that player breaks
         &nbsp;·&nbsp; BR = Break &amp; Run &nbsp;·&nbsp; TR = Table Run &nbsp;·&nbsp; WZ = Win-zip &nbsp;·&nbsp; WF = Win by Forfeit
       </div>
     </div>
@@ -1340,14 +1334,14 @@ function renderTeamDetail(html, teamName) {
   // ── Render ────────────────────────────────────────────────────────────────
   return `
     <div style="margin-bottom:12px">
-      <button onclick="switchView('teams')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:calc(13px * var(--fs))">
+      <button onclick="switchView('teams')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
         ← Back to Teams
       </button>
     </div>
 
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
-        <span class="card-title" style="font-size:calc(18px * var(--fs));color:var(--cream)">${teamName}</span>
+        <span class="card-title" style="font-size:18px;color:var(--cream)">${teamName}</span>
         <span class="card-meta">${DIVISIONS[league].label}</span>
       </div>
 
@@ -1368,7 +1362,7 @@ function renderTeamDetail(html, teamName) {
               <td class="num" style="color:var(--text2)">${p.gWon}</td>
               <td><div class="bar-wrap">
                 <div class="bar-track" style="width:60px"><div class="bar-fill" style="width:${pvNorm}%;background:${winColor(pvNorm+'%')}"></div></div>
-                <span class="num" style="font-size:calc(13px * var(--fs));color:${winColor(pvNorm+'%')};font-weight:600">${pvStr}</span>
+                <span class="num" style="font-size:13px;color:${winColor(pvNorm+'%')};font-weight:600">${pvStr}</span>
               </div></td>
               <td class="num" style="color:var(--text2)">${p.pts}</td>
               <td class="num" style="color:var(--text2)">${p.oppPts}</td>
@@ -1378,7 +1372,7 @@ function renderTeamDetail(html, teamName) {
             </tr>`;
           }).join('')}
         </tbody>
-      </table></div>` : '<div style="padding:20px;color:var(--text3);font-size:calc(13px * var(--fs))">No player data detected.</div>'}
+      </table></div>` : '<div style="padding:20px;color:var(--text3);font-size:13px">No player data detected.</div>'}
     </div>
 
     ${statRows.length ? `
@@ -1472,11 +1466,11 @@ function renderEvents() {
         </tbody>
       </table></div>
       <div style="padding:20px;border-top:1px solid var(--border)">
-        <p style="color:var(--text2);font-size:calc(14px * var(--fs));line-height:1.8;margin-bottom:16px">
+        <p style="color:var(--text2);font-size:14px;line-height:1.8;margin-bottom:16px">
           Dates and details are still being finalized. Check with Jenkins Music &amp; Vending for upcoming tournaments, the Jenkins Cup, and other league events.
         </p>
         <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);padding:10px 20px;border-radius:var(--radius-sm);font-size:calc(13px * var(--fs));font-weight:600;text-decoration:none;letter-spacing:.03em;transition:opacity .15s"
+           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:opacity .15s"
            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
           🎱 Jenkins Music &amp; Vending — Leagues &amp; Tournaments ↗
         </a>
@@ -1508,7 +1502,7 @@ function renderEvents() {
             <td style="color:var(--text2)">Casper, WY</td>
             <td style="text-align:center">
               <a href="https://www.playcsipool.com/2026-amow-wyoming-8ball-championships.html" target="_blank" rel="noopener"
-                 style="color:var(--green2);font-size:calc(12px * var(--fs));font-weight:600;text-decoration:none"
+                 style="color:var(--green2);font-size:12px;font-weight:600;text-decoration:none"
                  onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--green2)'">Details ↗</a>
             </td>
           </tr>
@@ -1517,7 +1511,7 @@ function renderEvents() {
             <td class="num" style="color:var(--text2);white-space:nowrap">Feb 28–Mar 1, 2026</td>
             <td style="color:var(--text2)">Bridger Valley, WY</td>
             <td style="text-align:center">
-              <button onclick="openLightbox('bridgervalley.jpg')" style="background:none;border:none;color:var(--green2);font-size:calc(12px * var(--fs));font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
+              <button onclick="openLightbox('bridgervalley.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
             </td>
           </tr>
           <tr>
@@ -1525,7 +1519,7 @@ function renderEvents() {
             <td class="num" style="color:var(--text2);white-space:nowrap">Jan 31–Feb 1, 2026</td>
             <td style="color:var(--text2)">Kemmerer, WY</td>
             <td style="text-align:center">
-              <button onclick="openLightbox('kemmerer.jpg')" style="background:none;border:none;color:var(--green2);font-size:calc(12px * var(--fs));font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
+              <button onclick="openLightbox('kemmerer.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
             </td>
           </tr>
           <tr>
@@ -1533,7 +1527,7 @@ function renderEvents() {
             <td class="num" style="color:var(--text2);white-space:nowrap">Jan 3–4, 2026</td>
             <td style="color:var(--text2)">Evanston, WY</td>
             <td style="text-align:center">
-              <button onclick="openLightbox('evanston.jpg')" style="background:none;border:none;color:var(--green2);font-size:calc(12px * var(--fs));font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
+              <button onclick="openLightbox('evanston.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
             </td>
           </tr>
         </tbody>
@@ -1545,7 +1539,7 @@ function renderEvents() {
         <span class="card-title">Suggestions</span>
       </div>
       <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
-        <p style="color:var(--text2);font-size:calc(14px * var(--fs));line-height:1.7;margin:0">
+        <p style="color:var(--text2);font-size:14px;line-height:1.7;margin:0">
           Got an idea for the league or spotted something wrong on the site? Send it to the officers.
         </p>
         <div class="field-row">
