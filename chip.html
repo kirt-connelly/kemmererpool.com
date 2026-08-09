@@ -298,6 +298,17 @@
   .prow.seated { background: var(--seat-tint); }
   .prow.seated .pn { color: var(--green2); }
   .prow.table-start { border-top: 2px solid var(--border2); }
+  .prow.armed { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .rowctl { display: inline-flex; gap: 4px; flex: none; }
+  .adj { background: none; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text3); min-width: 28px; height: 28px; cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 0; font-family: inherit; }
+  .adj:hover:not(:disabled) { border-color: var(--accent); color: var(--green2); }
+  .adj:disabled { opacity: .3; cursor: default; }
+  .adj.armed { border-color: var(--accent); color: var(--on-accent); background: var(--accent); }
+  .edit-note { padding: 9px 16px; font-size: 12px; color: var(--text2);
+    background: var(--seat-tint); border-bottom: 1px solid var(--border); }
+  .edit-note strong { color: var(--green2); }
 
   /* A filled circle is a chip in hand; an empty one is a chip already lost. */
   .chips { display: inline-flex; gap: 3px; flex: none; align-items: center; }
@@ -395,7 +406,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.05</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.06</div>
 </footer>
 
 <script>
@@ -743,6 +754,9 @@ function chipDots(p) {
 /* Reporting a winner: one press on the name of whoever won. */
 function win(tableIdx, name) {
   if (readOnly || !S) return;
+  const seat = S.tables[tableIdx] || [];
+  const other = seat[0] === name ? seat[1] : seat[0];
+  pushUndo(`${name} beat ${other}`);
   const r = reportWin(S, tableIdx, name);
   if (!r.ok) { note(r.why, true); return; }
   S.tableStarts = S.tableStarts || {};
@@ -765,11 +779,129 @@ function addLatePlayer() {
   const penalty = parseInt(prompt(
     `Chip penalty for signing up late?\n0 = on time, 1 = after 4:00, 2 = after 4:30`, '0'), 10) || 0;
   const chips = Math.max(1, base - Math.max(0, penalty));
+  pushUndo(`added ${name}`);
   S.roster.push({ name, rating, chips, start: chips,
                   draw: S.roster.length + 1, wins: 0, losses: 0, outAt: null });
+  logNote(`${name} joined late with ${chips} chip${chips === 1 ? '' : 's'}`);
   S.queue.push(name);
   rebalance(S);
   note(`${name} added with ${chips} chip${chips === 1 ? '' : 's'}.`);
+  render();
+  queuePush();
+}
+
+/* ── Undo ──
+   A single result moves a chip, requeues the loser, pulls the next player down,
+   can knock someone out and can collapse a table. Unwinding all that field by
+   field is asking for trouble, so we keep whole snapshots — the session is about
+   a kilobyte — and undo simply restores one. Ten deep, so a mistake spotted a few
+   games later can still be backed out. */
+let undoStack = [];
+const UNDO_DEPTH = 10;
+
+const cloneState = () => JSON.stringify({
+  roster: S.roster, tables: S.tables, queue: S.queue,
+  outOrder: S.outOrder, log: S.log, tableStarts: S.tableStarts,
+});
+
+function pushUndo(label) {
+  undoStack.push({ snap: cloneState(), label });
+  if (undoStack.length > UNDO_DEPTH) undoStack.shift();
+}
+
+function undo() {
+  if (readOnly) return;
+  const step = undoStack.pop();
+  if (!step) { note('Nothing left to undo.', true); return; }
+  Object.assign(S, JSON.parse(step.snap));
+  note(`Undone — ${step.label}`);
+  render();
+  queuePush();
+}
+
+/* Corrections are noted alongside results so nothing changes silently. */
+function logNote(text) {
+  S.log.unshift({ manual: true, text, at: Date.now() });
+  S.log = S.log.slice(0, 200);
+}
+
+/* ── Manual corrections ──
+   Edit mode keeps these out of the way during normal scoring — the buttons only
+   appear when you ask for them. */
+let editing = false;
+let swapFrom = null;
+
+function toggleEdit() { editing = !editing; swapFrom = null; render(); }
+
+function adjustChips(name, delta) {
+  if (readOnly || !S) return;
+  const p = S.roster.find(x => x.name === name);
+  if (!p) return;
+  pushUndo(`${delta > 0 ? 'gave' : 'took'} a chip ${delta > 0 ? 'to' : 'from'} ${name}`);
+  const was = p.chips;
+  p.chips = Math.max(0, p.chips + delta);
+
+  // Dropping to zero has to knock them out properly — the order players go out
+  // in is what decides 2nd, 3rd and so on.
+  if (was > 0 && p.chips === 0) {
+    p.outAt = S.outOrder.length + 1;
+    S.outOrder.push(name);
+    S.queue = S.queue.filter(n => n !== name);
+    S.tables = S.tables.map(t => t.map(n => (n === name ? null : n)));
+    logNote(`${name} knocked out by hand`);
+  } else if (was === 0 && p.chips > 0) {
+    S.outOrder = S.outOrder.filter(n => n !== name);
+    S.outOrder.forEach((n, i) => { const q = S.roster.find(x => x.name === n); if (q) q.outAt = i + 1; });
+    p.outAt = null;
+    if (!S.queue.includes(name) && !S.tables.flat().includes(name)) S.queue.push(name);
+    logNote(`${name} put back in`);
+  } else {
+    logNote(`${name} ${delta > 0 ? 'given' : 'docked'} a chip (${p.chips} left)`);
+  }
+  rebalance(S);
+  render();
+  queuePush();
+}
+
+/* Two taps: pick one player, then pick who they should change places with.
+   Works between two seats, or between a seat and someone in the queue. */
+function pickSwap(name) {
+  if (readOnly || !S) return;
+  if (!swapFrom) { swapFrom = name; render(); return; }
+  if (swapFrom === name) { swapFrom = null; render(); return; }
+  const a = swapFrom, b = name;
+  swapFrom = null;
+  pushUndo(`swapped ${a} and ${b}`);
+
+  const seatOf = (n) => {
+    for (let t = 0; t < S.tables.length; t++) {
+      const s = S.tables[t].indexOf(n);
+      if (s >= 0) return { t, s };
+    }
+    return null;
+  };
+  const sa = seatOf(a), sb = seatOf(b);
+  const qa = S.queue.indexOf(a), qb = S.queue.indexOf(b);
+
+  if (sa && sb) { S.tables[sa.t][sa.s] = b; S.tables[sb.t][sb.s] = a; }
+  else if (sa && qb >= 0) { S.tables[sa.t][sa.s] = b; S.queue[qb] = a; }
+  else if (sb && qa >= 0) { S.tables[sb.t][sb.s] = a; S.queue[qa] = b; }
+  else if (qa >= 0 && qb >= 0) { S.queue[qa] = b; S.queue[qb] = a; }
+  else { note('One of those players is out.', true); return; }
+
+  logNote(`${a} and ${b} swapped places`);
+  render();
+  queuePush();
+}
+
+function moveInQueue(name, dir) {
+  if (readOnly || !S) return;
+  const i = S.queue.indexOf(name);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= S.queue.length) return;
+  pushUndo(`moved ${name} in the queue`);
+  [S.queue[i], S.queue[j]] = [S.queue[j], S.queue[i]];
+  logNote(`${name} moved ${dir < 0 ? 'up' : 'down'} the queue`);
   render();
   queuePush();
 }
@@ -843,12 +975,26 @@ function render() {
       : upNext > 0 ? `<span class="tag">#${upNext + 1} in line</span>` : '';
     // A rule above each table's first player keeps the two together as a pair.
     const newTable = row.table && (i === 0 || order[i - 1].table !== row.table);
-    return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}${newTable ? ' table-start' : ''}">
+    const inQueue = upNext >= 0;
+    const controls = editing ? `
+      <span class="rowctl">
+        <button class="adj" title="Take a chip" onclick="adjustChips(${JSON.stringify(p.name)},-1)">&minus;</button>
+        <button class="adj" title="Give a chip" onclick="adjustChips(${JSON.stringify(p.name)},1)">+</button>
+        ${p.chips > 0 ? `<button class="adj${swapFrom === p.name ? ' armed' : ''}"
+            title="${swapFrom ? 'Swap with ' + swapFrom : 'Swap this player with another'}"
+            onclick="pickSwap(${JSON.stringify(p.name)})">&#8646;</button>` : ''}
+        ${inQueue ? `<button class="adj" title="Move up" ${upNext === 0 ? 'disabled' : ''}
+            onclick="moveInQueue(${JSON.stringify(p.name)},-1)">&uarr;</button>
+          <button class="adj" title="Move down" ${upNext === S.queue.length - 1 ? 'disabled' : ''}
+            onclick="moveInQueue(${JSON.stringify(p.name)},1)">&darr;</button>` : ''}
+      </span>` : '';
+    return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}${newTable ? ' table-start' : ''}${swapFrom === p.name ? ' armed' : ''}">
       ${champ ? `<span class="pl">${p.place}</span>` : ''}
       <span class="pn">${esc(p.name)}</span>
       ${chipDots(p)}
       ${where}
       <span class="pw">${p.wins}&ndash;${p.losses}</span>
+      ${controls}
     </div>`;
   }).join('');
 
@@ -860,7 +1006,10 @@ function render() {
         <div class="th-meta"><span class="th-id">${esc(serverCode || '')}</span><span id="save-meta"></span></div>
       </div>
       <div class="th-actions">
-        ${scoring ? `<button class="act" onclick="addLatePlayer()">Add late player</button>
+        ${scoring ? `<button class="act" onclick="undo()" ${undoStack.length ? '' : 'disabled'}
+                       title="${undoStack.length ? 'Undo ' + undoStack[undoStack.length-1].label : 'Nothing to undo'}">Undo</button>
+                     <button class="act${editing ? ' primary' : ''}" onclick="toggleEdit()">${editing ? 'Done editing' : 'Edit'}</button>
+                     <button class="act" onclick="addLatePlayer()">Add late player</button>
                      <button class="act" onclick="copyViewLink()">Copy view link</button>` : ''}
         <button class="act" onclick="window.print()">Print</button>
       </div>
@@ -875,32 +1024,26 @@ function render() {
             <span class="card-title">Players</span>
             <span class="card-meta">${st.playersLeft} of ${st.registered} still in &middot; ${st.remaining} chips left</span>
           </div>
-          ${S.log.length ? `<div class="ticker"><strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${S.log[0].table}</div>` : ''}
+          ${editing ? `<div class="edit-note">Editing — ${swapFrom
+              ? `pick who <strong>${esc(swapFrom)}</strong> should change places with`
+              : 'adjust chips, swap players between seats, or reorder the queue'}</div>` : ''}
+          ${S.log.length ? `<div class="ticker">${S.log[0].manual
+              ? esc(S.log[0].text)
+              : `<strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${S.log[0].table}`}</div>` : ''}
           <div class="plist">${players}</div>
         </div>
       </div>
 
       <div class="col-tables">
-        <div class="card" style="margin-bottom:14px">
+        <div class="card">
           <div class="card-header">
             <span class="card-title">Tables</span>
-            <span class="card-meta">${st.inPlay} on</span>
+            <span class="card-meta">${st.inPlay} on &middot; ${st.waiting} waiting</span>
           </div>
           <div class="pad tables-pad">${tables}</div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Up next</span>
-            <span class="card-meta">${st.waiting} waiting</span>
-          </div>
-          ${S.queue.length
-            ? `<div class="queue-list">${S.queue.map((n, i) => {
-                const p = S.roster.find(x => x.name === n);
-                return `<span class="qchip${i === 0 ? ' next' : ''}"><span class="qn">${esc(n)}</span>${chipDots(p)}</span>`;
-              }).join('')}</div>`
-            : `<div class="pad" style="color:var(--text3);font-size:14px">Nobody waiting.</div>`}
-        </div>
+
       </div>
     </div>
 
