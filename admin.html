@@ -158,6 +158,16 @@
   .linkish:hover { color: var(--text); }
   .hint { font-size: 13px; color: var(--text3); }
 
+  .sheet-pick { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); overflow: hidden; }
+  .srow { display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+    border-bottom: 1px solid var(--border); font-size: 14px; }
+  .srow:last-child { border-bottom: none; }
+  .srow .sn { flex: 1; min-width: 0; color: var(--cream); font-weight: 600; }
+  .srow .sc { font-family: ui-monospace, monospace; font-size: 13px; color: var(--text2);
+    letter-spacing: .06em; }
+  .srow .sm2 { font-size: 12px; color: var(--text3); }
+
   /* ── Signup sheet ── */
   .erow { display: flex; align-items: center; gap: 10px; padding: 10px 18px;
     border-bottom: 1px solid var(--border); font-size: 14px; }
@@ -345,6 +355,12 @@
             placeholder="Kirt&#10;Trevor&#10;TK 2&#10;Scott 2&#10;Tanner&#10;Cody" oninput="updateCount()"></textarea>
         </div>
 
+        <div id="use-list-wrap" style="margin-bottom:14px">
+          <button class="act" onclick="openSheetPicker()">Use a signup list</button>
+          <span class="hint" id="use-list-msg"></span>
+          <div id="sheet-pick" class="sheet-pick" style="display:none"></div>
+        </div>
+
         <!-- Signup sheet -->
         <div id="pane-signup" style="display:none">
           <label class="field-lbl" for="sdesc">Description — dates, times, entry fee, anything they should know</label>
@@ -404,7 +420,7 @@
           </div>
         </div>
 
-        <div class="section">
+        <div class="section" id="money-section">
           <div class="section-head">
             <span>Buy-in and payouts</span>
             <span id="pct-total" class="pct-total"></span>
@@ -452,7 +468,6 @@
       </div>
       <div id="sheet-body"></div>
       <div class="btn-row">
-        <button class="act primary" onclick="useEntries()">Use these players</button>
         <button class="act" onclick="addEntryByHand()">Add someone</button>
         <button class="act" id="sheet-toggle" onclick="toggleSheetOpen()">Close signups</button>
         <button class="linkish" onclick="closeSheet()">Done</button>
@@ -474,7 +489,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.07</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.08</div>
 </footer>
 
 <script>
@@ -739,8 +754,12 @@ function setMode(m) {
   document.getElementById('pane-signup').style.display = m === 'signup' ? '' : 'none';
   document.getElementById('pane-tournament').style.display =
     (m === 'tournament' || m === 'chip') ? '' : 'none';
-  // A signup sheet just collects names — no draw, money or format yet.
-  document.querySelector('.section').style.display = m === 'signup' ? 'none' : '';
+  // A signup sheet only collects names — no money, format or draw yet.
+  document.getElementById('money-section').style.display = m === 'signup' ? 'none' : '';
+  document.getElementById('use-list-wrap').style.display = m === 'signup' ? 'none' : '';
+  document.getElementById('create-btn').textContent =
+    m === 'signup' ? 'Create signup sheet' : 'Randomize & create';
+  if (m !== 'signup') document.getElementById('sheet-pick').style.display = 'none';
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
   document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
   document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
@@ -1075,6 +1094,76 @@ async function copyText(t, btn) {
   catch (e) { prompt('Copy this:', t); }
 }
 
+/* ── Bringing a signup list into a tournament ──
+   The sheet collects names; this is where they become a draw. */
+async function openSheetPicker() {
+  const panel = document.getElementById('sheet-pick');
+  const msg = document.getElementById('use-list-msg');
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  msg.textContent = 'Looking…'; msg.style.color = 'var(--text3)';
+  try {
+    const r = await fetch('/api/t', { headers: { 'X-League-Key': leagueKey() } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { msg.textContent = 'Could not load the sheets.'; msg.style.color = 'var(--loss)'; return; }
+    const sheets = j.tournaments.filter(t => t.kind === 'signup');
+    msg.textContent = '';
+    if (!sheets.length) {
+      msg.textContent = 'No signup sheets yet — create one first.';
+      msg.style.color = 'var(--text3)';
+      return;
+    }
+    panel.innerHTML = sheets.map(s => `<div class="srow">
+      <span class="sn">${esc(s.name || 'Untitled')}</span>
+      <span class="sc">${esc(s.code)}</span>
+      <span class="sm2">${s.players} signed up</span>
+      <button class="act" onclick="pullFromSheet('${esc(s.code)}','${esc(s.adminCode || '')}')">Use</button>
+    </div>`).join('');
+    panel.style.display = '';
+  } catch (e) { msg.textContent = 'Could not reach the server.'; msg.style.color = 'var(--loss)'; }
+}
+
+async function pullFromSheet(code, admin) {
+  const msg = document.getElementById('use-list-msg');
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(code), {
+      headers: admin ? { 'X-Admin-Code': admin } : {},
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { msg.textContent = 'Could not read that sheet.'; msg.style.color = 'var(--loss)'; return; }
+    loadEntries(j.data);
+  } catch (e) { msg.textContent = 'Could not reach the server.'; msg.style.color = 'var(--loss)'; }
+}
+
+function loadEntries(data) {
+  const msg = document.getElementById('use-list-msg');
+  const entries = data.entries || [];
+  if (!entries.length) { msg.textContent = 'Nobody on that sheet yet.'; msg.style.color = 'var(--loss)'; return; }
+
+  const cats = data.categories || [];
+  let use = entries;
+  if (cats.length > 1) {
+    const pick = prompt(`Which division?\n0. Everyone\n${cats.map((c, i) => `${i + 1}. ${c}`).join('\n')}`, '0');
+    if (pick === null) return;
+    const n = parseInt(pick, 10);
+    if (n >= 1 && n <= cats.length) use = entries.filter(e => e.category === cats[n - 1]);
+  }
+  if (!use.length) { msg.textContent = 'Nobody in that division.'; msg.style.color = 'var(--loss)'; return; }
+
+  roster = use.map(e => ({ name: e.name, rating: e.rating || 0, division: e.division || null }));
+  document.getElementById('names').value = use.map(e => e.name).join('\n');
+  if (!document.getElementById('tname').value.trim()) {
+    document.getElementById('tname').value = data.name || '';
+  }
+  renderRoster();
+  updateCount();
+  document.getElementById('sheet-pick').style.display = 'none';
+
+  const missing = use.filter(e => !e.rating).length;
+  msg.textContent = `${use.length} player${use.length === 1 ? '' : 's'} brought in`
+    + (missing ? ` — ${missing} without a rating, so Fargo races won't work for them.` : '.');
+  msg.style.color = missing ? 'var(--loss)' : 'var(--text3)';
+}
+
 /* ── Managing a signup sheet ──
    Entries arrive from the public page; officers can correct them, add anyone who
    signed up on paper, and then hand the finished list to the create form. */
@@ -1182,39 +1271,6 @@ function toggleSheetOpen() {
   saveSheet(sheet.closed ? 'Signups closed.' : 'Signups reopened.');
 }
 
-/* Hands the finished list to the create form above, so a tournament can be
-   drawn from it without anyone retyping names. */
-function useEntries() {
-  const entries = sheet.entries || [];
-  if (!entries.length) {
-    const m = document.getElementById('sheet-msg');
-    m.textContent = 'Nobody on the list yet.'; m.style.color = 'var(--loss)';
-    return;
-  }
-  const cats = sheet.categories || [];
-  let use = entries;
-  if (cats.length > 1) {
-    const pick = prompt(`Which division?\n0. Everyone\n${cats.map((c, i) => `${i + 1}. ${c}`).join('\n')}`, '0');
-    if (pick === null) return;
-    const n = parseInt(pick, 10);
-    if (n >= 1 && n <= cats.length) use = entries.filter(e => e.category === cats[n - 1]);
-  }
-  if (!use.length) { const m = document.getElementById('sheet-msg');
-    m.textContent = 'Nobody in that division.'; m.style.color = 'var(--loss)'; return; }
-
-  // Anyone without a rating can still play a plain bracket, so keep them and
-  // let the officer decide which kind of tournament to run.
-  roster = use.map(e => ({ name: e.name, rating: e.rating || 0, division: e.division || null }));
-  document.getElementById('names').value = use.map(e => e.name).join('\n');
-  document.getElementById('tname').value = sheet.name || '';
-  setMode(use.every(e => e.rating) ? 'tournament' : 'bracket');
-  renderRoster();
-  closeSheet();
-  const msg = document.getElementById('create-msg');
-  msg.textContent = `${use.length} player${use.length === 1 ? '' : 's'} loaded — pick a format and create.`;
-  msg.style.color = 'var(--text3)';
-  document.getElementById('admin').scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-}
 
 /* ── The list ── */
 async function refreshList() {
