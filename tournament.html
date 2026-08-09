@@ -341,7 +341,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.12</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.13</div>
 </footer>
 
 <script>
@@ -552,20 +552,49 @@ function champion(b) {
    second and third — the same as a straight 1/2, 1/3, 1/6 of the whole.
    First and second round to the nearest $5 so they're payable in bills; third
    absorbs the difference, keeping the three payouts equal to what was collected. */
-function computePayouts(players, feeDollars, addOnDollars) {
+const ORDINALS = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+
+/* The suggested split when you pick a number of spots: first takes half, and
+   the other half is shared among the rest in descending weights. At three spots
+   that lands exactly on the league's usual 50 / 33.33 / 16.67. */
+function suggestedSplit(spots) {
+  const n = Math.max(1, Math.min(10, spots | 0));
+  if (n === 1) return [100];
+  const weights = [];
+  for (let i = 1; i < n; i++) weights.push(n - i);
+  const total = weights.reduce((a, b) => a + b, 0);
+  return [50, ...weights.map(w => (w / total) * 50)];
+}
+
+const DEFAULT_PAYOUTS = suggestedSplit(3).map((pct, i) => ({ label: ORDINALS[i], pct }));
+
+/* Percentages in, dollars out. Every spot rounds to the nearest $5 so it can be
+   paid in bills, and the last one absorbs the difference — so the payouts always
+   add up to exactly what was collected. */
+function computePayouts(players, feeDollars, addOnDollars, spec) {
   const entries = Math.round(players * feeDollars * 100);    // cents, no float drift
   const addOn   = Math.round((addOnDollars || 0) * 100);
   const pot     = entries + addOn;
   if (pot <= 0) return null;
+
+  const rows = (spec && spec.length ? spec : DEFAULT_PAYOUTS)
+    .map(r => ({ label: r.label, pct: Number(r.pct) || 0 }));
   const to5 = (cents) => Math.round(cents / 500) * 500;
 
-  const first  = to5(pot / 2);
-  let   second = to5(pot / 3);
-  let   third  = pot - first - second;
+  let out = rows.map(r => ({ label: r.label, cents: to5(pot * r.pct / 100) }));
 
-  // Tiny pots can leave nothing for third — pay two places instead of a zero.
-  if (third <= 0) { second = pot - first; third = 0; }
-  return { pot, entries, addOn, first, second, third };
+  // On a small pot the lower places can round away to nothing. Drop them rather
+  // than listing someone for $0 — this has to catch middle places too, not just
+  // the tail, since the last place is about to absorb the remainder.
+  out = out.filter((r, i) => i === 0 || r.cents > 0);
+
+  for (;;) {
+    const others = out.slice(0, -1).reduce((a, r) => a + r.cents, 0);
+    out[out.length - 1].cents = pot - others;          // last place takes the remainder
+    if (out.length === 1 || out[out.length - 1].cents > 0) break;
+    out.pop();
+  }
+  return { pot, entries, addOn, rows: out };
 }
 
 const money = (cents) => {
@@ -578,11 +607,8 @@ const money = (cents) => {
    add your own (Top Lady, high break, whatever). Once anything is touched the
    card stops recalculating so an edit can't be wiped by a fee change. */
 function autoPayouts(players, fee, addOn) {
-  const p = computePayouts(players, fee, addOn);
-  if (!p) return [];
-  const rows = [{ label: '1st', cents: p.first }, { label: '2nd', cents: p.second }];
-  if (p.third > 0) rows.push({ label: '3rd', cents: p.third });
-  return rows;
+  const p = computePayouts(players, fee, addOn, B && B.payoutSpec);
+  return p ? p.rows : [];
 }
 
 function payoutRows(players, fee, addOn) {
@@ -645,7 +671,7 @@ let lastPayoutCtx = { players: 0, fee: 0, addOn: 0 };
 
 function payoutHTML(players, feeDollars, addOnDollars, champ) {
   lastPayoutCtx = { players, fee: feeDollars, addOn: addOnDollars };
-  const p = computePayouts(players, feeDollars, addOnDollars);
+  const p = computePayouts(players, feeDollars, addOnDollars, B && B.payoutSpec);
   if (!p) return '';
   const rows = payoutRows(players, feeDollars, addOnDollars);
   const paid = rows.reduce((a, r) => a + r.cents, 0);
@@ -764,6 +790,7 @@ function snapshot() {
     bySeed: B.bySeed,
     winners,
     payoutsManual: B.payoutsManual || null,
+    payoutSpec: B.payoutSpec || null,     // spots and percentages set on the admin page
     fee: (document.getElementById('fee') || {}).value,
     bar: (document.getElementById('bar') || {}).value,
     chart: (document.getElementById('chart')||{}).value,
@@ -862,6 +889,7 @@ function applyServer(d) {
   B = buildBracket(null, d.bySeed, d.format);
   roster = d.roster || [];
   B.payoutsManual = d.payoutsManual || null;
+  B.payoutSpec = d.payoutSpec || null;
   B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
   document.getElementById('code-entry').style.display = 'none';
   document.body.classList.toggle('read-only', readOnly);

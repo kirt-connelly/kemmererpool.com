@@ -157,6 +157,26 @@
   .linkish:hover { color: var(--text); }
   .hint { font-size: 13px; color: var(--text3); }
 
+  /* ── Payout config ── */
+  .payout-cfg { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .payout-cfg-head { display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px; }
+  .pct-total { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pct-total.ok { color: var(--green2); }
+  .pct-total.off { color: var(--loss); }
+  .pct-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
+  .pct-row { border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); padding: 10px 12px; }
+  .pct-row.first { border-color: var(--accent); }
+  .pct-place { font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text3); }
+  .pct-in { display: flex; align-items: baseline; gap: 3px; margin-top: 4px; }
+  .pct-in input { width: 100%; min-width: 0; border: none; background: none; color: var(--text);
+    font-family: inherit; font-size: 19px; font-weight: 700; padding: 0;
+    font-variant-numeric: tabular-nums; }
+  .pct-in input:focus { outline: none; }
+  .pct-in span { color: var(--text3); font-size: 14px; }
+
   /* ── Admin ── */
   .gate { max-width: 420px; margin: 60px auto; }
   .field-lbl { display: block; font-size: 12px; font-weight: 600; letter-spacing: .07em;
@@ -307,6 +327,11 @@
             <label class="field-lbl" for="bar">Bar add-on</label>
             <input id="bar" class="inp" type="number" min="0" step="5" value="0">
           </div>
+          <div>
+            <label class="field-lbl" for="spots">Payout spots</label>
+            <input id="spots" class="inp" type="number" min="1" max="10" step="1" value="3"
+              oninput="onSpotsChange()">
+          </div>
           <div id="chart-wrap" style="display:none">
             <label class="field-lbl" for="chart">Race chart</label>
             <select id="chart" class="inp">
@@ -319,9 +344,21 @@
             </select>
           </div>
         </div>
+        </div>
+
+        <div class="payout-cfg">
+          <div class="payout-cfg-head">
+            <span class="field-lbl" style="margin:0">Payout percentages</span>
+            <span id="pct-total" class="pct-total"></span>
+          </div>
+          <div id="pct-rows" class="pct-rows"></div>
+          <div class="hint" style="margin-top:10px">
+            Suggested when you change the number of spots — adjust as you like, but they have to total 100%.
+          </div>
+        </div>
       </div>
       <div class="btn-row">
-        <button class="act primary" onclick="createTournament()">Randomize &amp; create</button>
+        <button class="act primary" id="create-btn" onclick="createTournament()">Randomize &amp; create</button>
         <span class="hint" id="count">0 players</span>
         <span class="hint" id="create-msg"></span>
       </div>
@@ -350,7 +387,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.03</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.04</div>
 </footer>
 
 <script>
@@ -621,6 +658,59 @@ function updateCount() {
   document.getElementById('count').textContent = `${n} player${n === 1 ? '' : 's'}`;
 }
 
+/* ── Payout structure ──
+   First takes half, the rest share the other half in descending weights — at
+   three spots that reproduces the league's usual 50 / 33.33 / 16.67. Suggested
+   whenever the spot count changes, then freely editable, but it must total 100. */
+const ORDINALS = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+
+function suggestedSplit(spots) {
+  const n = Math.max(1, Math.min(10, spots | 0));
+  if (n === 1) return [100];
+  const weights = [];
+  for (let i = 1; i < n; i++) weights.push(n - i);
+  const total = weights.reduce((a, b) => a + b, 0);
+  return [50, ...weights.map(w => (w / total) * 50)];
+}
+
+const round2 = (v) => Math.round(v * 100) / 100;
+
+function onSpotsChange() {
+  const n = Math.max(1, Math.min(10, parseInt(document.getElementById('spots').value, 10) || 1));
+  renderPctRows(suggestedSplit(n).map(round2));
+}
+
+function renderPctRows(values) {
+  document.getElementById('pct-rows').innerHTML = values.map((v, i) => `
+    <div class="pct-row${i === 0 ? ' first' : ''}">
+      <div class="pct-place">${ORDINALS[i] || (i + 1) + 'th'}</div>
+      <div class="pct-in">
+        <input type="number" min="0" max="100" step="0.01" value="${v}"
+          data-idx="${i}" oninput="updatePctTotal()">
+        <span>%</span>
+      </div>
+    </div>`).join('');
+  updatePctTotal();
+}
+
+const pctValues = () => [...document.querySelectorAll('#pct-rows input')]
+  .map(el => Number(el.value) || 0);
+
+function updatePctTotal() {
+  const total = round2(pctValues().reduce((a, b) => a + b, 0));
+  const el = document.getElementById('pct-total');
+  const ok = Math.abs(total - 100) < 0.01;
+  el.textContent = total.toFixed(2).replace(/\.00$/, '') + '%';
+  el.className = 'pct-total ' + (ok ? 'ok' : 'off');
+  const btn = document.getElementById('create-btn');
+  if (btn) btn.disabled = !ok;               // can't create on a split that doesn't add up
+  return ok;
+}
+
+function payoutSpec() {
+  return pctValues().map((pct, i) => ({ label: ORDINALS[i] || (i + 1) + 'th', pct }));
+}
+
 /* ── Create ──
    Only the draw is worked out here: players shuffled into seeds, byes filling
    the rest. The viewing pages rebuild the whole match graph from that, so the
@@ -640,6 +730,7 @@ async function createTournament() {
 
   const entries = mode === 'bracket' ? parseEntries() : roster.map(p => ({ name: p.name }));
   if (entries.length < 2) { say('Add at least 2 players.', true); return; }
+  if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
 
   const names = shuffle(entries.map(e => e.name));
   let size = 1; while (size < names.length) size *= 2;
@@ -660,6 +751,7 @@ async function createTournament() {
     champion: null,
     fee: document.getElementById('fee').value,
     bar: document.getElementById('bar').value,
+    payoutSpec: payoutSpec(),
   };
   if (mode === 'bracket') {
     data.races = Object.fromEntries(parseEntries().map(e => [e.name, e.race]));
@@ -774,6 +866,7 @@ async function removeTournament(code) {
 })();
 
 setMode('bracket');
+onSpotsChange();
 </script>
 </body>
 </html>
