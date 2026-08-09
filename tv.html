@@ -108,6 +108,14 @@ body {
 .sl.lost { color: #6b6459; text-decoration: line-through; font-weight: 400; }
 .sl.empty { color: #666058; font-weight: 400; }
 .sl .src { font-size: 17px; letter-spacing: .04em; }
+/* The race sits at the right end of each row, so a match reads
+   "Dave 3 / Kirt 2" straight down the box. */
+.sl .rc { float: right; min-width: 26px; margin-left: 8px; text-align: center;
+  font-size: 18px; font-weight: 700; color: #b0a898;
+  border: 2px solid #363636; border-radius: 5px; line-height: 24px; height: 26px;
+  margin-top: 3px; }
+.sl.won .rc { border-color: #27855a; color: #32a870; }
+.sl.lost .rc { opacity: .45; }
 
 .enter { max-width: 620px; margin: 6% auto 0; text-align: center; }
 .enter h2 { font-size: 30px; color: #e8ddd0; margin-bottom: 8px; }
@@ -323,6 +331,33 @@ var CHARTS = {
   R7: [[0,23,7,7],[24,43,7,6],[44,71,8,6],[72,89,8,5],[90,123,9,5],[124,139,9,4],[140,185,10,4],[186,null,10,3]]
 };
 
+/* Each player's race for this match. A manual-race bracket carries them per
+   player; a Fargo tournament works them out from the two ratings, so both
+   players have to be known before either race means anything. */
+function racesFor(d, m) {
+  var a = m.players[0], b = m.players[1];
+  if (d.kind === 'bracket') {
+    var races = d.races || {};
+    return [ (a === undefined || a === null) ? null : (races[a] || 3),
+             (b === undefined || b === null) ? null : (races[b] || 3) ];
+  }
+  if (d.kind !== 'tournament') return [null, null];
+  if (a === undefined || b === undefined || a === null || b === null) return [null, null];
+  var roster = d.roster || [], i, ratA = 0, ratB = 0;
+  for (i = 0; i < roster.length; i++) {
+    if (roster[i].name === a) ratA = roster[i].rating;
+    if (roster[i].name === b) ratB = roster[i].rating;
+  }
+  if (!ratA || !ratB) return [null, null];
+  var chart = CHARTS[d.chart] || CHARTS.R3;
+  var diff = Math.abs(ratA - ratB), row = chart[chart.length - 1], j;
+  for (j = 0; j < chart.length; j++) {
+    if (chart[j][1] === null || diff <= chart[j][1]) { row = chart[j]; break; }
+  }
+  var fav = row[2], dog = row[3];
+  return ratA >= ratB ? [fav, dog] : [dog, fav];
+}
+
 function raceText(data, a, b) {
   if (data.kind === 'bracket') {
     var races = data.races || {};
@@ -495,7 +530,7 @@ function connectors(list, pos) {
 }
 
 function slotHTML(m, i, d) {
-  var v = m.players[i], cls = 'sl', label;
+  var v = m.players[i], cls = 'sl', label, race = '';
   if (v === undefined) {
     var s = m.slots[i], src = null, j;
     if (s.of) { for (j = 0; j < d.__all.length; j++) { if (d.__all[j].id === s.of) src = d.__all[j]; } }
@@ -505,8 +540,10 @@ function slotHTML(m, i, d) {
   else {
     label = esc(v);
     if (m.resolved) cls += (m.winnerName === v) ? ' won' : ' lost';
+    var rr = racesFor(d, m);
+    if (rr[i]) race = '<span class="rc">' + rr[i] + '</span>';
   }
-  return '<div class="' + cls + '"><span class="n">' + label + '</span></div>';
+  return '<div class="' + cls + '">' + race + '<span class="n">' + label + '</span></div>';
 }
 
 function canvas(list, labelFor, lane, d) {
