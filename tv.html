@@ -34,10 +34,11 @@ body {
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
   background: #32a870; margin-right: 8px; vertical-align: middle; }
 
-.champ { background: #1e1e1e; border: 3px solid #27855a; border-radius: 10px;
-  padding: 22px 26px; margin-bottom: 22px; text-align: center; }
-.champ .lbl { font-size: 18px; letter-spacing: .16em; text-transform: uppercase; color: #666058; }
-.champ .nm { font-size: 52px; font-weight: 700; color: #32a870; }
+.champ { background: #1e1e1e; border: 2px solid #27855a; border-radius: 8px;
+  padding: 10px 20px; margin-bottom: 16px; white-space: nowrap; }
+.champ .lbl { font-size: 17px; letter-spacing: .14em; text-transform: uppercase;
+  color: #666058; margin-right: 12px; }
+.champ .nm { font-size: 30px; font-weight: 700; color: #32a870; }
 
 .cols { overflow: hidden; }
 .col { float: left; width: 49%; }
@@ -652,8 +653,8 @@ function draw(d) {
 
   var champ = championOf(d), html = '';
   if (champ) {
-    html += '<div class="champ"><div class="lbl">Champion</div><div class="nm">'
-          + esc(champ) + '</div></div>';
+    html += '<div class="champ"><span class="lbl">Champion</span><span class="nm">'
+          + esc(champ) + '</span></div>';
   }
 
   if (d.kind === 'chip') { $('body').innerHTML = html + drawChip(d); return; }
@@ -662,7 +663,7 @@ function draw(d) {
   var A = parts.top, B = parts.bottom;
   var bothH = A.h + B.h + (B.h ? 46 : 0);
   var bothW = Math.max(A.w, B.w);
-  var scaleBoth = fit(bothW, bothH + (champ ? 120 : 0));
+  var scaleBoth = fit(bothW, bothH + (champ ? 62 : 0));
 
   if (!B.h || scaleBoth >= 0.6) {
     SHOWING = 'both';
@@ -672,7 +673,7 @@ function draw(d) {
     // Too tight to show both — alternate, each scaled on its own.
     SHOWING = (FLIP % 2 === 0) ? 'winners' : 'losers';
     var P = SHOWING === 'winners' ? A : B;
-    html += wrap(P, fit(P.w, P.h + (champ ? 120 : 0)),
+    html += wrap(P, fit(P.w, P.h + (champ ? 62 : 0)),
                  SHOWING === 'winners' ? 'Winners bracket' : 'Losers bracket');
   }
   $('body').innerHTML = html;
