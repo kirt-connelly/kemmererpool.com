@@ -23,6 +23,7 @@
 const MAX_BYTES = 256 * 1024;
 const INDEX_KEY = '__index';
 const MAX_INDEX = 300;
+const MAX_ENTRIES = 300;
 
 // No 0 and no I, so nothing is misread off a printed sheet or over the phone.
 // Dropping those two also makes O and 1 unambiguous.
@@ -52,9 +53,11 @@ function entryFor(code, data, adminCode) {
     adminCode,                       // officers need this to open a scoring link
 
     name: String(data.name || '').slice(0, 120),
-    kind: ['tournament','chip'].includes(data.kind) ? data.kind : 'bracket',
+    kind: ['tournament','chip','signup'].includes(data.kind) ? data.kind : 'bracket',
     format: data.format === 'single' ? 'single' : 'double',
-    players: Object.values(data.bySeed || {}).filter(Boolean).length,
+    players: data.kind === 'signup'
+      ? (data.entries || []).length
+      : Object.values(data.bySeed || {}).filter(Boolean).length,
     progress: data.progress || null,
     champion: data.champion || null,
     updated: Date.now(),
@@ -81,12 +84,54 @@ export async function onRequest({ request, env, params }) {
 
   const readBody = async () => {
     const text = await request.text();
-    if (text.length > MAX_BYTES) return { err: json({ ok: false, error: 'That tournament is too large.' }, 413) };
+    if (text.length > MAX_BYTES) return { err: json({ ok: false, error: 'That is too large.' }, 413) };
     let data;
     try { data = JSON.parse(text); } catch { return { err: json({ ok: false, error: 'Body was not JSON.' }, 400) }; }
-    if (!data || !data.bySeed) return { err: json({ ok: false, error: 'That is not a tournament.' }, 400) };
+    // A signup sheet has no draw yet — it's a list of names waiting for one.
+    const ok = data && (data.bySeed || (data.kind === 'signup' && Array.isArray(data.entries)));
+    if (!ok) return { err: json({ ok: false, error: 'That is not a tournament or signup sheet.' }, 400) };
     return { data };
   };
+
+  /* Anyone with the code may add themselves to an open signup sheet — that is
+     the whole point of the link. Everything else about the sheet still needs the
+     admin code, so an entrant can add one row and nothing more. */
+  if (method === 'POST' && code) {
+    if (!VALID.test(code)) return json({ ok: false, error: 'That is not a valid code.' }, 400);
+    const rec = await kv.get('t:' + code, 'json');
+    if (!rec) return json({ ok: false, error: 'No signup sheet with that code.' }, 404);
+    if (rec.data.kind !== 'signup') return json({ ok: false, error: 'That code is not a signup sheet.' }, 400);
+    if (rec.data.closed) return json({ ok: false, error: 'Signups are closed.', code: 'closed' }, 409);
+
+    let body;
+    try { body = await request.json(); } catch { return json({ ok: false, error: 'Body was not JSON.' }, 400); }
+    if (body.website) return json({ ok: true });          // honeypot: bots fill it, people never see it
+
+    const name = String(body.name || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 60);
+    if (name.length < 2) return json({ ok: false, error: 'Please enter a name.' }, 400);
+
+    const entries = rec.data.entries || [];
+    if (entries.length >= MAX_ENTRIES) return json({ ok: false, error: 'This sheet is full.' }, 409);
+    if (entries.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+      return json({ ok: false, error: 'That name is already on the list.', code: 'duplicate' }, 409);
+    }
+
+    const cats = rec.data.categories || [];
+    const category = cats.includes(body.category) ? body.category : (cats.length ? cats[0] : null);
+    const rating = Math.max(0, Math.min(1200, parseInt(body.rating, 10) || 0));
+
+    entries.push({
+      name, rating, category,
+      division: String(body.division || '').slice(0, 80) || null,
+      source: 'self',
+      at: Date.now(),
+    });
+    rec.data.entries = entries;
+    rec.updated = Date.now();
+    await kv.put('t:' + code, JSON.stringify(rec));
+    await touchIndex(kv, code, rec.data, rec.adminCode);
+    return json({ ok: true, count: entries.length });
+  }
 
   // ── Create ──
   if (method === 'POST' && !code) {
@@ -127,6 +172,13 @@ export async function onRequest({ request, env, params }) {
     if (!record) return json({ ok: false, error: 'No tournament with that code.' }, 404);
     // Whether the caller may score it, without ever echoing the code back.
     const canScore = !!adminCode && adminCode === record.adminCode;
+    // A signup sheet's entrant list is only for whoever runs it — the public
+    // page needs the title and how many have signed up, not everyone's name.
+    if (record.data.kind === 'signup' && !canScore) {
+      const { entries, ...rest } = record.data;
+      return json({ ok: true, data: { ...rest, entryCount: (entries || []).length },
+                    canScore: false, updated: record.updated });
+    }
     return json({ ok: true, data: record.data, canScore, updated: record.updated });
   }
 

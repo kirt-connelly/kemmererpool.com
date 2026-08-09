@@ -158,6 +158,20 @@
   .linkish:hover { color: var(--text); }
   .hint { font-size: 13px; color: var(--text3); }
 
+  /* ── Signup sheet ── */
+  .erow { display: flex; align-items: center; gap: 10px; padding: 10px 18px;
+    border-bottom: 1px solid var(--border); font-size: 14px; }
+  .erow:last-child { border-bottom: none; }
+  .erow .en { flex: 1; min-width: 0; color: var(--cream); font-weight: 600; }
+  .erow .ed { font-size: 11px; color: var(--text3); }
+  .erow .er { font-weight: 700; font-variant-numeric: tabular-nums; width: 42px; text-align: right; }
+  .erow .ec { font-size: 11px; }
+  .erow.byhand .er { color: var(--text2); }
+  .esmall { background: none; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text3); min-width: 26px; height: 26px; cursor: pointer; font-size: 13px; padding: 0; }
+  .esmall:hover { border-color: var(--loss); color: var(--loss); }
+  .eempty { padding: 22px 18px; color: var(--text3); font-size: 14px; }
+
   /* ── Grouped section ── */
   .section { margin-top: 20px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--bg); overflow: hidden; }
@@ -305,6 +319,10 @@
             <div class="mt">Chip tournament</div>
             <div class="md">Winner stays on. Chips by Fargo rating, single games.</div>
           </button>
+          <button class="mode" id="mode-signup" onclick="setMode('signup')">
+            <div class="mt">Signup sheet</div>
+            <div class="md">Players add themselves, then you launch it as a tournament.</div>
+          </button>
         </div>
 
         <div class="grid" style="margin-bottom:16px">
@@ -325,6 +343,18 @@
           <label class="field-lbl" for="names">Players — one per line, add a number to set their race (3 otherwise)</label>
           <textarea id="names" class="inp" spellcheck="false"
             placeholder="Kirt&#10;Trevor&#10;TK 2&#10;Scott 2&#10;Tanner&#10;Cody" oninput="updateCount()"></textarea>
+        </div>
+
+        <!-- Signup sheet -->
+        <div id="pane-signup" style="display:none">
+          <label class="field-lbl" for="sdesc">Description — dates, times, entry fee, anything they should know</label>
+          <textarea id="sdesc" class="inp" spellcheck="false" style="min-height:110px"
+            placeholder="Saturday 10am start at the Eagles Club.&#10;$10 entry, races to 3."></textarea>
+          <div style="margin-top:16px">
+            <label class="field-lbl" for="scats">Divisions — optional, one per line</label>
+            <textarea id="scats" class="inp" spellcheck="false" style="min-height:70px"
+              placeholder="A Division&#10;B Division"></textarea>
+          </div>
         </div>
 
         <!-- Fargo mode: lookup -->
@@ -414,6 +444,22 @@
       <div class="pad links" id="made-links"></div>
     </div>
 
+    <!-- Managing one signup sheet -->
+    <div class="card" id="sheet-panel" style="display:none;margin-bottom:18px">
+      <div class="card-header">
+        <span class="card-title" id="sheet-name">Signup sheet</span>
+        <span class="card-meta" id="sheet-meta"></span>
+      </div>
+      <div id="sheet-body"></div>
+      <div class="btn-row">
+        <button class="act primary" onclick="useEntries()">Use these players</button>
+        <button class="act" onclick="addEntryByHand()">Add someone</button>
+        <button class="act" id="sheet-toggle" onclick="toggleSheetOpen()">Close signups</button>
+        <button class="linkish" onclick="closeSheet()">Done</button>
+        <span class="hint" id="sheet-msg"></span>
+      </div>
+    </div>
+
     <!-- Everything on the server -->
     <div class="card">
       <div class="card-header">
@@ -428,7 +474,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.06</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.07</div>
 </footer>
 
 <script>
@@ -686,21 +732,27 @@ function showAdmin(list) {
 let mode = 'bracket';
 function setMode(m) {
   mode = m;
-  ['bracket','tournament','chip'].forEach(k =>
+  ['bracket','tournament','chip','signup'].forEach(k =>
     document.getElementById('mode-' + k).classList.toggle('on', k === m));
   // Chip uses the same Fargo lookup as the rated tournament.
   document.getElementById('pane-bracket').style.display = m === 'bracket' ? '' : 'none';
-  document.getElementById('pane-tournament').style.display = m === 'bracket' ? 'none' : '';
+  document.getElementById('pane-signup').style.display = m === 'signup' ? '' : 'none';
+  document.getElementById('pane-tournament').style.display =
+    (m === 'tournament' || m === 'chip') ? '' : 'none';
+  // A signup sheet just collects names — no draw, money or format yet.
+  document.querySelector('.section').style.display = m === 'signup' ? 'none' : '';
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
   document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
   document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
   if (m === 'chip') renderBands();
   // A chip tournament has no bracket to seed, so format doesn't apply.
-  document.getElementById('format').closest('.grid').style.display = m === 'chip' ? 'none' : '';
+  document.getElementById('format').closest('.grid').style.display =
+    (m === 'chip' || m === 'signup') ? 'none' : '';
   updateCount();
 }
 
 function updateCount() {
+  if (mode === 'signup') { document.getElementById('count').textContent = ''; return; }
   const n = mode === 'bracket' ? parseEntries().length : roster.length;
   document.getElementById('count').textContent = `${n} player${n === 1 ? '' : 's'}`;
 }
@@ -871,6 +923,8 @@ async function createTournament() {
   const msg = document.getElementById('create-msg');
   const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? 'var(--loss)' : 'var(--text3)'; };
 
+  if (mode === 'signup') { await createSignup(say); return; }
+
   const entries = mode === 'bracket' ? parseEntries() : roster.map(p => ({ name: p.name }));
   if (entries.length < 2) { say('Add at least 2 players.', true); return; }
   if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
@@ -925,6 +979,31 @@ async function createTournament() {
   } catch (e) { say('Could not reach the server.', true); }
 }
 
+async function createSignup(say) {
+  const name = (document.getElementById('tname').value || '').trim();
+  if (!name) { say('Give the tournament a name.', true); return; }
+  const categories = document.getElementById('scats').value
+    .split('\n').map(s => s.trim()).filter(Boolean).slice(0, 12);
+  const data = {
+    schema: 1, kind: 'signup', name, saved: Date.now(),
+    description: document.getElementById('sdesc').value.trim().slice(0, 2000),
+    categories, entries: [], closed: false, launchedAs: null,
+  };
+  say('Creating…');
+  try {
+    const r = await fetch('/api/t', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-League-Key': leagueKey() },
+      body: JSON.stringify(data),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { say(j.error || 'Could not create it.', true); return; }
+    say('');
+    showLinks(name, 'signup', j.code, j.adminCode);
+    refreshList();
+  } catch (e) { say('Could not reach the server.', true); }
+}
+
 async function createChip(say) {
   const tableCount = Math.max(1, Math.min(20, parseInt(document.getElementById('tables').value, 10) || 4));
   const state = buildChipState(roster, tableCount);
@@ -958,7 +1037,8 @@ async function createChip(say) {
   } catch (e) { say('Could not reach the server.', true); }
 }
 
-const pageFor = kind => kind === 'chip' ? 'chip.html'
+const pageFor = kind => kind === 'signup' ? 'signup.html'
+  : kind === 'chip' ? 'chip.html'
   : kind === 'tournament' ? 'tournament.html' : 'bracket.html';
 
 function showLinks(name, kind, code, adminCode) {
@@ -968,7 +1048,7 @@ function showLinks(name, kind, code, adminCode) {
   document.getElementById('made-name').textContent = name || 'Created';
   document.getElementById('made-links').innerHTML = `
     <div class="link-row">
-      <div class="link-lbl">Public — anyone can watch</div>
+      <div class="link-lbl">${kind === 'signup' ? 'Share this — players sign themselves up' : 'Public — anyone can watch'}</div>
       <div class="link-code">${esc(code)}</div>
       <div class="link-url">${esc(view)}</div>
       <div class="link-actions">
@@ -977,7 +1057,7 @@ function showLinks(name, kind, code, adminCode) {
       </div>
     </div>
     <div class="link-row admin">
-      <div class="link-lbl">Admin — enters winners</div>
+      <div class="link-lbl">${kind === 'signup' ? 'Organiser — manage the list' : 'Admin — enters winners'}</div>
       <div class="link-code">${esc(code)}-${esc(adminCode)}</div>
       <div class="link-url">${esc(admin)}</div>
       <div class="link-actions">
@@ -986,13 +1066,154 @@ function showLinks(name, kind, code, adminCode) {
       </div>
     </div>`;
   document.getElementById('made').style.display = '';
-  document.getElementById('made').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('made').scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
 }
 
 async function copyText(t, btn) {
   try { await navigator.clipboard.writeText(t); const o = btn.textContent;
     btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1400); }
   catch (e) { prompt('Copy this:', t); }
+}
+
+/* ── Managing a signup sheet ──
+   Entries arrive from the public page; officers can correct them, add anyone who
+   signed up on paper, and then hand the finished list to the create form. */
+let sheet = null, sheetCode = null, sheetAdmin = null;
+
+async function manageSheet(code, admin) {
+  sheetCode = code; sheetAdmin = admin;
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(code), {
+      headers: admin ? { 'X-Admin-Code': admin } : {},
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) return;
+    sheet = j.data;
+    renderSheet();
+    document.getElementById('sheet-panel').scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {}
+}
+
+function closeSheet() {
+  sheet = null;
+  document.getElementById('sheet-panel').style.display = 'none';
+}
+
+function renderSheet() {
+  if (!sheet) return;
+  const el = document.getElementById('sheet-panel');
+  el.style.display = '';
+  const entries = sheet.entries || [];
+  document.getElementById('sheet-name').textContent = sheet.name || 'Signup sheet';
+  document.getElementById('sheet-meta').textContent =
+    `${sheetCode} · ${entries.length} signed up${sheet.closed ? ' · closed' : ''}`;
+  document.getElementById('sheet-toggle').textContent = sheet.closed ? 'Reopen signups' : 'Close signups';
+
+  document.getElementById('sheet-body').innerHTML = entries.length
+    ? entries.map((e, i) => `<div class="erow${e.rating ? '' : ' byhand'}">
+        <span class="en">${esc(e.name)}</span>
+        ${e.category ? `<span class="tag ec">${esc(e.category)}</span>` : ''}
+        <span class="ed">${e.source === 'officer' ? 'added by an officer' : esc(e.division || 'entered by hand')}</span>
+        <span class="er" onclick="editEntryRating(${i})" title="Change rating" style="cursor:pointer">${e.rating || '—'}</span>
+        <button class="esmall" title="Remove" onclick="removeEntry(${i})">&#10005;</button>
+      </div>`).join('')
+    : '<div class="eempty">Nobody has signed up yet. Share the signup link.</div>';
+}
+
+async function saveSheet(msg) {
+  const m = document.getElementById('sheet-msg');
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(sheetCode), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-League-Key': leagueKey() },
+      body: JSON.stringify(sheet),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) { m.textContent = msg || 'Saved.'; m.style.color = 'var(--text3)'; refreshList(); }
+    else { m.textContent = j.error || 'Could not save.'; m.style.color = 'var(--loss)'; }
+  } catch (e) { m.textContent = 'Could not reach the server.'; m.style.color = 'var(--loss)'; }
+}
+
+function removeEntry(i) {
+  const e = sheet.entries[i];
+  if (!confirm(`Take ${e.name} off the list?`)) return;
+  sheet.entries.splice(i, 1);
+  renderSheet();
+  saveSheet(`${e.name} removed.`);
+}
+
+function editEntryRating(i) {
+  const e = sheet.entries[i];
+  const r = prompt(`Fargo rating for ${e.name}?`, e.rating || '');
+  if (r === null) return;
+  e.rating = Math.max(0, Math.min(1200, parseInt(r, 10) || 0));
+  renderSheet();
+  saveSheet(`${e.name} updated.`);
+}
+
+/* Someone who signed up on paper at the bar. */
+function addEntryByHand() {
+  const name = (prompt('Name:', '') || '').trim();
+  if (!name) return;
+  if ((sheet.entries || []).some(e => e.name.toLowerCase() === name.toLowerCase())) {
+    const m = document.getElementById('sheet-msg');
+    m.textContent = `${name} is already on the list.`; m.style.color = 'var(--loss)';
+    return;
+  }
+  const r = prompt(`Fargo rating for ${name}? Leave blank if unknown.`, '');
+  if (r === null) return;
+  const cats = sheet.categories || [];
+  let category = cats.length ? cats[0] : null;
+  if (cats.length > 1) {
+    const pick = prompt(`Division?\n${cats.map((c, i) => `${i + 1}. ${c}`).join('\n')}`, '1');
+    const n = parseInt(pick, 10);
+    if (n >= 1 && n <= cats.length) category = cats[n - 1];
+  }
+  sheet.entries = sheet.entries || [];
+  sheet.entries.push({ name, rating: parseInt(r, 10) || 0, category,
+                       division: null, source: 'officer', at: Date.now() });
+  renderSheet();
+  saveSheet(`${name} added.`);
+}
+
+function toggleSheetOpen() {
+  sheet.closed = !sheet.closed;
+  renderSheet();
+  saveSheet(sheet.closed ? 'Signups closed.' : 'Signups reopened.');
+}
+
+/* Hands the finished list to the create form above, so a tournament can be
+   drawn from it without anyone retyping names. */
+function useEntries() {
+  const entries = sheet.entries || [];
+  if (!entries.length) {
+    const m = document.getElementById('sheet-msg');
+    m.textContent = 'Nobody on the list yet.'; m.style.color = 'var(--loss)';
+    return;
+  }
+  const cats = sheet.categories || [];
+  let use = entries;
+  if (cats.length > 1) {
+    const pick = prompt(`Which division?\n0. Everyone\n${cats.map((c, i) => `${i + 1}. ${c}`).join('\n')}`, '0');
+    if (pick === null) return;
+    const n = parseInt(pick, 10);
+    if (n >= 1 && n <= cats.length) use = entries.filter(e => e.category === cats[n - 1]);
+  }
+  if (!use.length) { const m = document.getElementById('sheet-msg');
+    m.textContent = 'Nobody in that division.'; m.style.color = 'var(--loss)'; return; }
+
+  // Anyone without a rating can still play a plain bracket, so keep them and
+  // let the officer decide which kind of tournament to run.
+  roster = use.map(e => ({ name: e.name, rating: e.rating || 0, division: e.division || null }));
+  document.getElementById('names').value = use.map(e => e.name).join('\n');
+  document.getElementById('tname').value = sheet.name || '';
+  setMode(use.every(e => e.rating) ? 'tournament' : 'bracket');
+  renderRoster();
+  closeSheet();
+  const msg = document.getElementById('create-msg');
+  msg.textContent = `${use.length} player${use.length === 1 ? '' : 's'} loaded — pick a format and create.`;
+  msg.style.color = 'var(--text3)';
+  document.getElementById('admin').scrollIntoView?.({ behavior: 'smooth', block: 'start' });
 }
 
 /* ── The list ── */
@@ -1014,12 +1235,17 @@ function renderList(list) {
     return `<div class="trow">
       <span class="tn">${esc(t.name || 'Untitled')}</span>
       <span class="tc">${esc(t.code)}${t.adminCode ? `<span class="tc-admin">-${esc(t.adminCode)}</span>` : ''}</span>
-      <span class="tag">${t.kind === 'chip' ? 'Chips' : t.kind === 'tournament' ? 'Fargo' : 'Races'}</span>
-      ${t.kind === 'chip' ? '' : `<span class="tag">${t.format === 'single' ? 'Single elim' : 'Double elim'}</span>`}
+      <span class="tag">${t.kind === 'signup' ? 'Signup' : t.kind === 'chip' ? 'Chips'
+        : t.kind === 'tournament' ? 'Fargo' : 'Races'}</span>
+      ${['chip','signup'].includes(t.kind) ? ''
+        : `<span class="tag">${t.format === 'single' ? 'Single elim' : 'Double elim'}</span>`}
       ${done}
-      <span class="tm">${t.players} players · ${prog} · ${when}</span>
-      <a class="act" href="/${pageFor(t.kind)}?t=${esc(t.code)}" target="_blank" rel="noopener">View</a>
-      ${t.adminCode
+      <span class="tm">${t.kind === 'signup' ? `${t.players} signed up` : `${t.players} players · ${prog}`} · ${when}</span>
+      <a class="act" href="/${pageFor(t.kind)}?t=${esc(t.code)}" target="_blank" rel="noopener">${t.kind === 'signup' ? 'Signup page' : 'View'}</a>
+      ${t.kind === 'signup'
+        ? `<button class="act primary" onclick="manageSheet('${esc(t.code)}','${esc(t.adminCode || '')}')">Manage</button>
+           <button class="linkish" onclick="copyText('${location.origin}/signup.html?t=${esc(t.code)}', this)">Copy signup link</button>`
+        : t.adminCode
         ? `<a class="act primary" href="/${pageFor(t.kind)}?t=${esc(t.code)}&a=${esc(t.adminCode)}"
              target="_blank" rel="noopener">Score</a>
            <button class="linkish" onclick="copyText('${location.origin}/${pageFor(t.kind)}?t=${esc(t.code)}&a=${esc(t.adminCode)}', this)">Copy scoring link</button>`
