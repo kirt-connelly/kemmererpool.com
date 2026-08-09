@@ -81,6 +81,34 @@ body {
 
 .empty { padding: 26px 20px; color: #666058; font-size: 21px; }
 
+/* ── Bracket ──
+   Absolutely positioned, so no flexbox or grid is needed to lay it out. */
+.sec { margin-bottom: 26px; }
+.sh { font-size: 19px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: #666058; margin-bottom: 10px; }
+.fit { position: relative; overflow: hidden; }
+.sc { position: absolute; left: 0; top: 0;
+  -webkit-transform-origin: 0 0; transform-origin: 0 0; }
+.cv { position: relative; }
+.rl { position: absolute; top: 0; font-size: 17px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: #666058; text-align: center;
+  padding-bottom: 7px; border-bottom: 2px solid #363636; }
+.ln { position: absolute; background: #4a4a4a; }
+.mt { position: absolute; border: 2px solid #363636; border-radius: 7px;
+  background: #1a1a1a; overflow: hidden; }
+.mt.ready { border-color: #27855a; }
+.mt.done { border-color: #2e2e2e; }
+.mt .no { position: absolute; top: -2px; left: -2px; font-size: 14px; font-weight: 700;
+  background: #262626; color: #8a8378; padding: 1px 7px; border-radius: 5px 0 5px 0; }
+.sl { height: 33px; line-height: 33px; padding: 0 12px 0 34px; font-size: 21px;
+  font-weight: 600; color: #e8ddd0; border-bottom: 1px solid #2e2e2e;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl:last-child { border-bottom: none; }
+.sl.won { color: #32a870; }
+.sl.lost { color: #6b6459; text-decoration: line-through; font-weight: 400; }
+.sl.empty { color: #666058; font-weight: 400; }
+.sl .src { font-size: 17px; letter-spacing: .04em; }
+
 .enter { max-width: 620px; margin: 6% auto 0; text-align: center; }
 .enter h2 { font-size: 30px; color: #e8ddd0; margin-bottom: 8px; }
 .enter p { color: #b0a898; margin-bottom: 24px; font-size: 21px; }
@@ -318,18 +346,18 @@ function raceText(data, a, b) {
 }
 
 /* ── Drawing ── */
+
+/* ── Chip session board ──
+   Out on top, then the queue reading down, then whoever is on a table — the same
+   order as the scoring page, so the two read alike. */
 function drawChip(d) {
   var roster = d.roster || [], tables = d.tables || [], queue = d.queue || [];
-  var i, j, p, html, seatOf = {}, alive = 0, chipsLeft = 0;
+  var i, j, k, p, html, alive = 0, chipsLeft = 0;
 
-  for (i = 0; i < tables.length; i++) {
-    for (j = 0; j < 2; j++) { if (tables[i][j]) seatOf[tables[i][j]] = i + 1; }
-  }
   for (i = 0; i < roster.length; i++) {
     if (roster[i].chips > 0) { alive++; chipsLeft += roster[i].chips; }
   }
 
-  // Out on top, then the queue reading down, then whoever is on a table.
   var out = [], queued = [], seated = [];
   for (i = 0; i < roster.length; i++) { if (roster[i].chips <= 0) out.push(roster[i]); }
   out.sort(function (a, b) { return (a.outAt || 0) - (b.outAt || 0); });
@@ -339,7 +367,7 @@ function drawChip(d) {
   for (i = 0; i < tables.length; i++) {
     for (j = 0; j < 2; j++) {
       if (!tables[i][j]) continue;
-      for (var k = 0; k < roster.length; k++) {
+      for (k = 0; k < roster.length; k++) {
         if (roster[k].name === tables[i][j]) seated.push({ p: roster[k], table: i + 1 });
       }
     }
@@ -349,8 +377,8 @@ function drawChip(d) {
   html += '<div class="panel"><h2>Players<span class="n">' + alive + ' of ' + roster.length
         + ' in &middot; ' + chipsLeft + ' chips left</span></h2>';
   for (i = 0; i < out.length; i++) {
-    html += '<div class="row out"><span class="nm">' + esc(out[i].name) + '</span>'
-          + '<span class="rt">out</span></div>';
+    html += '<div class="row out"><span class="nm">' + esc(out[i].name)
+          + '</span><span class="rt">out</span></div>';
   }
   for (i = 0; i < queued.length; i++) {
     p = queued[i];
@@ -389,40 +417,176 @@ function drawChip(d) {
   return html;
 }
 
+/* Bracket geometry. Every match sits at the vertical midpoint of whatever feeds
+   it — one rule, applied outward from round one. Absolute positioning, so no
+   flexbox or grid is involved and old browsers lay it out identically. */
+var COL_W = 208, COL_GAP = 54, SLOT_H = 33, MATCH_H = 68, HEAD_H = 30;
+
+function colX(col) { return col * (COL_W + COL_GAP); }
+
+function computeLayout(list, lane) {
+  var rounds = [], pos = {}, i, j, r, cur, prevIds, m, feeds, y, seen = {};
+  for (i = 0; i < list.length; i++) {
+    if (!seen[list[i].round]) { seen[list[i].round] = 1; rounds.push(list[i].round); }
+  }
+  rounds.sort(function (a, b) { return a - b; });
+
+  for (r = 0; r < rounds.length; r++) {
+    cur = [];
+    for (i = 0; i < list.length; i++) { if (list[i].round === rounds[r]) cur.push(list[i]); }
+    prevIds = [];
+    if (r > 0) {
+      for (i = 0; i < list.length; i++) {
+        if (list[i].round === rounds[r - 1]) prevIds.push(list[i].id);
+      }
+    }
+    for (i = 0; i < cur.length; i++) {
+      m = cur[i];
+      if (r === 0) { y = HEAD_H + (i + 0.5) * lane; }
+      else {
+        feeds = [];
+        for (j = 0; j < m.slots.length; j++) {
+          var of = m.slots[j].of;
+          if (of && prevIds.join(',').indexOf(of) > -1 && pos[of]) {
+            var already = false, k;
+            for (k = 0; k < feeds.length; k++) { if (feeds[k].id === of) already = true; }
+            if (!already) feeds.push({ id: of, y: pos[of].y, slot: j });
+          }
+        }
+        if (feeds.length === 1) {
+          // Only one player arrives along the bracket; the other drops in from
+          // the winners side. Sit the box so that feed runs level into its row.
+          y = feeds[0].y - ((feeds[0].slot + 0.5) * SLOT_H - MATCH_H / 2 + 1);
+        } else if (feeds.length > 1) {
+          y = 0;
+          for (j = 0; j < feeds.length; j++) y += feeds[j].y;
+          y = y / feeds.length;
+        } else { y = HEAD_H + (i + 0.5) * lane; }
+      }
+      pos[m.id] = { col: r, y: y, round: rounds[r] };
+    }
+  }
+  return { pos: pos, rounds: rounds };
+}
+
+function connectors(list, pos) {
+  var out = [], i, j, k, m, feeds, fRight, midX, myLeft, rowY, sy, seen;
+  function line(x, y, w, h) {
+    out.push('<div class="ln" style="left:' + Math.round(x) + 'px;top:' + Math.round(y)
+      + 'px;width:' + Math.max(w, 1) + 'px;height:' + Math.max(h, 1) + 'px"></div>');
+  }
+  for (i = 0; i < list.length; i++) {
+    m = list[i];
+    myLeft = colX(pos[m.id].col);
+    for (j = 0; j < m.slots.length; j++) {
+      var of = m.slots[j].of;
+      if (!of || !pos[of] || pos[of].col !== pos[m.id].col - 1) continue;
+      sy = pos[m.id].y - MATCH_H / 2 + 1 + (j + 0.5) * SLOT_H;
+      fRight = colX(pos[of].col) + COL_W;
+      midX = fRight + COL_GAP / 2;
+      line(fRight, pos[of].y, midX - fRight, 1);
+      if (Math.abs(pos[of].y - sy) > 0.5) {
+        line(midX, Math.min(pos[of].y, sy), 1, Math.abs(pos[of].y - sy));
+      }
+      line(midX, sy, myLeft - midX, 1);
+    }
+  }
+  return out.join('');
+}
+
+function slotHTML(m, i, d) {
+  var v = m.players[i], cls = 'sl', label;
+  if (v === undefined) {
+    var s = m.slots[i], src = null, j;
+    if (s.of) { for (j = 0; j < d.__all.length; j++) { if (d.__all[j].id === s.of) src = d.__all[j]; } }
+    label = '<span class="src">' + (src ? (s.type === 'loser' ? 'L' : 'W') + src.no : '&mdash;') + '</span>';
+    cls += ' empty';
+  } else if (v === null) { label = '<span class="src">Bye</span>'; cls += ' empty'; }
+  else {
+    label = esc(v);
+    if (m.resolved) cls += (m.winnerName === v) ? ' won' : ' lost';
+  }
+  return '<div class="' + cls + '"><span class="n">' + label + '</span></div>';
+}
+
+function canvas(list, labelFor, lane, d) {
+  if (!list.length) return { html: '', w: 0, h: 0 };
+  var L = computeLayout(list, lane), pos = L.pos, rounds = L.rounds;
+  var maxY = 0, i, r, m, p, k;
+  for (k in pos) { if (pos.hasOwnProperty(k) && pos[k].y > maxY) maxY = pos[k].y; }
+  var h = maxY + MATCH_H / 2 + 14, w = colX(rounds.length - 1) + COL_W;
+
+  var html = '<div class="cv" style="width:' + w + 'px;height:' + h + 'px">';
+  for (r = 0; r < rounds.length; r++) {
+    var count = 0;
+    for (i = 0; i < list.length; i++) { if (list[i].round === rounds[r]) count++; }
+    html += '<div class="rl" style="left:' + colX(r) + 'px;width:' + COL_W + 'px">'
+          + labelFor(rounds[r], count) + '</div>';
+  }
+  html += connectors(list, pos);
+  for (i = 0; i < list.length; i++) {
+    m = list[i]; p = pos[m.id];
+    var ready = !m.resolved && m.players[0] !== undefined && m.players[1] !== undefined
+             && m.players[0] !== null && m.players[1] !== null;
+    html += '<div class="mt' + (ready ? ' ready' : '') + (m.resolved ? ' done' : '')
+          + '" style="left:' + colX(p.col) + 'px;top:' + Math.round(p.y - MATCH_H / 2)
+          + 'px;width:' + COL_W + 'px;height:' + MATCH_H + 'px">'
+          + '<span class="no">' + m.no + '</span>'
+          + slotHTML(m, 0, d) + slotHTML(m, 1, d) + '</div>';
+  }
+  html += '</div>';
+  return { html: html, w: w, h: h };
+}
+
 function drawBracket(d) {
   var matches = buildBracket(d.bySeed || {}, d.format);
   resolve(matches, d.bySeed || {}, d.winners || {});
-  var ready = [], done = [], i, m;
+  d.__all = matches;
+
+  var wb = [], lb = [], gf = [], i, m;
   for (i = 0; i < matches.length; i++) {
     m = matches[i];
-    if (!m.live) continue;
-    if (!m.resolved && m.players[0] !== undefined && m.players[1] !== undefined
-        && m.players[0] !== null && m.players[1] !== null) ready.push(m);
-    else if (m.resolved && !m.autoWon) done.push(m);
+    if (m.bracket === 'W') wb.push(m);
+    else if (m.bracket === 'L') lb.push(m);
+    else if (m.live) gf.push(m);
   }
-  done.sort(function (a, b) { return b.no - a.no; });
+  var wbRounds = 0;
+  for (i = 0; i < wb.length; i++) { if (wb[i].round > wbRounds) wbRounds = wb[i].round; }
 
-  var html = '<div class="cols"><div class="col">';
-  html += '<div class="panel"><h2>Ready to play<span class="n">' + ready.length + '</span></h2>';
-  if (!ready.length) html += '<div class="empty">Nothing waiting on a table.</div>';
-  for (i = 0; i < ready.length; i++) {
-    m = ready[i];
-    var race = raceText(d, m.players[0], m.players[1]);
-    html += '<div class="match"><span class="no">#' + m.no + '</span>'
-          + '<span class="who">' + esc(m.players[0]) + '<span class="vs">v</span>'
-          + esc(m.players[1]) + '</span>'
-          + (race ? '<span class="race">' + race + '</span>' : '') + '</div>';
+  // The finals continue the winners row, so they share that canvas.
+  var wbAll = wb.slice(), shifted;
+  for (i = 0; i < gf.length; i++) {
+    shifted = {};
+    for (var k in gf[i]) { if (gf[i].hasOwnProperty(k)) shifted[k] = gf[i][k]; }
+    shifted.round = wbRounds + gf[i].round;
+    wbAll.push(shifted);
   }
-  html += '</div></div><div class="col right">';
-  html += '<div class="panel"><h2>Results<span class="n">' + done.length + ' played</span></h2>';
-  if (!done.length) html += '<div class="empty">No results yet.</div>';
-  for (i = 0; i < Math.min(12, done.length); i++) {
-    m = done[i];
-    html += '<div class="log"><b>' + esc(m.winnerName) + '</b> beat '
-          + esc(m.loserName) + ' <span style="color:#666058">(#' + m.no + ')</span></div>';
+
+  var single = d.format === 'single';
+  function wbLabel(r) {
+    if (r > wbRounds) return r === wbRounds + 2 ? 'Final #2' : 'Final';
+    if (r === wbRounds) return single ? 'Final' : 'Winners Final';
+    if (r === wbRounds - 1) return single ? 'Semifinals' : 'Winners Semis';
+    return single ? 'Round ' + r : 'Winners R' + r;
   }
-  html += '</div></div></div>';
-  return html;
+  var lbLast = (wbRounds - 1) * 2;
+  function lbLabel(r) {
+    if (r === lbLast) return 'Losers Final';
+    if (r === lbLast - 1) return 'Losers Semis';
+    return 'Losers R' + r;
+  }
+
+  var LANE = 88;
+  var lbFirst = 0;
+  for (i = 0; i < lb.length; i++) { if (lb[i].round === 1) lbFirst++; }
+  var size = 0;
+  for (var s in (d.bySeed || {})) { if (d.bySeed.hasOwnProperty(s)) size++; }
+  var lbLane = lbFirst ? ((size / 2) * LANE) / lbFirst : LANE;
+
+  var A = canvas(wbAll, wbLabel, LANE, d);
+  var B = lb.length ? canvas(lb, lbLabel, lbLane, d) : { html: '', w: 0, h: 0 };
+
+  return { top: A, bottom: B };
 }
 
 function championOf(d) {
@@ -430,20 +594,59 @@ function championOf(d) {
   return null;
 }
 
+/* A wall display can't scroll, so whatever is drawn gets scaled to fit the
+   screen. Below about 60% the names stop being readable across a room, so at
+   that point the two halves take turns instead of being squeezed together. */
+var SHOWING = 'both', FLIP = 0, LAST = null;
+
+function fit(w, h) {
+  var availW = document.documentElement.clientWidth - 60;
+  var availH = document.documentElement.clientHeight - 150;
+  if (!w || !h) return 1;
+  return Math.min(1, availW / w, availH / h);
+}
+
 function draw(d) {
+  LAST = d;
   $('board').style.display = '';
   $('enter').style.display = 'none';
   $('title').innerHTML = esc(d.name || 'Tournament');
   $('code').innerHTML = esc(CODE);
 
-  var html = '';
-  var champ = championOf(d);
+  var champ = championOf(d), html = '';
   if (champ) {
     html += '<div class="champ"><div class="lbl">Champion</div><div class="nm">'
           + esc(champ) + '</div></div>';
   }
-  html += (d.kind === 'chip') ? drawChip(d) : drawBracket(d);
+
+  if (d.kind === 'chip') { $('body').innerHTML = html + drawChip(d); return; }
+
+  var parts = drawBracket(d);
+  var A = parts.top, B = parts.bottom;
+  var bothH = A.h + B.h + (B.h ? 46 : 0);
+  var bothW = Math.max(A.w, B.w);
+  var scaleBoth = fit(bothW, bothH + (champ ? 120 : 0));
+
+  if (!B.h || scaleBoth >= 0.6) {
+    SHOWING = 'both';
+    html += wrap(A, scaleBoth, d.format === 'single' ? 'Bracket' : 'Winners');
+    if (B.h) html += wrap(B, scaleBoth, 'Losers');
+  } else {
+    // Too tight to show both — alternate, each scaled on its own.
+    SHOWING = (FLIP % 2 === 0) ? 'winners' : 'losers';
+    var P = SHOWING === 'winners' ? A : B;
+    html += wrap(P, fit(P.w, P.h + (champ ? 120 : 0)),
+                 SHOWING === 'winners' ? 'Winners bracket' : 'Losers bracket');
+  }
   $('body').innerHTML = html;
+}
+
+function wrap(part, scale, label) {
+  if (!part.h) return '';
+  return '<div class="sec"><div class="sh">' + label + '</div>'
+    + '<div class="fit" style="height:' + Math.ceil(part.h * scale) + 'px">'
+    + '<div class="sc" style="-webkit-transform:scale(' + scale + ');transform:scale(' + scale + ')">'
+    + part.html + '</div></div></div>';
 }
 
 /* ── Loading, with plain .then rather than async/await ── */
@@ -460,6 +663,7 @@ function load(first) {
       var d = j.data;
       if (d.kind === 'signup') { fail('That code is a signup sheet, not a tournament.'); return; }
       if (d.saved !== lastSaved) { lastSaved = d.saved; draw(d); }
+      else { LAST = d; }
       $('live').innerHTML = 'Live';
     })
     ['catch'](function () {
@@ -480,6 +684,11 @@ function start() {
     CODE = c;
     load(true);
     window.setInterval(function () { load(false); }, REFRESH);
+    // When the two halves are taking turns, swap every fifteen seconds.
+    window.setInterval(function () {
+      if (SHOWING !== 'both' && LAST) { FLIP++; draw(LAST); }
+    }, 15000);
+    window.onresize = function () { if (LAST) draw(LAST); };
     return;
   }
   $('enter').style.display = '';
