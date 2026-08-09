@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tournament Board — Kemmerer Pool League</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ── Built for smart-TV browsers ──
+   Samsung's Tizen browser is a Chromium fork frozen at whatever shipped with the
+   set, so this file deliberately avoids anything newer than about 2016:
+     no optional chaining or ??      (syntax errors kill the whole script)
+     no flexbox gap                  (spacing silently collapses)
+     no CSS grid, no inset shorthand
+     no async/await                  (plain .then instead)
+     no Object.fromEntries, .flat(), .at(), replaceAll
+   Sizes are large because this is read from across a room. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', Arial, sans-serif;
+  background: #141414;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.4;
+  padding: 26px 30px 40px;
+}
+
+.head { border-bottom: 2px solid #363636; padding-bottom: 14px; margin-bottom: 22px; overflow: hidden; }
+.head h1 { font-size: 40px; font-weight: 700; color: #e8ddd0; float: left; }
+.head .meta { float: right; text-align: right; font-size: 19px; color: #666058; padding-top: 10px; }
+.head .code { font-family: monospace; letter-spacing: .1em; color: #b0a898; }
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
+  background: #32a870; margin-right: 8px; vertical-align: middle; }
+
+.champ { background: #1e1e1e; border: 3px solid #27855a; border-radius: 10px;
+  padding: 22px 26px; margin-bottom: 22px; text-align: center; }
+.champ .lbl { font-size: 18px; letter-spacing: .16em; text-transform: uppercase; color: #666058; }
+.champ .nm { font-size: 52px; font-weight: 700; color: #32a870; }
+
+.cols { overflow: hidden; }
+.col { float: left; width: 49%; }
+.col.right { float: right; }
+.col.full { float: none; width: 100%; }
+
+.panel { background: #1e1e1e; border: 2px solid #363636; border-radius: 10px;
+  margin-bottom: 20px; overflow: hidden; }
+.panel h2 { font-size: 20px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #b0a898; background: #262626; padding: 12px 20px; border-bottom: 2px solid #363636; }
+.panel h2 .n { float: right; color: #666058; letter-spacing: 0; text-transform: none; font-weight: 400; }
+
+.row { padding: 13px 20px; border-bottom: 1px solid #2e2e2e; overflow: hidden; }
+.row:last-child { border-bottom: none; }
+.row .nm { font-size: 25px; font-weight: 600; color: #e8ddd0; float: left; }
+.row .rt { float: right; color: #666058; font-size: 20px; }
+.row.out { opacity: .45; }
+.row.out .nm { text-decoration: line-through; font-weight: 400; }
+.row.seat { background: rgba(50,168,112,.12); }
+.row.seat .nm { color: #32a870; }
+.row.tstart { border-top: 3px solid #464646; }
+
+/* Chips: filled means in hand, hollow means already lost. Lost come off the left. */
+.chips { float: right; padding-top: 7px; }
+.chip { display: inline-block; width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid #32a870; background: #32a870; margin-left: 5px; }
+.chip.spent { background: transparent; }
+
+.match { padding: 15px 20px; border-bottom: 1px solid #2e2e2e; overflow: hidden; }
+.match:last-child { border-bottom: none; }
+.match .no { display: inline-block; min-width: 54px; font-size: 20px; font-weight: 700;
+  color: #666058; float: left; }
+.match .who { float: left; font-size: 25px; font-weight: 600; color: #e8ddd0; }
+.match .vs { color: #666058; font-weight: 400; padding: 0 10px; }
+.match .race { float: right; color: #b0a898; font-size: 20px; }
+.match .tbl { float: right; color: #32a870; font-size: 20px; margin-left: 18px; }
+
+.log { padding: 13px 20px; border-bottom: 1px solid #2e2e2e; font-size: 21px; color: #b0a898; }
+.log:last-child { border-bottom: none; }
+.log b { color: #e8ddd0; font-weight: 600; }
+
+.empty { padding: 26px 20px; color: #666058; font-size: 21px; }
+
+.enter { max-width: 620px; margin: 6% auto 0; text-align: center; }
+.enter h2 { font-size: 30px; color: #e8ddd0; margin-bottom: 8px; }
+.enter p { color: #b0a898; margin-bottom: 24px; font-size: 21px; }
+.enter input { width: 100%; font-family: monospace; font-size: 58px; font-weight: 700;
+  letter-spacing: .3em; text-align: center; text-transform: uppercase;
+  color: #e8ddd0; background: #141414; border: 3px solid #363636; border-radius: 10px;
+  padding: 18px 10px; margin-bottom: 18px; }
+.enter input:focus { outline: none; border-color: #27855a; }
+.enter button { width: 100%; font-family: inherit; font-size: 26px; font-weight: 700;
+  color: #ffffff; background: #27855a; border: none; border-radius: 10px;
+  padding: 20px; cursor: pointer; }
+.enter button:focus { outline: 4px solid #32a870; }
+.enter .msg { margin-top: 16px; color: #cc4444; font-size: 20px; min-height: 24px; }
+.enter .tip { margin-top: 26px; color: #666058; font-size: 18px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="enter" class="enter" style="display:none">
+  <h2>Tournament board</h2>
+  <p>Enter the four-character code</p>
+  <input id="codebox" type="text" maxlength="4" autocomplete="off" placeholder="ABCD">
+  <button id="go">Show the board</button>
+  <div class="msg" id="msg"></div>
+  <div class="tip">
+    Easier still: point the TV straight at the address with the code on the end, for example<br>
+    kemmererpool.com/tv.html?t=ABCD
+  </div>
+</div>
+
+<div id="board" style="display:none">
+  <div class="head">
+    <h1 id="title">Tournament</h1>
+    <div class="meta">
+      <div><span class="dot"></span><span id="live">Live</span></div>
+      <div class="code" id="code"></div>
+    </div>
+  </div>
+  <div id="body"></div>
+</div>
+
+<script>
+/* Everything below is deliberately plain: no arrow-free rules broken, but no
+   optional chaining, no async/await, no newer built-ins. */
+
+var CODE = null;
+var REFRESH = 20000;
+
+function $(id) { return document.getElementById(id); }
+
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function getParam(name) {
+  var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+/* ── Chips ── */
+function chipDots(p) {
+  var start = p.start || 0, left = p.chips || 0;
+  var spent = start - left, out = '', i;
+  for (i = 0; i < start; i++) {
+    out += '<span class="chip' + (i < spent ? ' spent' : '') + '"></span>';
+  }
+  return '<span class="chips">' + out + '</span>';
+}
+
+/* ── Bracket rebuild ──
+   Only enough of it to know who plays whom next; the scoring pages own the
+   real engine. Slots name a seed, or the winner or loser of an earlier match. */
+function seedOrder(size) {
+  var order = [1], next, i, round;
+  while (order.length < size) {
+    round = order.length * 2 + 1;
+    next = [];
+    for (i = 0; i < order.length; i++) { next.push(order[i]); next.push(round - order[i]); }
+    order = next;
+  }
+  return order;
+}
+
+function buildBracket(bySeed, format) {
+  var size = 0, k;
+  for (k in bySeed) { if (bySeed.hasOwnProperty(k)) size++; }
+  var rounds = Math.round(Math.log(size) / Math.log(2));
+  var matches = [], order = seedOrder(size), prev = [], cur, r, i, count;
+
+  for (r = 1; r <= rounds; r++) {
+    count = size / Math.pow(2, r);
+    cur = [];
+    for (i = 0; i < count; i++) {
+      cur.push({ id: 'W' + r + '-' + i, bracket: 'W', round: r, winner: null,
+        slots: r === 1
+          ? [{ type: 'seed', seed: order[i * 2] }, { type: 'seed', seed: order[i * 2 + 1] }]
+          : [{ type: 'winner', of: prev[i * 2].id }, { type: 'winner', of: prev[i * 2 + 1].id }] });
+      matches.push(cur[cur.length - 1]);
+    }
+    prev = cur;
+  }
+  var wbFinal = prev[0];
+  if (format === 'single') { number(matches, rounds, true); return matches; }
+
+  function wbRound(n) {
+    var out = [], j;
+    for (j = 0; j < matches.length; j++) {
+      if (matches[j].bracket === 'W' && matches[j].round === n) out.push(matches[j]);
+    }
+    return out;
+  }
+  var lbPrev = [], last = rounds > 1 ? (rounds - 1) * 2 : 0, drops, dd, m;
+  for (r = 1; r <= last; r++) {
+    cur = [];
+    if (r === 1) {
+      drops = wbRound(1);
+      for (i = 0; i < drops.length / 2; i++) {
+        m = { id: 'L1-' + i, bracket: 'L', round: 1, winner: null,
+          slots: [{ type: 'loser', of: drops[i * 2].id }, { type: 'loser', of: drops[i * 2 + 1].id }] };
+        cur.push(m); matches.push(m);
+      }
+    } else if (r % 2 === 0) {
+      drops = wbRound(r / 2 + 1);
+      dd = ((r / 2) % 2 === 1) ? drops.slice().reverse() : drops;
+      for (i = 0; i < lbPrev.length; i++) {
+        m = { id: 'L' + r + '-' + i, bracket: 'L', round: r, winner: null,
+          slots: [{ type: 'loser', of: dd[i].id }, { type: 'winner', of: lbPrev[i].id }] };
+        cur.push(m); matches.push(m);
+      }
+    } else {
+      for (i = 0; i < lbPrev.length / 2; i++) {
+        m = { id: 'L' + r + '-' + i, bracket: 'L', round: r, winner: null,
+          slots: [{ type: 'winner', of: lbPrev[i * 2].id }, { type: 'winner', of: lbPrev[i * 2 + 1].id }] };
+        cur.push(m); matches.push(m);
+      }
+    }
+    lbPrev = cur;
+  }
+  var lbFinal = lbPrev.length ? lbPrev[0] : null;
+  matches.push({ id: 'GF', bracket: 'GF', round: 1, winner: null,
+    slots: [{ type: 'winner', of: wbFinal.id },
+            lbFinal ? { type: 'winner', of: lbFinal.id } : { type: 'loser', of: wbFinal.id }] });
+  matches.push({ id: 'GF2', bracket: 'GF', round: 2, winner: null,
+    slots: [{ type: 'winner', of: 'GF' }, { type: 'loser', of: 'GF' }] });
+  number(matches, rounds, false);
+  return matches;
+}
+
+function number(matches, rounds, single) {
+  var seq = [], r, i, no = 1;
+  function pick(br, rd) {
+    var out = [], j;
+    for (j = 0; j < matches.length; j++) {
+      if (matches[j].bracket === br && matches[j].round === rd) out.push(matches[j]);
+    }
+    return out;
+  }
+  for (r = 1; r <= rounds; r++) {
+    seq = seq.concat(pick('W', r));
+    if (single) continue;
+    if (r === 1) seq = seq.concat(pick('L', 1));
+    else { seq = seq.concat(pick('L', (r - 1) * 2)); seq = seq.concat(pick('L', (r - 1) * 2 + 1)); }
+  }
+  seq = seq.concat(pick('GF', 1)).concat(pick('GF', 2));
+  for (i = 0; i < seq.length; i++) { if (!seq[i].no) seq[i].no = no++; }
+}
+
+function resolve(matches, bySeed, winners) {
+  var byId = {}, i, j, m, s, a, b;
+  for (i = 0; i < matches.length; i++) byId[matches[i].id] = matches[i];
+  for (i = 0; i < matches.length; i++) {
+    m = matches[i];
+    m.winner = (winners && winners[m.id] !== undefined) ? winners[m.id] : null;
+    m.players = []; m.live = true; m.resolved = false; m.autoWon = false;
+    if (m.id === 'GF2') {
+      var gf = byId['GF'];
+      if (!gf || !gf.resolved || gf.winner !== 1) { m.live = false; continue; }
+    }
+    for (j = 0; j < m.slots.length; j++) {
+      s = m.slots[j];
+      if (s.type === 'seed') {
+        m.players.push(bySeed[s.seed] === undefined ? null : bySeed[s.seed]);
+      } else {
+        var src = byId[s.of];
+        if (!src || !src.resolved) m.players.push(undefined);
+        else m.players.push(s.type === 'winner' ? src.winnerName : src.loserName);
+      }
+    }
+    a = m.players[0]; b = m.players[1];
+    if (a === undefined || b === undefined) continue;
+    if (a === null && b === null) { m.winnerName = null; m.loserName = null; m.resolved = true; m.autoWon = true; }
+    else if (b === null) { m.winnerName = a; m.loserName = null; m.resolved = true; m.autoWon = true; }
+    else if (a === null) { m.winnerName = b; m.loserName = null; m.resolved = true; m.autoWon = true; }
+    else if (m.winner === 0 || m.winner === 1) {
+      m.winnerName = m.players[m.winner];
+      m.loserName = m.players[1 - m.winner];
+      m.resolved = true;
+    }
+  }
+  return matches;
+}
+
+/* ── Fargo hot race charts, for showing each match's race ── */
+var CHARTS = {
+  R2: [[0,67,2,2],[68,112,3,2],[113,null,4,2]],
+  R3: [[0,67,3,3],[68,112,3,2],[113,147,4,2],[148,null,5,2]],
+  R4: [[0,45,4,4],[46,80,4,3],[81,146,5,3],[147,175,5,2],[176,null,6,2]],
+  R5: [[0,34,5,5],[35,62,5,4],[63,108,6,4],[109,131,6,3],[132,151,7,3],[152,null,8,3]],
+  R6: [[0,27,6,6],[28,51,6,5],[52,85,7,5],[86,106,7,4],[107,151,8,4],[152,169,8,3],[170,null,9,3]],
+  R7: [[0,23,7,7],[24,43,7,6],[44,71,8,6],[72,89,8,5],[90,123,9,5],[124,139,9,4],[140,185,10,4],[186,null,10,3]]
+};
+
+function raceText(data, a, b) {
+  if (data.kind === 'bracket') {
+    var races = data.races || {};
+    var ra = races[a] || 3, rb = races[b] || 3;
+    return ra + ' &ndash; ' + rb;
+  }
+  if (data.kind !== 'tournament') return '';
+  var roster = data.roster || [], i, ratA = 0, ratB = 0;
+  for (i = 0; i < roster.length; i++) {
+    if (roster[i].name === a) ratA = roster[i].rating;
+    if (roster[i].name === b) ratB = roster[i].rating;
+  }
+  if (!ratA || !ratB) return '';
+  var chart = CHARTS[data.chart] || CHARTS.R3;
+  var diff = Math.abs(ratA - ratB), row = chart[chart.length - 1], j;
+  for (j = 0; j < chart.length; j++) {
+    if (chart[j][1] === null || diff <= chart[j][1]) { row = chart[j]; break; }
+  }
+  var fav = row[2], dog = row[3];
+  return (ratA >= ratB ? fav + ' &ndash; ' + dog : dog + ' &ndash; ' + fav);
+}
+
+/* ── Drawing ── */
+function drawChip(d) {
+  var roster = d.roster || [], tables = d.tables || [], queue = d.queue || [];
+  var i, j, p, html, seatOf = {}, alive = 0, chipsLeft = 0;
+
+  for (i = 0; i < tables.length; i++) {
+    for (j = 0; j < 2; j++) { if (tables[i][j]) seatOf[tables[i][j]] = i + 1; }
+  }
+  for (i = 0; i < roster.length; i++) {
+    if (roster[i].chips > 0) { alive++; chipsLeft += roster[i].chips; }
+  }
+
+  // Out on top, then the queue reading down, then whoever is on a table.
+  var out = [], queued = [], seated = [];
+  for (i = 0; i < roster.length; i++) { if (roster[i].chips <= 0) out.push(roster[i]); }
+  out.sort(function (a, b) { return (a.outAt || 0) - (b.outAt || 0); });
+  for (i = queue.length - 1; i >= 0; i--) {
+    for (j = 0; j < roster.length; j++) { if (roster[j].name === queue[i]) queued.push(roster[j]); }
+  }
+  for (i = 0; i < tables.length; i++) {
+    for (j = 0; j < 2; j++) {
+      if (!tables[i][j]) continue;
+      for (var k = 0; k < roster.length; k++) {
+        if (roster[k].name === tables[i][j]) seated.push({ p: roster[k], table: i + 1 });
+      }
+    }
+  }
+
+  html = '<div class="cols"><div class="col">';
+  html += '<div class="panel"><h2>Players<span class="n">' + alive + ' of ' + roster.length
+        + ' in &middot; ' + chipsLeft + ' chips left</span></h2>';
+  for (i = 0; i < out.length; i++) {
+    html += '<div class="row out"><span class="nm">' + esc(out[i].name) + '</span>'
+          + '<span class="rt">out</span></div>';
+  }
+  for (i = 0; i < queued.length; i++) {
+    p = queued[i];
+    html += '<div class="row"><span class="nm">' + esc(p.name) + '</span>' + chipDots(p) + '</div>';
+  }
+  var lastTable = null;
+  for (i = 0; i < seated.length; i++) {
+    p = seated[i].p;
+    var isNew = seated[i].table !== lastTable;
+    lastTable = seated[i].table;
+    html += '<div class="row seat' + (isNew ? ' tstart' : '') + '">'
+          + '<span class="nm">' + esc(p.name) + '</span>' + chipDots(p) + '</div>';
+  }
+  html += '</div></div><div class="col right">';
+
+  html += '<div class="panel"><h2>Tables</h2>';
+  for (i = 0; i < tables.length; i++) {
+    if (!tables[i][0] && !tables[i][1]) continue;
+    html += '<div class="match"><span class="no">' + (i + 1) + '</span><span class="who">'
+          + esc(tables[i][0] || 'Open') + '<span class="vs">v</span>'
+          + esc(tables[i][1] || 'Open') + '</span></div>';
+  }
+  html += '</div>';
+
+  var log = d.log || [];
+  if (log.length) {
+    html += '<div class="panel"><h2>Just played</h2>';
+    for (i = 0; i < Math.min(6, log.length); i++) {
+      if (log[i].manual) html += '<div class="log">' + esc(log[i].text) + '</div>';
+      else html += '<div class="log"><b>' + esc(log[i].winner) + '</b> beat '
+                 + esc(log[i].loser) + ' on table ' + log[i].table + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function drawBracket(d) {
+  var matches = buildBracket(d.bySeed || {}, d.format);
+  resolve(matches, d.bySeed || {}, d.winners || {});
+  var ready = [], done = [], i, m;
+  for (i = 0; i < matches.length; i++) {
+    m = matches[i];
+    if (!m.live) continue;
+    if (!m.resolved && m.players[0] !== undefined && m.players[1] !== undefined
+        && m.players[0] !== null && m.players[1] !== null) ready.push(m);
+    else if (m.resolved && !m.autoWon) done.push(m);
+  }
+  done.sort(function (a, b) { return b.no - a.no; });
+
+  var html = '<div class="cols"><div class="col">';
+  html += '<div class="panel"><h2>Ready to play<span class="n">' + ready.length + '</span></h2>';
+  if (!ready.length) html += '<div class="empty">Nothing waiting on a table.</div>';
+  for (i = 0; i < ready.length; i++) {
+    m = ready[i];
+    var race = raceText(d, m.players[0], m.players[1]);
+    html += '<div class="match"><span class="no">#' + m.no + '</span>'
+          + '<span class="who">' + esc(m.players[0]) + '<span class="vs">v</span>'
+          + esc(m.players[1]) + '</span>'
+          + (race ? '<span class="race">' + race + '</span>' : '') + '</div>';
+  }
+  html += '</div></div><div class="col right">';
+  html += '<div class="panel"><h2>Results<span class="n">' + done.length + ' played</span></h2>';
+  if (!done.length) html += '<div class="empty">No results yet.</div>';
+  for (i = 0; i < Math.min(12, done.length); i++) {
+    m = done[i];
+    html += '<div class="log"><b>' + esc(m.winnerName) + '</b> beat '
+          + esc(m.loserName) + ' <span style="color:#666058">(#' + m.no + ')</span></div>';
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function championOf(d) {
+  if (d.champion) return d.champion;
+  return null;
+}
+
+function draw(d) {
+  $('board').style.display = '';
+  $('enter').style.display = 'none';
+  $('title').innerHTML = esc(d.name || 'Tournament');
+  $('code').innerHTML = esc(CODE);
+
+  var html = '';
+  var champ = championOf(d);
+  if (champ) {
+    html += '<div class="champ"><div class="lbl">Champion</div><div class="nm">'
+          + esc(champ) + '</div></div>';
+  }
+  html += (d.kind === 'chip') ? drawChip(d) : drawBracket(d);
+  $('body').innerHTML = html;
+}
+
+/* ── Loading, with plain .then rather than async/await ── */
+var lastSaved = -1;
+
+function load(first) {
+  fetch('/api/t/' + encodeURIComponent(CODE))
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (!j || !j.ok) {
+        if (first) fail('No tournament with code ' + CODE);
+        return;
+      }
+      var d = j.data;
+      if (d.kind === 'signup') { fail('That code is a signup sheet, not a tournament.'); return; }
+      if (d.saved !== lastSaved) { lastSaved = d.saved; draw(d); }
+      $('live').innerHTML = 'Live';
+    })
+    ['catch'](function () {
+      $('live').innerHTML = 'Offline';
+      if (first) fail('Could not reach the server.');
+    });
+}
+
+function fail(text) {
+  $('enter').style.display = '';
+  $('board').style.display = 'none';
+  $('msg').innerHTML = esc(text);
+}
+
+function start() {
+  var c = getParam('t').toUpperCase();
+  if (c) {
+    CODE = c;
+    load(true);
+    window.setInterval(function () { load(false); }, REFRESH);
+    return;
+  }
+  $('enter').style.display = '';
+  $('codebox').focus();
+}
+
+$('go').onclick = function () {
+  var v = $('codebox').value.replace(/\s/g, '').toUpperCase();
+  if (v.length !== 4) { $('msg').innerHTML = 'Codes are four characters.'; return; }
+  // Assigning to location.search does not navigate on some TV browsers, so
+  // build the whole address and use assign().
+  window.location.assign(window.location.pathname + '?t=' + v);
+};
+
+$('codebox').onkeyup = function (e) {
+  this.value = this.value.toUpperCase();
+  if (e.keyCode === 13) $('go').onclick();
+};
+
+start();
+</script>
+</body>
+</html>
