@@ -15,6 +15,7 @@
     --text: #ffffff; --text2: #b0a898; --text3: #666058;
     --accent: #27855a; --cream: #e8ddd0; --green2: #32a870; --loss: #cc4444;
     --on-accent: #ffffff;
+    --seat-tint: rgba(50,168,112,.12);
     --radius: 8px; --radius-sm: 5px;
   }
   html[data-theme="light"] {
@@ -22,6 +23,7 @@
     --border: #d6d0c5; --border2: #bcb4a6;
     --text: #1a1714; --text2: #5a5348; --text3: #8b8376;
     --accent: #1f6b48; --cream: #2b2419; --green2: #1a7a4e; --loss: #b23636;
+    --seat-tint: rgba(31,107,72,.10);
   }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -291,7 +293,11 @@
   .prow .pl { width: 22px; font-size: 12px; font-weight: 700; color: var(--text3);
     font-variant-numeric: tabular-nums; }
   .prow .tag { width: 82px; text-align: center; }
-  .prow.seated { background: var(--bg); }
+  /* Anyone on a table is tinted, and each pair is separated so the two players
+     at a table read as a unit. */
+  .prow.seated { background: var(--seat-tint); }
+  .prow.seated .pn { color: var(--green2); }
+  .prow.table-start { border-top: 2px solid var(--border2); }
 
   /* A filled circle is a chip in hand; an empty one is a chip already lost. */
   .chips { display: inline-flex; gap: 3px; flex: none; align-items: center; }
@@ -389,7 +395,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.02</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.03</div>
 </footer>
 
 <script>
@@ -793,23 +799,31 @@ function render() {
   // queue reading downwards so the player about to come on sits at the bottom.
   const byName = (n) => S.roster.find(x => x.name === n);
   const seatedOrder = [];
-  S.tables.forEach(seat => seat.forEach(n => { if (n) seatedOrder.push(byName(n)); }));
+  S.tables.forEach((seat, ti) => seat.forEach(n => {
+    if (n) seatedOrder.push({ p: byName(n), table: ti + 1 });
+  }));
+  // Knocked out at the top, then the queue reading downwards so whoever is up
+  // next sits directly above the tables they are about to feed.
   const boardOrder = [
-    ...S.roster.filter(p => p.chips === 0).sort((a, b) => (a.outAt || 0) - (b.outAt || 0)),
+    ...S.roster.filter(p => p.chips === 0)
+       .sort((a, b) => (a.outAt || 0) - (b.outAt || 0)).map(p => ({ p, table: null })),
+    ...[...S.queue].reverse().map(n => ({ p: byName(n), table: null })),
     ...seatedOrder,
-    ...[...S.queue].reverse().map(byName),
-  ].filter(Boolean);
+  ].filter(x => x.p);
 
   // Once it's over, placings are what matter.
-  const order = champ ? standings(S) : boardOrder;
-  const players = order.map((p, i) => {
+  const order = champ ? standings(S).map(p => ({ p, table: null })) : boardOrder;
+  const players = order.map((row, i) => {
+    const p = row.p;
     const at = seatedAt[p.name];
     const upNext = S.queue.indexOf(p.name);
-    const where = p.chips === 0 ? `<span class="tag out">${p.outAt ? 'Out' : 'Out'}</span>`
+    const where = p.chips === 0 ? '<span class="tag out">Out</span>'
       : at ? `<span class="tag on">Table ${at}</span>`
       : upNext === 0 ? '<span class="tag next">Up next</span>'
       : upNext > 0 ? `<span class="tag">#${upNext + 1} in line</span>` : '';
-    return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}">
+    // A rule above each table's first player keeps the two together as a pair.
+    const newTable = row.table && (i === 0 || order[i - 1].table !== row.table);
+    return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}${newTable ? ' table-start' : ''}">
       ${champ ? `<span class="pl">${p.place}</span>` : ''}
       <span class="pn">${esc(p.name)}</span>
       ${chipDots(p)}
