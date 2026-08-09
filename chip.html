@@ -269,73 +269,76 @@
   .print-head .d { font-size: 9pt; color: #555; }
 
   /* ── Chip board ──
-     Built to work on a phone first: whoever is scoring walks between tables,
-     so a table is a card and reporting a winner is one thumb press. */
-  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+     Players down the left with their chips, tables on the right — the whole
+     field readable at a glance. Stacks on a phone, tables first, since whoever
+     is scoring is walking between them. */
+  .split { display: grid; grid-template-columns: minmax(0,1fr) 330px; gap: 18px; align-items: start; }
+  @media (max-width: 820px) {
+    .split { grid-template-columns: 1fr; }
+    .col-tables { order: -1; }
+  }
+
+  .plist { max-height: none; }
+  .prow { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    border-bottom: 1px solid var(--border); font-size: 14px; }
+  .prow:last-child { border-bottom: none; }
+  .prow.out { opacity: .5; }
+  .prow .pn { flex: 1; min-width: 0; color: var(--cream); font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow.out .pn { text-decoration: line-through; font-weight: 400; }
+  .prow .pw { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums;
+    white-space: nowrap; }
+
+  /* A filled circle is a chip in hand; an empty one is a chip already lost. */
+  .chips { display: inline-flex; gap: 3px; flex-shrink: 0; }
+  .chip { width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green2); border: 1.5px solid var(--green2); box-sizing: border-box; }
+  .chip.spent { background: transparent; }
+
+  .tag { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border2);
+    color: var(--text3); white-space: nowrap; }
+  .tag.on { border-color: var(--accent); color: var(--green2); }
+  .tag.next { border-color: var(--border2); color: var(--text2); }
+  .tag.out { border-color: var(--border); color: var(--text3); }
+
+  .tables-pad { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; }
   .table-card { border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--bg); overflow: hidden; }
-  .table-card.idle { opacity: .55; }
+  .table-card.idle { opacity: .5; }
   .table-head { display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; background: var(--bg3); border-bottom: 1px solid var(--border);
-    font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 7px 11px; background: var(--bg3); border-bottom: 1px solid var(--border);
+    font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
     color: var(--text3); }
   .table-timer { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
   .table-timer.over { color: var(--loss); }
   .seat { display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    width: 100%; padding: 13px 12px; background: none; border: none; border-bottom: 1px solid var(--border);
-    font-family: inherit; font-size: 15px; text-align: left; color: var(--cream); font-weight: 600; }
+    width: 100%; padding: 11px; background: none; border: none;
+    border-bottom: 1px solid var(--border); font-family: inherit; font-size: 14px;
+    text-align: left; color: var(--cream); font-weight: 600; }
   .seat:last-child { border-bottom: none; }
+  .seat .sn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .seat.playable { cursor: pointer; }
   .seat.playable:hover { background: var(--bg3); }
   .seat.empty { color: var(--text3); font-weight: 400; font-style: italic; }
-  .seat .chips { display: flex; gap: 2px; flex-shrink: 0; }
-  .chip { width: 9px; height: 9px; border-radius: 50%; background: var(--green2); }
-  .chip.spent { background: var(--border2); }
 
-  .queue-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 18px; }
+  .queue-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px; }
   .qchip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
-    border: 1px solid var(--border); border-radius: 99px; background: var(--bg);
-    font-size: 13px; color: var(--text2); }
+    border: 1px solid var(--border); border-radius: 99px; background: var(--bg); font-size: 13px; }
   .qchip .qn { color: var(--cream); font-weight: 600; }
   .qchip.next { border-color: var(--accent); }
 
-  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
-    gap: 10px; padding: 16px 18px; }
-  .stat { border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--bg); padding: 10px 12px; }
-  .stat .sv { font-size: 21px; font-weight: 700; color: var(--cream);
-    font-variant-numeric: tabular-nums; }
-  .stat .sl { font-size: 10px; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--text3); margin-top: 2px; }
-  .stat.headline .sv { color: var(--green2); }
-
-  .prow { display: flex; align-items: center; gap: 10px; padding: 11px 18px;
-    border-bottom: 1px solid var(--border); font-size: 14px; }
-  .prow:last-child { border-bottom: none; }
-  .prow.out { opacity: .5; }
-  .prow .pl { width: 26px; font-size: 12px; font-weight: 700; color: var(--text3);
-    font-variant-numeric: tabular-nums; }
-  .prow .pn { flex: 1; color: var(--cream); font-weight: 600; }
-  .prow.out .pn { text-decoration: line-through; font-weight: 400; }
-  .prow .pr { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; }
-  .prow .pw { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums;
-    white-space: nowrap; }
-  .adj { background: none; border: 1px solid var(--border); border-radius: 4px;
-    color: var(--text3); width: 24px; height: 24px; cursor: pointer; font-size: 14px;
-    line-height: 1; padding: 0; }
-  .adj:hover { border-color: var(--accent); color: var(--green2); }
-
-  .ticker { padding: 10px 18px; font-size: 13px; color: var(--text2);
-    border-bottom: 1px solid var(--border); }
+  .ticker { padding: 9px 16px; font-size: 13px; color: var(--text2);
+    border-bottom: 1px solid var(--border); background: var(--bg); }
   .ticker strong { color: var(--cream); }
 
   @media (max-width: 560px) {
-    .board { grid-template-columns: 1fr; }
-    .seat { padding: 15px 12px; font-size: 16px; }   /* bigger thumb target */
+    .seat { padding: 14px 12px; font-size: 15px; }     /* bigger thumb target */
   }
   @media print {
+    .split { grid-template-columns: 1fr 300px; }
     .seat.playable { cursor: default; }
-    .adj, .th-actions { display: none !important; }
+    .th-actions { display: none !important; }
   }
 </style>
 </head>
@@ -380,7 +383,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.00</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.01</div>
 </footer>
 
 <script>
@@ -715,27 +718,6 @@ function win(tableIdx, name) {
   queuePush();
 }
 
-function adjustChips(name, delta) {
-  if (readOnly || !S) return;
-  const p = S.roster.find(x => x.name === name);
-  if (!p) return;
-  const was = p.chips;
-  p.chips = Math.max(0, p.chips + delta);
-  if (was > 0 && p.chips === 0) {                     // forfeited their last chip
-    p.outAt = S.outOrder.length + 1;
-    S.outOrder.push(name);
-    S.queue = S.queue.filter(n => n !== name);
-    S.tables = S.tables.map(t => t.map(n => n === name ? null : n));
-  } else if (was === 0 && p.chips > 0) {              // put back in
-    S.outOrder = S.outOrder.filter(n => n !== name);
-    p.outAt = null;
-    if (!S.queue.includes(name) && !S.tables.flat().includes(name)) S.queue.push(name);
-  }
-  rebalance(S);
-  render();
-  queuePush();
-}
-
 function addLatePlayer() {
   if (readOnly || !S) return;
   const name = (prompt('Late player — name:', '') || '').trim();
@@ -757,6 +739,11 @@ function addLatePlayer() {
   queuePush();
 }
 
+/* Reporting a win. The name travels in a data attribute rather than inside the
+   onclick string — a name with a quote or apostrophe in it would otherwise
+   break the attribute and the button would silently do nothing. */
+function winFrom(el) { win(Number(el.dataset.t), el.dataset.n); }
+
 function render() {
   if (!S) return;
   const st = sessionStats(S);
@@ -768,27 +755,46 @@ function render() {
   const now = Date.now();
   S.tableStarts = S.tableStarts || {};
 
+  const seatedAt = {};                       // name → table number, for the left column
+  S.tables.forEach((seat, i) => seat.forEach(n => { if (n) seatedAt[n] = i + 1; }));
+
+  // ── Right: the tables ──
   const tables = S.tables.map((seat, i) => {
     const live = seat[0] && seat[1];
     const started = S.tableStarts[i];
     const el = started ? now - started : null;
-    const over = el !== null && el > 4 * 60 * 1000;      // the 4-minute call
-    const seatHTML = [0,1].map(k => {
+    const over = el !== null && el > 4 * 60 * 1000;
+    const seats = [0, 1].map(k => {
       const n = seat[k];
-      if (!n) return `<div class="seat empty">Waiting for a player</div>`;
+      if (!n) return `<div class="seat empty">Open</div>`;
       const p = S.roster.find(x => x.name === n);
       return `<button class="seat${live && scoring ? ' playable' : ''}"
-        ${live && scoring ? `onclick="win(${i}, ${JSON.stringify(n)})"` : 'disabled'}>
-        <span>${esc(n)}</span>${chipDots(p)}</button>`;
+        data-t="${i}" data-n="${esc(n)}"
+        ${live && scoring ? 'onclick="winFrom(this)"' : 'disabled'}>
+        <span class="sn">${esc(n)}</span>${chipDots(p)}</button>`;
     }).join('');
     return `<div class="table-card${live ? '' : ' idle'}">
       <div class="table-head"><span>Table ${i + 1}</span>
         ${live && el !== null ? `<span class="table-timer${over ? ' over' : ''}">${fmtClock(el)}</span>` : ''}
-      </div>${seatHTML}</div>`;
+      </div>${seats}</div>`;
   }).join('');
 
-  const board = S.tables.some(t => t[0] || t[1]) ? tables : '';
+  // ── Left: everyone, with their chips ──
   const order = standings(S);
+  const players = order.map(p => {
+    const at = seatedAt[p.name];
+    const upNext = S.queue.indexOf(p.name);
+    const where = p.chips === 0 ? '<span class="tag out">Out</span>'
+      : at ? `<span class="tag on">Table ${at}</span>`
+      : upNext === 0 ? '<span class="tag next">Up next</span>'
+      : upNext > 0 ? `<span class="tag">#${upNext + 1} in line</span>` : '';
+    return `<div class="prow${p.chips === 0 ? ' out' : ''}">
+      <span class="pn">${esc(p.name)}</span>
+      ${chipDots(p)}
+      ${where}
+      <span class="pw">${p.wins}&ndash;${p.losses}</span>
+    </div>`;
+  }).join('');
 
   document.getElementById('out').innerHTML = `
     ${scoring ? `<div class="ro-banner"><span class="live-dot"></span>Scoring — tap whoever won. Anyone watching sees it within twenty seconds.</div>` : ''}
@@ -805,53 +811,44 @@ function render() {
     </div>
 
     ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}
-    ${payoutHTML(st.registered, fee, bar, champ)}
 
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-header"><span class="card-title">Session</span>
-        <span class="card-meta">${st.matches} game${st.matches === 1 ? '' : 's'} played</span></div>
-      <div class="stat-grid">
-        <div class="stat headline"><div class="sv">${st.remaining}</div><div class="sl">Chips left</div></div>
-        <div class="stat"><div class="sv">${st.playersLeft}</div><div class="sl">Players in</div></div>
-        <div class="stat"><div class="sv">${st.registered}</div><div class="sl">Registered</div></div>
-        <div class="stat"><div class="sv">${st.distributed}</div><div class="sl">Chips given out</div></div>
-        <div class="stat"><div class="sv">${st.inPlay}</div><div class="sl">Tables on</div></div>
-        <div class="stat"><div class="sv">${st.waiting}</div><div class="sl">Waiting</div></div>
+    <div class="split">
+      <div class="col-players">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Players</span>
+            <span class="card-meta">${st.playersLeft} of ${st.registered} still in &middot; ${st.remaining} chips left</span>
+          </div>
+          ${S.log.length ? `<div class="ticker"><strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${S.log[0].table}</div>` : ''}
+          <div class="plist">${players}</div>
+        </div>
+      </div>
+
+      <div class="col-tables">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-header">
+            <span class="card-title">Tables</span>
+            <span class="card-meta">${st.inPlay} on</span>
+          </div>
+          <div class="pad tables-pad">${tables}</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Up next</span>
+            <span class="card-meta">${st.waiting} waiting</span>
+          </div>
+          ${S.queue.length
+            ? `<div class="queue-list">${S.queue.map((n, i) => {
+                const p = S.roster.find(x => x.name === n);
+                return `<span class="qchip${i === 0 ? ' next' : ''}"><span class="qn">${esc(n)}</span>${chipDots(p)}</span>`;
+              }).join('')}</div>`
+            : `<div class="pad" style="color:var(--text3);font-size:14px">Nobody waiting.</div>`}
+        </div>
       </div>
     </div>
 
-    ${board ? `<div class="card" style="margin-bottom:18px">
-      <div class="card-header"><span class="card-title">Tables</span></div>
-      ${S.log.length ? `<div class="ticker"><strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${S.log[0].table}</div>` : ''}
-      <div class="pad"><div class="board">${board}</div></div>
-    </div>` : ''}
-
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-header"><span class="card-title">Queue</span>
-        <span class="card-meta">${st.waiting} waiting</span></div>
-      ${S.queue.length
-        ? `<div class="queue-list">${S.queue.map((n, i) => {
-            const p = S.roster.find(x => x.name === n);
-            return `<span class="qchip${i === 0 ? ' next' : ''}"><span class="qn">${esc(n)}</span>${chipDots(p)}</span>`;
-          }).join('')}</div>`
-        : `<div class="pad" style="color:var(--text3);font-size:14px">Nobody waiting.</div>`}
-    </div>
-
-    <div class="card">
-      <div class="card-header"><span class="card-title">Players</span>
-        <span class="card-meta">${champ ? 'Final placings' : 'Order as it stands'}</span></div>
-      ${order.map(p => `<div class="prow${p.chips === 0 ? ' out' : ''}">
-        <span class="pl">${p.place}</span>
-        <span class="pn">${esc(p.name)}</span>
-        <span class="pr">${p.rating || ''}</span>
-        <span class="pw">won ${p.wins} lost ${p.losses}</span>
-        ${p.chips ? chipDots(p) : '<span class="pw">out</span>'}
-        ${scoring ? `<button class="adj" title="Take a chip (forfeit)"
-             onclick="adjustChips(${JSON.stringify(p.name)}, -1)">−</button>
-           <button class="adj" title="Give a chip back"
-             onclick="adjustChips(${JSON.stringify(p.name)}, 1)">+</button>` : ''}
-      </div>`).join('')}
-    </div>`;
+    ${payoutHTML(st.registered, fee, bar, champ)}`;
 }
 
 /* ── Server tournaments ──
