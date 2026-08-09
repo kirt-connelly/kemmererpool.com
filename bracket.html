@@ -83,13 +83,24 @@
   body.read-only .payout .place, body.read-only .payout .amt { cursor: default; }
   body.read-only .payout .place:hover, body.read-only .payout .amt:hover { background: none; }
 
-  .code-entry { max-width: 420px; margin: 40px auto; }
-  .code-row { display: flex; gap: 10px; }
-  .code-input { flex: 1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 26px; font-weight: 700; letter-spacing: .3em; text-align: center;
-    text-transform: uppercase; color: var(--cream); background: var(--bg);
-    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .code-entry { max-width: 380px; margin: 7vh auto 40px; }
+  .code-entry .pad { padding: 22px; }
+  .code-entry label.fl { text-align: center; margin-bottom: 10px; }
+  /* min-width:0 matters — an input won't shrink below its intrinsic size
+     otherwise, which pushed the button outside the card. */
+  .code-input { display: block; width: 100%; min-width: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 30px; font-weight: 700; letter-spacing: .34em; text-indent: .34em;
+    text-align: center; text-transform: uppercase; color: var(--cream);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 14px 10px; }
+  .code-input::placeholder { color: var(--text3); }
   .code-input:focus { outline: none; border-color: var(--accent); }
+  .code-go { display: block; width: 100%; margin-top: 12px; padding: 13px;
+    font-size: 15px; text-align: center; }
+  .code-help { margin-top: 14px; text-align: center; font-size: 12px;
+    color: var(--text3); line-height: 1.6; }
+  .code-entry .hint:not(:empty) { margin-top: 10px; text-align: center; }
 
   /* ── Tournament header ── */
   .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
@@ -282,15 +293,14 @@
     <div class="card-header"><span class="card-title">Open a tournament</span></div>
     <div class="pad">
       <label class="fl" for="code-in">Tournament code</label>
-      <div class="code-row">
-        <input id="code-in" class="code-input" type="text" maxlength="4" spellcheck="false"
-          autocomplete="off" placeholder="ABCD" oninput="this.value=this.value.toUpperCase()"
-          onkeydown="if(event.key==='Enter')goToCode()">
-        <button class="act primary" onclick="goToCode()">Open</button>
-      </div>
-      <div class="hint" id="hint" style="margin-top:10px"></div>
+      <input id="code-in" class="code-input" type="text" maxlength="4" size="4" spellcheck="false"
+        autocomplete="off" autocapitalize="characters" inputmode="text" placeholder="ABCD"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')goToCode()">
+      <button class="act primary code-go" onclick="goToCode()">Open</button>
+      <div class="hint" id="hint"></div>
       <div class="hint" id="saved-note"></div>
-      <div class="hint" style="margin-top:12px">Four characters, printed on the bracket sheet.</div>
+      <div class="code-help">Four characters, from the officer running the tournament.</div>
     </div>
   </div>
 
@@ -302,7 +312,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.10</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.11</div>
 </footer>
 
 <script>
