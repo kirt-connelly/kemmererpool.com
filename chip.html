@@ -287,11 +287,17 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .prow.out .pn { text-decoration: line-through; font-weight: 400; }
   .prow .pw { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums;
-    white-space: nowrap; }
+    white-space: nowrap; width: 34px; text-align: right; }
+  .prow .pl { width: 22px; font-size: 12px; font-weight: 700; color: var(--text3);
+    font-variant-numeric: tabular-nums; }
+  .prow .tag { width: 82px; text-align: center; }
+  .prow.seated { background: var(--bg); }
 
   /* A filled circle is a chip in hand; an empty one is a chip already lost. */
-  .chips { display: inline-flex; gap: 3px; flex-shrink: 0; }
-  .chip { width: 10px; height: 10px; border-radius: 50%;
+  .chips { display: inline-flex; gap: 3px; flex: none; align-items: center; }
+  /* flex:none matters — inside a flex row the dots would otherwise be squeezed
+     to different widths depending on how long the name beside them is. */
+  .chip { flex: none; width: 11px; height: 11px; border-radius: 50%;
     background: var(--green2); border: 1.5px solid var(--green2); box-sizing: border-box; }
   .chip.spent { background: transparent; }
 
@@ -383,7 +389,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.01</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.02</div>
 </footer>
 
 <script>
@@ -699,9 +705,12 @@ const fmtClock = (ms) => {
   return String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
 };
 
+/* Chips come off the left as they're lost, so the ones still in hand sit
+   together on the right and every row lines up on its right edge. */
 function chipDots(p) {
+  const spent = p.start - p.chips;
   let out = '';
-  for (let i = 0; i < p.start; i++) out += `<span class="chip${i < p.chips ? '' : ' spent'}"></span>`;
+  for (let i = 0; i < p.start; i++) out += `<span class="chip${i < spent ? ' spent' : ''}"></span>`;
   return `<span class="chips" title="${p.chips} of ${p.start} chips left">${out}</span>`;
 }
 
@@ -779,16 +788,29 @@ function render() {
       </div>${seats}</div>`;
   }).join('');
 
-  // ── Left: everyone, with their chips ──
-  const order = standings(S);
-  const players = order.map(p => {
+  // ── Left: ordered to mirror the right ──
+  // Knocked out at the top, then whoever is on a table in table order, then the
+  // queue reading downwards so the player about to come on sits at the bottom.
+  const byName = (n) => S.roster.find(x => x.name === n);
+  const seatedOrder = [];
+  S.tables.forEach(seat => seat.forEach(n => { if (n) seatedOrder.push(byName(n)); }));
+  const boardOrder = [
+    ...S.roster.filter(p => p.chips === 0).sort((a, b) => (a.outAt || 0) - (b.outAt || 0)),
+    ...seatedOrder,
+    ...[...S.queue].reverse().map(byName),
+  ].filter(Boolean);
+
+  // Once it's over, placings are what matter.
+  const order = champ ? standings(S) : boardOrder;
+  const players = order.map((p, i) => {
     const at = seatedAt[p.name];
     const upNext = S.queue.indexOf(p.name);
-    const where = p.chips === 0 ? '<span class="tag out">Out</span>'
+    const where = p.chips === 0 ? `<span class="tag out">${p.outAt ? 'Out' : 'Out'}</span>`
       : at ? `<span class="tag on">Table ${at}</span>`
       : upNext === 0 ? '<span class="tag next">Up next</span>'
       : upNext > 0 ? `<span class="tag">#${upNext + 1} in line</span>` : '';
-    return `<div class="prow${p.chips === 0 ? ' out' : ''}">
+    return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}">
+      ${champ ? `<span class="pl">${p.place}</span>` : ''}
       <span class="pn">${esc(p.name)}</span>
       ${chipDots(p)}
       ${where}
