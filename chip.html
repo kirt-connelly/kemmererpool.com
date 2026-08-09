@@ -395,7 +395,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.04</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.05</div>
 </footer>
 
 <script>
@@ -434,14 +434,18 @@ const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
      log       [{ winner, loser, table, at }]
 */
 
-const chipsFor = (rating) => {
+/* Bands are set when the tournament is created and travel with it, so a late
+   arrival is given chips on the same scale as everyone else. */
+const STANDARD_BANDS = [
+  { max: 375, chips: 6 }, { max: 499, chips: 5 }, { max: 575, chips: 4 },
+  { max: 625, chips: 3 }, { max: 700, chips: 2 }, { max: null, chips: 1 },
+];
+
+const chipsFor = (rating, list) => {
   const r = Number(rating) || 0;
-  if (r <= 375) return 6;
-  if (r <= 499) return 5;
-  if (r <= 575) return 4;
-  if (r <= 625) return 3;
-  if (r <= 700) return 2;
-  return 1;
+  const rows = (list && list.length) ? list : STANDARD_BANDS;
+  for (const b of rows) if (b.max === null || b.max === undefined || r <= b.max) return b.chips;
+  return rows[rows.length - 1].chips;
 };
 
 const alive = (S) => S.roster.filter(p => p.chips > 0);
@@ -757,7 +761,7 @@ function addLatePlayer() {
     note(`${name} is already registered.`, true); return;
   }
   const rating = parseInt(prompt(`Fargo rating for ${name}?`, '450'), 10) || 0;
-  const base = chipsFor(rating);
+  const base = chipsFor(rating, S.chipBands);
   const penalty = parseInt(prompt(
     `Chip penalty for signing up late?\n0 = on time, 1 = after 4:00, 2 = after 4:30`, '0'), 10) || 0;
   const chips = Math.max(1, base - Math.max(0, penalty));
@@ -959,6 +963,7 @@ function applyServer(d) {
     roster: d.roster || [], tables: d.tables || [], queue: d.queue || [],
     outOrder: d.outOrder || [], log: d.log || [],
     tableStarts: d.tableStarts || {},
+    chipBands: d.chipBands || null,
     payoutSpec: d.payoutSpec || null, payoutsManual: d.payoutsManual || null,
   };
   document.getElementById('code-entry').style.display = 'none';
@@ -973,7 +978,8 @@ function snapshot() {
     schema: 1, code: serverCode, id: serverCode,
     name: (document.getElementById('tname').value || '').trim(),
     kind: 'chip', saved: Date.now(),
-    tableCount: S.tableCount, roster: S.roster, tables: S.tables, queue: S.queue,
+    tableCount: S.tableCount, chipBands: S.chipBands || null,
+    roster: S.roster, tables: S.tables, queue: S.queue,
     outOrder: S.outOrder, log: S.log.slice(0, 200), tableStarts: S.tableStarts,
     bySeed: Object.fromEntries(S.roster.map(p => [p.draw, p.name])),
     progress: { played: st.matches, total: st.distributed },

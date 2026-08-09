@@ -170,6 +170,17 @@
     letter-spacing: 0; text-transform: none; }
   .pct-total.ok { color: var(--green2); }
   .pct-total.off { color: var(--loss); }
+  .band-rows { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 4px; }
+  .band-row { display: flex; align-items: center; gap: 10px; }
+  .band-row .bl { font-size: 12px; color: var(--text3); white-space: nowrap; }
+  .band-row .bmax { width: 96px; }
+  .band-row .bchips { width: 76px; }
+  .band-row .bx { background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 15px; line-height: 1; padding: 4px 6px; }
+  .band-row .bx:hover { color: var(--loss); }
+  .band-row.last .bl { font-weight: 600; color: var(--text2); }
+  .band-actions { display: flex; align-items: center; gap: 12px; padding: 4px 16px 16px; }
+
   .pct-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 10px; padding: 14px 16px; }
   .pct-row { border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -350,6 +361,18 @@
           </div>
         </div>
 
+        <div class="section" id="bands-wrap" style="display:none">
+          <div class="section-head">
+            <span>Chips by Fargo rating</span>
+            <span id="bands-msg" class="pct-total"></span>
+          </div>
+          <div id="band-rows" class="band-rows"></div>
+          <div class="band-actions">
+            <button class="act" onclick="addBand()">Add a band</button>
+            <button class="linkish" onclick="resetBands()">Back to the standard sheet</button>
+          </div>
+        </div>
+
         <div class="section">
           <div class="section-head">
             <span>Buy-in and payouts</span>
@@ -404,7 +427,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.05</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.06</div>
 </footer>
 
 <script>
@@ -669,6 +692,8 @@ function setMode(m) {
   document.getElementById('pane-tournament').style.display = m === 'bracket' ? 'none' : '';
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
   document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
+  document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
+  if (m === 'chip') renderBands();
   // A chip tournament has no bracket to seed, so format doesn't apply.
   document.getElementById('format').closest('.grid').style.display = m === 'chip' ? 'none' : '';
   updateCount();
@@ -745,15 +770,82 @@ function shuffle(arr) {
   return a;
 }
 
-/* Chips by Fargo rating, straight off the rules sheet at the bar. */
-function chipsFor(rating) {
+/* ── Chips by Fargo rating ──
+   The sheet at the bar is the default, but the bands are editable so a simpler
+   structure (say 0–450 gets 2, everything above gets 1) can be set per event.
+   Each row is an upper bound; the last row catches everything above it. */
+const STANDARD_BANDS = [
+  { max: 375, chips: 6 }, { max: 499, chips: 5 }, { max: 575, chips: 4 },
+  { max: 625, chips: 3 }, { max: 700, chips: 2 }, { max: null, chips: 1 },
+];
+
+let bands = STANDARD_BANDS.map(b => ({ ...b }));
+
+function chipsFor(rating, list) {
   const r = Number(rating) || 0;
-  if (r <= 375) return 6;
-  if (r <= 499) return 5;
-  if (r <= 575) return 4;
-  if (r <= 625) return 3;
-  if (r <= 700) return 2;
-  return 1;
+  const rows = (list && list.length ? list : bands);
+  for (const b of rows) if (b.max === null || b.max === undefined || r <= b.max) return b.chips;
+  return rows[rows.length - 1].chips;
+}
+
+function renderBands() {
+  document.getElementById('band-rows').innerHTML = bands.map((b, i) => {
+    const last = i === bands.length - 1;
+    const from = i === 0 ? 0 : (Number(bands[i - 1].max) || 0) + 1;
+    return `<div class="band-row${last ? ' last' : ''}">
+      <span class="bl">${last ? `${from} and above` : `${from} to`}</span>
+      ${last ? '' : `<input class="inp bmax" type="number" min="0" max="1200" step="1"
+        value="${b.max ?? ''}" data-i="${i}" data-f="max" oninput="onBandEdit(this)">`}
+      <span class="bl">→</span>
+      <input class="inp bchips" type="number" min="1" max="20" step="1"
+        value="${b.chips}" data-i="${i}" data-f="chips" oninput="onBandEdit(this)">
+      <span class="bl">chip${b.chips === 1 ? '' : 's'}</span>
+      ${bands.length > 1 && !last
+        ? `<button class="bx" title="Remove this band" onclick="removeBand(${i})">✕</button>` : ''}
+    </div>`;
+  }).join('');
+  checkBands();
+}
+
+function onBandEdit(el) {
+  const i = Number(el.dataset.i);
+  if (el.dataset.f === 'max') bands[i].max = el.value === '' ? null : Number(el.value);
+  else bands[i].chips = Number(el.value) || 0;
+  // Redraw so the "from" figures on the following rows follow along.
+  const active = el.dataset.i + ':' + el.dataset.f;
+  renderBands();
+  const back = document.querySelector(`[data-i="${el.dataset.i}"][data-f="${el.dataset.f}"]`);
+  if (back) { back.focus(); back.setSelectionRange?.(back.value.length, back.value.length); }
+}
+
+function addBand() {
+  const prev = bands[bands.length - 2];
+  const base = prev && prev.max ? Number(prev.max) + 100 : 400;
+  bands.splice(bands.length - 1, 0, { max: base, chips: bands[bands.length - 1].chips + 1 });
+  renderBands();
+}
+
+function removeBand(i) { bands.splice(i, 1); renderBands(); }
+function resetBands() { bands = STANDARD_BANDS.map(b => ({ ...b })); renderBands(); }
+
+/* Bounds have to climb, and every band has to pay at least one chip. */
+function checkBands() {
+  const msg = document.getElementById('bands-msg');
+  let problem = '';
+  bands.forEach((b, i) => {
+    if (!(b.chips >= 1)) problem = problem || 'Every band needs at least 1 chip.';
+    if (i < bands.length - 1) {
+      if (b.max === null || isNaN(b.max)) problem = problem || 'Every band needs an upper rating.';
+      else if (i > 0 && bands[i - 1].max !== null && Number(b.max) <= Number(bands[i - 1].max))
+        problem = problem || 'Ratings have to climb down the list.';
+    }
+  });
+  const ok = !problem;
+  if (msg) {
+    msg.textContent = ok ? '' : problem;
+    msg.className = 'pct-total ' + (ok ? 'ok' : 'off');
+  }
+  return ok;
 }
 
 /* Builds the opening state: everyone draws a number, the first 2 per table sit
@@ -782,7 +874,11 @@ async function createTournament() {
   if (entries.length < 2) { say('Add at least 2 players.', true); return; }
   if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
 
-  if (mode === 'chip') { await createChip(say); return; }
+  if (mode === 'chip') {
+    if (!checkBands()) { say('Check the chip bands before creating.', true); return; }
+    await createChip(say);
+    return;
+  }
 
   const names = shuffle(entries.map(e => e.name));
   let size = 1; while (size < names.length) size *= 2;
@@ -837,6 +933,7 @@ async function createChip(say) {
     kind: 'chip',
     saved: Date.now(),
     tableCount,
+    chipBands: bands.map(b => ({ max: b.max ?? null, chips: Number(b.chips) })),
     ...state,
     bySeed: Object.fromEntries(state.roster.map(p => [p.draw, p.name])),   // so the API recognises it
     progress: { played: 0, total: state.roster.reduce((a, p) => a + p.chips, 0) },
