@@ -302,7 +302,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.09</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.10</div>
 </footer>
 
 <script>
@@ -647,7 +647,13 @@ let B = null;
 const DEFAULT_RACE = 3;
 
 /* "Kirt 2" races Kirt to 2. A bare name races to 3. */
-// Races come from the tournament as it was created on the admin page.
+// Races come from the tournament as it was created on the admin page, but a
+// latecomer filling a bye can bring their own: "Barry 2" races Barry to 2.
+function parseEntry(line) {
+  const m = String(line).trim().match(/^(.+?)\s+(\d{1,2})$/);
+  return m ? { name: m[1].trim(), race: parseInt(m[2], 10) }
+           : { name: String(line).trim(), race: DEFAULT_RACE };
+}
 const raceOf = (name) => (B && B.races && B.races[name]) || DEFAULT_RACE;
 
 
@@ -897,9 +903,11 @@ function editBye(mid, i) {
       const { name, race } = parseEntry(raw);
       const changed = (B.bySeed[seed] || '') !== name;
       B.bySeed[seed] = name || null;        // blank puts the bye back
-      if (name) B.races[name] = race;
+      if (name) {
+        B.races = B.races || {};
+        B.races[name] = race;
+      }
       if (changed) clearDownstream(mid);
-      syncNames();
     }
     render();
   };

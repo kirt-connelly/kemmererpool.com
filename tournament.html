@@ -331,7 +331,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.09</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.10</div>
 </footer>
 
 <script>
@@ -673,181 +673,11 @@ function onFeeChange() { updateCount(); if (B) render(); }
 /* ── UI ── */
 let B = null;
 
-const PROXY = '/proxy?url=';
-const LMS   = 'https://lms.fargorate.com/PublicReport';
 
-/* Jenkins divisions the lookup searches. IDs change each season — refresh from
-   the division dropdown on the LMS league page when a new one starts. */
-const DIVISIONS = [
-  ['e9b068bc-155c-4b51-aea7-b37d01026668', 'Afton 8-Ball 25/26'],
-  ['5607ca18-56b5-45a1-a8a0-b203003df484', 'Bridger Valley A 24-25'],
-  ['19e3dc05-7d67-4c77-8f36-b3b600f992cf', 'Dubois 25/26'],
-  ['18e0f3a3-3c8a-4d3c-a769-b42f00b35c96', "Evanston Spring 10-Ball '26"],
-  ['1dc8b2aa-62eb-41a6-a8f6-b379014efe83', 'Kemmerer 8-Ball 25-26'],
-  ['c97cf1bf-ff08-44a0-b916-b4520124b3e6', 'Kemmerer 10-Ball 2026'],
-  ['915b2c1d-72c3-4365-9130-b30e01504c6c', 'Lander Summer 9-Ball'],
-  ['77b7699b-2970-4094-8012-b370010637cd', 'Lander Valley 8-Ball 25/26'],
-  ['6b247e98-1e1b-4939-9126-b37201326a31', 'Riverton A 25-26'],
-  ['8d5b74fb-0d6a-4822-bda2-b37201393295', 'Riverton B 25-26'],
-  ['b2f40913-6cee-4653-a691-b36e010710e1', 'Sublette 8-Ball 25/26'],
-  ['be575a0e-cd22-48b9-a1ee-b233017afc43', 'Sublette 24/25'],
-  ['e32cc8d3-222d-4c0e-b065-b38c016a32ab', 'Sublette Top Gun 25/26'],
-  ['111465aa-9e4f-4ade-9994-b3600166c88f', 'SWC 10-Ball Capped 25-26'],
-  ['19ce8161-03b2-4f79-84cf-b3600168abe6', 'SWC 10-Ball No Cap 25-26'],
-  ['8b9cf341-bc42-40ad-a7ce-b35e01346dee', 'SWC A 8-Ball 25-26'],
-  ['54ea8a12-5fc9-433e-8712-b3600163ce04', 'SWC B-10 8-Ball 25-26'],
-  ['7b490715-8070-49f0-9dfd-b360015c9a6f', 'SWC B-12 8-Ball 25-26'],
-];
 
-let playerIndex = null;      // [{name, rating, division}] across every division
-let indexLoading = null;
-let roster = [];             // [{name, rating, division|null}]
-
-/* ── Fargo lookup ── */
-function parsePlayerList(html, divLabel) {
-  const d = document.createElement('div');
-  d.innerHTML = html;
-  const table = d.querySelector('table');
-  if (!table) return [];
-
-  const rows = [...table.querySelectorAll('tr')];
-  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
-  if (!headers.length && rows[0]) headers = [...rows[0].querySelectorAll('td')].map(td => td.textContent.trim());
-  const ratingIdx = headers.findIndex(h => /rating|fargo/i.test(h));
-  const nameIdx   = headers.findIndex(h => /name/i.test(h));
-
-  const out = [];
-  rows.slice(1).forEach(tr => {
-    const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.replace(/\s+/g,' ').trim());
-    if (!cells.length) return;
-    const raw = cells[nameIdx >= 0 ? nameIdx : 1] || cells[0];
-    const rating = parseInt(cells[ratingIdx >= 0 ? ratingIdx : cells.length - 1], 10);
-    if (!raw || !rating) return;
-    // FargoRate lists names "Last, First" — flip for searching
-    const name = /,\s/.test(raw) ? raw.replace(/^([^,]+),\s*(.+)$/, '$2 $1') : raw;
-    out.push({ name, rating, division: divLabel });
-  });
-  return out;
-}
-
-async function loadIndex() {
-  if (playerIndex) return playerIndex;
-  if (indexLoading) return indexLoading;
-
-  setStatus('Loading player lists from FargoRate…');
-  indexLoading = (async () => {
-    const all = [];
-    let failed = 0;
-    await Promise.all(DIVISIONS.map(async ([id, label]) => {
-      try {
-        const r = await fetch(PROXY + encodeURIComponent(`${LMS}/GeneratePlayerListReport/${id}`));
-        if (!r.ok) throw new Error(r.status);
-        all.push(...parsePlayerList(await r.text(), label));
-      } catch (e) { failed++; }
-    }));
-
-    // Same player can appear in several divisions — keep the highest rating.
-    const byKey = {};
-    all.forEach(p => {
-      const k = p.name.toLowerCase();
-      if (!byKey[k] || p.rating > byKey[k].rating) byKey[k] = p;
-    });
-    playerIndex = Object.values(byKey).sort((a, b) => a.name.localeCompare(b.name));
-
-    setStatus(playerIndex.length
-      ? `${playerIndex.length} players loaded${failed ? ` · ${failed} division${failed>1?'s':''} unavailable` : ''}`
-      : 'No players came back — check the proxy, or add players manually.');
-    return playerIndex;
-  })();
-  return indexLoading;
-}
-
-function setStatus(msg, bad) {
-  const el = document.getElementById('search-status');
-  el.textContent = msg || '';
-  el.style.color = bad ? 'var(--loss)' : 'var(--text3)';
-}
+let roster = [];   // ratings for this tournament, from the server payload
 
 let searchSel = 0;
-async function onSearch(force) {
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  const box = document.getElementById('results');
-  if (q.length < 2 && !force) { box.innerHTML = ''; return; }
-  const idx = await loadIndex();
-  const hits = idx.filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
-  searchSel = 0;
-  if (!hits.length) {
-    box.innerHTML = '';
-    if (q) setStatus(`No one matching "${q}" — use Add manually if they're not in a Jenkins league.`);
-    return;
-  }
-  box.innerHTML = hits.map((p, i) => `<div class="result${i===0?' sel':''}" onclick="addFromIndex('${esc(p.name).replace(/'/g,"\\'")}')">
-    <span><span class="rn">${esc(p.name)}</span> <span class="rd">${esc(p.division)}</span></span>
-    <span class="rr">${p.rating}</span></div>`).join('');
-}
-
-function onSearchKey(e) {
-  const items = [...document.querySelectorAll('#results .result')];
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (items[searchSel]) items[searchSel].click(); else onSearch(true);
-  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (!items.length) return;
-    searchSel = (searchSel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-    items.forEach((el, i) => el.classList.toggle('sel', i === searchSel));
-  }
-}
-
-function addFromIndex(name) {
-  const p = (playerIndex || []).find(x => x.name === name);
-  if (!p) return;
-  addToRoster(p.name, p.rating, p.division);
-}
-
-function manualAdd() {
-  const name = (document.getElementById('search').value || '').trim();
-  if (!name) { setStatus('Type a name first, then Add manually.', true); return; }
-  const r = prompt(`Fargo rating for ${name}?`, '450');
-  if (r === null) return;
-  const rating = parseInt(r, 10);
-  if (!rating) { setStatus('That rating did not look like a number.', true); return; }
-  addToRoster(name, rating, null);
-}
-
-function addToRoster(name, rating, division) {
-  if (roster.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-    setStatus(`${name} is already entered.`, true); return;
-  }
-  roster.push({ name, rating, division });
-  document.getElementById('search').value = '';
-  document.getElementById('results').innerHTML = '';
-  setStatus(`Added ${name} (${rating}).`);
-  renderRoster();
-  document.getElementById('search').focus();
-}
-
-function removeFromRoster(i) { roster.splice(i, 1); renderRoster(); }
-
-function editRating(i) {
-  const p = roster[i];
-  const r = prompt(`Fargo rating for ${p.name}?`, p.rating);
-  if (r === null) return;
-  const v = parseInt(r, 10);
-  if (v) { p.rating = v; renderRoster(); if (B) render(); }
-}
-
-function renderRoster() {
-  document.getElementById('roster').innerHTML = roster.map((p, i) => `
-    <div class="rrow${p.division ? '' : ' manual'}">
-      <span class="n">${esc(p.name)}</span>
-      <span class="d">${p.division ? esc(p.division) : 'entered by hand'}</span>
-      <span class="f" onclick="editRating(${i})" title="Change rating" style="cursor:pointer">${p.rating}</span>
-      <button class="x" onclick="removeFromRoster(${i})" title="Remove">✕</button>
-    </div>`).join('');
-  updateCount();
-}
-
 /* ── Hot races ──
    FargoRate's published "hot" charts. Each row is [minDiff, maxDiff, [favourite,
    underdog]] — note these shorten the underdog's race as the gap grows rather
@@ -1020,7 +850,7 @@ function applyServer(d) {
   if (document.getElementById('bar')) document.getElementById('bar').value = d.bar ?? '';
   if (d.chart && document.getElementById('chart')) document.getElementById('chart').value = d.chart;
   B = buildBracket(null, d.bySeed, d.format);
-  roster = d.roster || []; renderRoster();
+  roster = d.roster || [];
   B.payoutsManual = d.payoutsManual || null;
   B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
   document.getElementById('code-entry').style.display = 'none';
@@ -1157,7 +987,6 @@ function editBye(mid, i) {
       if (name && !roster.some(p => p.name.toLowerCase() === name.toLowerCase())) {
         const r = prompt(`Fargo rating for ${name}?`, '450');
         roster.push({ name, rating: parseInt(r, 10) || 0, division: null });
-        renderRoster();
       }
       if (changed) clearDownstream(mid);
       updateCount();
@@ -1367,7 +1196,6 @@ function render() {
     </div>` : ''}`;
 }
 
-renderRoster();
 updateCount();
 
 // ?t=… is a shared tournament packed into the link; #ID reopens a local one.
