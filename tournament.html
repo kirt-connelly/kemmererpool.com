@@ -275,8 +275,8 @@
     .card-header { background: transparent; border-bottom: 1px solid #000; padding: 0 0 4px; }
     .card-title { font-size: 11pt; }
     .bracket-scroll { overflow: visible; padding: 8px 0 0; }
-    /* Browsers drop background colours when printing, and the connectors are
-       coloured divs — without this the bracket prints as boxes with no lines. */
+    /* Browsers drop background colors when printing, and the connectors are
+       colored divs — without this the bracket prints as boxes with no lines. */
     .line { background: #000 !important;
       -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .race-box, .match { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -716,9 +716,9 @@ let roster = [];   // ratings for this tournament, from the server payload
 
 let searchSel = 0;
 /* ── Hot races ──
-   FargoRate's published "hot" charts. Each row is [minDiff, maxDiff, [favourite,
+   FargoRate's published "hot" charts. Each row is [minDiff, maxDiff, [favorite,
    underdog]] — note these shorten the underdog's race as the gap grows rather
-   than lengthening the favourite's, so races stay a sensible length. */
+   than lengthening the favorite's, so races stay a sensible length. */
 const RACE_CHARTS = {
   R2: [[0,67,[2,2]], [68,112,[3,2]], [113,Infinity,[4,2]]],
   R3: [[0,67,[3,3]], [68,112,[3,2]], [113,147,[4,2]], [148,Infinity,[5,2]]],
@@ -1135,9 +1135,9 @@ const COL_W = 172, COL_GAP = 48, SLOT_H = 32, MATCH_H = SLOT_H * 2 + 2,
       LANE = 84, HEAD_H = 34, LEFT_PAD = 24;
 
 /* A match sits at the vertical midpoint of whatever feeds it. Round one is
-   evenly spaced; everything after is derived, so joins land dead centre between
+   evenly spaced; everything after is derived, so joins land dead center between
    their two feeders and 1:1 feeds run perfectly straight. */
-// Vertical offset of a row's centre from the box centre.
+// Vertical offset of a row's center from the box center.
 const rowOffset = i => (i + 0.5) * SLOT_H - MATCH_H / 2 + 1;
 
 function computeLayout(list, lane) {

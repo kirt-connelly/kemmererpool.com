@@ -489,7 +489,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.08</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.09</div>
 </footer>
 
 <script>
@@ -1034,7 +1034,7 @@ async function createChip(say) {
     tableCount,
     chipBands: bands.map(b => ({ max: b.max ?? null, chips: Number(b.chips) })),
     ...state,
-    bySeed: Object.fromEntries(state.roster.map(p => [p.draw, p.name])),   // so the API recognises it
+    bySeed: Object.fromEntries(state.roster.map(p => [p.draw, p.name])),   // so the API recognizes it
     progress: { played: 0, total: state.roster.reduce((a, p) => a + p.chips, 0) },
     champion: null,
     fee: document.getElementById('fee').value,
@@ -1076,12 +1076,14 @@ function showLinks(name, kind, code, adminCode) {
       </div>
     </div>
     <div class="link-row admin">
-      <div class="link-lbl">${kind === 'signup' ? 'Organiser — manage the list' : 'Admin — enters winners'}</div>
+      <div class="link-lbl">${kind === 'signup' ? 'Organizer — manage the list' : 'Admin — enters winners'}</div>
       <div class="link-code">${esc(code)}-${esc(adminCode)}</div>
       <div class="link-url">${esc(admin)}</div>
       <div class="link-actions">
         <button class="act" onclick="copyText('${esc(admin)}', this)">Copy link</button>
-        <a class="act primary" href="${esc(admin)}" target="_blank" rel="noopener">Open to score</a>
+        ${kind === 'signup'
+          ? `<button class="act primary" onclick="manageSheet('${esc(code)}','${esc(adminCode)}')">Manage</button>`
+          : `<a class="act primary" href="${esc(admin)}" target="_blank" rel="noopener">Open to score</a>`}
       </div>
     </div>`;
   document.getElementById('made').style.display = '';
