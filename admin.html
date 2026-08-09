@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex" />
-<title>Admin — Kemmerer Pool League</title>
+<title>Tournament Admin — Kemmerer Pool League</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -199,6 +199,7 @@
   .trow .tn { flex: 1; min-width: 150px; color: var(--cream); font-weight: 600; }
   .trow .tc { font-family: ui-monospace, monospace; font-size: 15px; color: var(--text2);
     letter-spacing: .08em; }
+  .tc-admin { color: var(--green2); }
   .trow .tm { font-size: 12px; color: var(--text3); }
   .trow .act { padding: 7px 14px; font-size: 13px; }
   .tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
@@ -217,7 +218,7 @@
   <div class="wrap">
     <div class="header-inner">
       <div>
-        <h1>Admin</h1>
+        <h1>Tournament Admin</h1>
         <div class="sub">Kemmerer Pool League</div>
       </div>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">🌙</button>
@@ -349,7 +350,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.02</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.03</div>
 </footer>
 
 <script>
@@ -737,12 +738,17 @@ function renderList(list) {
     const prog = t.progress ? `${t.progress.played}/${t.progress.total} played` : '';
     return `<div class="trow">
       <span class="tn">${esc(t.name || 'Untitled')}</span>
-      <span class="tc">${esc(t.code)}</span>
+      <span class="tc">${esc(t.code)}${t.adminCode ? `<span class="tc-admin">-${esc(t.adminCode)}</span>` : ''}</span>
       <span class="tag">${t.kind === 'tournament' ? 'Fargo' : 'Races'}</span>
       <span class="tag">${t.format === 'single' ? 'Single elim' : 'Double elim'}</span>
       ${done}
       <span class="tm">${t.players} players · ${prog} · ${when}</span>
       <a class="act" href="/${pageFor(t.kind)}?t=${esc(t.code)}" target="_blank" rel="noopener">View</a>
+      ${t.adminCode
+        ? `<a class="act primary" href="/${pageFor(t.kind)}?t=${esc(t.code)}&a=${esc(t.adminCode)}"
+             target="_blank" rel="noopener">Score</a>
+           <button class="linkish" onclick="copyText('${location.origin}/${pageFor(t.kind)}?t=${esc(t.code)}&a=${esc(t.adminCode)}', this)">Copy scoring link</button>`
+        : ''}
       <button class="linkish" onclick="removeTournament('${esc(t.code)}')">Delete</button>
     </div>`;
   }).join('') : '<div class="empty">Nothing created yet.</div>';

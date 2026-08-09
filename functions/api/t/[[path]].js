@@ -46,9 +46,11 @@ const json = (obj, status = 200) =>
 const notConfigured = () =>
   json({ ok: false, error: 'Tournament storage is not set up on this site yet.', code: 'not_configured' }, 501);
 
-function entryFor(code, data) {
+function entryFor(code, data, adminCode) {
   return {
     code,
+    adminCode,                       // officers need this to open a scoring link
+
     name: String(data.name || '').slice(0, 120),
     kind: data.kind === 'tournament' ? 'tournament' : 'bracket',
     format: data.format === 'single' ? 'single' : 'double',
@@ -59,9 +61,11 @@ function entryFor(code, data) {
   };
 }
 
-async function touchIndex(kv, code, data) {
+async function touchIndex(kv, code, data, adminCode) {
   const index = (await kv.get(INDEX_KEY, 'json')) || [];
-  const next = [entryFor(code, data), ...index.filter(e => e.code !== code)].slice(0, MAX_INDEX);
+  const prev = index.find(e => e.code === code);
+  const admin = adminCode || (prev && prev.adminCode) || null;
+  const next = [entryFor(code, data, admin), ...index.filter(e => e.code !== code)].slice(0, MAX_INDEX);
   await kv.put(INDEX_KEY, JSON.stringify(next));
 }
 
@@ -103,7 +107,7 @@ export async function onRequest({ request, env, params }) {
     const admin = makeCode();
     data.code = newCode;
     await kv.put('t:' + newCode, JSON.stringify({ data, adminCode: admin, created: Date.now(), updated: Date.now() }));
-    await touchIndex(kv, newCode, data);
+    await touchIndex(kv, newCode, data, admin);
     return json({ ok: true, code: newCode, adminCode: admin });
   }
 
@@ -139,7 +143,7 @@ export async function onRequest({ request, env, params }) {
     await kv.put('t:' + code, JSON.stringify({
       data, adminCode: record.adminCode, created: record.created, updated: Date.now(),
     }));
-    await touchIndex(kv, code, data);
+    await touchIndex(kv, code, data, record.adminCode);
     return json({ ok: true });
   }
 
