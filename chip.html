@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chip Tournament — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #141414; --bg2: #1e1e1e; --bg3: #262626; --bg4: #2e2e2e;
+    --border: #363636; --border2: #464646;
+    --text: #ffffff; --text2: #b0a898; --text3: #666058;
+    --accent: #27855a; --cream: #e8ddd0; --green2: #32a870; --loss: #cc4444;
+    --on-accent: #ffffff;
+    --radius: 8px; --radius-sm: 5px;
+  }
+  html[data-theme="light"] {
+    --bg: #f5f3ef; --bg2: #ffffff; --bg3: #eae6df; --bg4: #ddd8ce;
+    --border: #d6d0c5; --border2: #bcb4a6;
+    --text: #1a1714; --text2: #5a5348; --text3: #8b8376;
+    --accent: #1f6b48; --cream: #2b2419; --green2: #1a7a4e; --loss: #b23636;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0,#154d28 4px,#1a5c32 8px); opacity: .5; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 12px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
+  .theme-btn { width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    cursor: pointer; font-size: 13px; padding: 0; }
+  .theme-btn:hover { background: var(--bg4); color: var(--text); }
+
+  main { padding: 22px 0 70px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-meta { font-size: 12px; color: var(--text3); }
+  .pad { padding: 18px; }
+  .setup-head { cursor: pointer; user-select: none; }
+  .setup-head:hover .card-title { color: var(--green2); }
+  .head-right { display: flex; align-items: center; gap: 11px; }
+  .chev { font-size: 20px; line-height: 1; color: var(--text2); display: inline-block; transition: transform .18s; }
+  /* Collapsed after the draw — the setup is done, the bracket is the point. */
+  .setup-card.collapsed .pad { display: none; }
+  .setup-card.collapsed .chev { transform: rotate(-90deg); }
+
+  label.fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 150px; resize: vertical; font-family: inherit; font-size: 14px;
+    line-height: 1.7; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px; }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  .fee-row { margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .fee-input { display: inline-flex; align-items: center; gap: 6px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
+  .fee-input:focus-within { border-color: var(--accent); }
+  .fee-input span { color: var(--text3); font-size: 14px; }
+  .fee-input input { width: 76px; border: none; background: none; color: var(--text);
+    font-family: inherit; font-size: 14px; padding: 9px 0; }
+  .fee-input input:focus { outline: none; }
+
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green2); margin-right: 7px; vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+  .notice-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px; color: var(--text2); font-size: 14px; }
+  .th-live { color: var(--green2); font-weight: 600; }
+  .ro-banner { padding: 10px 14px; margin-bottom: 14px; border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); background: var(--bg2); color: var(--text2);
+    font-size: 13px; font-weight: 500; }
+  body.read-only .slot { cursor: default; }
+  body.read-only .slot:hover:not(.locked) { background: none; }
+  body.read-only .payout .place, body.read-only .payout .amt { cursor: default; }
+  body.read-only .payout .place:hover, body.read-only .payout .amt:hover { background: none; }
+
+  .code-entry { max-width: 380px; margin: 7vh auto 40px; }
+  .code-entry .pad { padding: 22px; }
+  .code-entry label.fl { text-align: center; margin-bottom: 10px; }
+  /* min-width:0 matters — an input won't shrink below its intrinsic size
+     otherwise, which pushed the button outside the card. */
+  .code-input { display: block; width: 100%; min-width: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 30px; font-weight: 700; letter-spacing: .34em; text-indent: .34em;
+    text-align: center; text-transform: uppercase; color: var(--cream);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 14px 10px; }
+  .code-input::placeholder { color: var(--text3); }
+  .code-input:focus { outline: none; border-color: var(--accent); }
+  .code-go { display: block; width: 100%; margin-top: 12px; padding: 13px;
+    font-size: 15px; text-align: center; }
+  .code-help { margin-top: 14px; text-align: center; font-size: 12px;
+    color: var(--text3); line-height: 1.6; }
+  .code-entry .hint:not(:empty) { margin-top: 10px; text-align: center; }
+
+  /* ── Tournament header ── */
+  .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .th-name { font-size: 20px; font-weight: 700; color: var(--cream); line-height: 1.2; }
+  .th-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .th-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+  .th-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ── Saving ── */
+  .name-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tname { width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; }
+  .tname:focus { outline: none; border-color: var(--accent); }
+  .tid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+    color: var(--text2); background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 9px 12px; letter-spacing: .04em; }
+  .saved-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .saved-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px;
+    background: var(--bg2); font-size: 14px; flex-wrap: wrap; }
+  .saved-row .sn { flex: 1; min-width: 140px; color: var(--cream); font-weight: 600; }
+  .saved-row .sm { font-size: 11px; color: var(--text3); }
+  .saved-row .sid { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text3); }
+  .saved-row.current { border-left: 3px solid var(--accent); }
+  .saved-empty { padding: 20px 18px; color: var(--text3); font-size: 13px; background: var(--bg2); }
+
+  /* ── Payouts ── */
+  .payouts { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 18px; }
+  .payout { flex: 1; min-width: 128px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); padding: 12px 14px; }
+  .payout .place { font-size: 10px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text3); }
+  .payout .amt { font-size: 22px; font-weight: 700; color: var(--cream); margin-top: 3px;
+    font-variant-numeric: tabular-nums; }
+  .payout .place, .payout .amt { cursor: pointer; border-radius: 3px; }
+  .payout .place:hover, .payout .amt:hover { background: var(--bg3); }
+  .payout.add { flex: 0 0 auto; min-width: 48px; display: flex; align-items: center;
+    justify-content: center; font-size: 20px; font-family: inherit; color: var(--text3);
+    cursor: pointer; border: 1px dashed var(--border2); border-radius: var(--radius-sm);
+    background: none; padding: 12px 14px; }
+  .payout.add:hover { color: var(--green2); border-color: var(--accent); }
+  .pay-input { width: 100%; font-family: inherit; background: var(--bg2); color: var(--text);
+    border: 1px solid var(--accent); border-radius: 3px; padding: 1px 4px; }
+  .pay-input:focus { outline: none; }
+  .pay-input.place, .pay-input.label { font-size: 11px; font-weight: 700; letter-spacing: .09em; }
+  .pay-input.amt { font-size: 20px; font-weight: 700; }
+  .payout-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    flex-wrap: wrap; padding: 0 18px 16px; }
+  .tally { font-size: 12px; font-weight: 600; }
+  .tally.ok { color: var(--text3); }
+  .tally.off { color: var(--loss); }
+  .linkish { background: none; border: none; font-family: inherit; font-size: 12px;
+    color: var(--text3); cursor: pointer; text-decoration: underline; padding: 0; }
+  .linkish:hover { color: var(--text); }
+  .payout.first { border-color: var(--accent); }
+  .payout.first .amt { color: var(--green2); }
+
+  .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 16px 18px; }
+  .setup-card:not(.collapsed) .btn-row { border-top: 1px solid var(--border); }
+  button.act { font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: .03em;
+    padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2); transition: background .15s, color .15s; }
+  button.act:hover { background: var(--bg4); color: var(--text); }
+  button.act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button.act.primary:hover { opacity: .87; color: var(--on-accent); }
+  button.act:disabled { opacity: .45; cursor: default; }
+  .hint { font-size: 12px; color: var(--text3); }
+
+  /* ── Bracket ── */
+  .bracket-scroll { overflow-x: auto; padding: 4px 18px 22px; }
+  /* Positions are computed in JS and set inline — flexbox can't align a bracket
+     reliably once rounds stop halving (losers-bracket major rounds feed 1:1). */
+  .canvas { position: relative; min-width: min-content; }
+  .round-label { position: absolute; top: 0; font-size: 10px; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--text3);
+    text-align: center; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+  .line { position: absolute; background: var(--border2); }
+  .match { position: absolute; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+  .match.decided { border-color: var(--border2); }
+  .match.ready { border-color: var(--accent); }
+  .match-no { position: absolute; top: -1px; left: -1px; font-size: 9px; font-weight: 700;
+    background: var(--bg3); color: var(--text3); padding: 1px 5px; border-radius: var(--radius-sm) 0 var(--radius-sm) 0;
+    letter-spacing: .04em; }
+  .slot { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 0 9px 0 26px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .slot:last-child { border-bottom: none; }
+  .slot:hover:not(.locked) { background: var(--bg3); }
+  .slot .nm { font-weight: 600; color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot.won .nm { color: var(--green2); }
+  .slot.lost .nm { color: var(--text3); text-decoration: line-through; }
+  .slot.empty .nm, .slot.bye .nm { color: var(--text3); font-weight: 400; font-style: italic; }
+  .slot .src { font-size: 11px; font-weight: 600; font-style: normal; letter-spacing: .04em;
+    color: var(--text3); opacity: .8; }
+  .slot.locked { cursor: default; }
+  .slot.bye.open { cursor: pointer; }
+  .slot.bye.open .nm { color: var(--accent); font-style: normal; font-weight: 600; }
+  .slot.bye.open:hover { background: var(--bg3); }
+  .slot-input { width: 100%; font-family: inherit; font-size: 13px; font-weight: 600;
+    color: var(--cream); background: var(--bg2); border: 1px solid var(--accent);
+    border-radius: 3px; padding: 3px 6px; }
+  .slot-input:focus { outline: none; }
+  .race-box { width: 24px; height: 21px; flex-shrink: 0; border: 1px solid var(--border);
+    border-radius: 3px; background: var(--bg2); display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 700; color: var(--text2);
+    font-variant-numeric: tabular-nums; }
+  .slot.won .race-box { border-color: var(--accent); color: var(--green2); }
+
+  .gf-col { border-left: 1px solid var(--border); padding-left: 26px; }
+  .gf-col .round-label { color: var(--accent); }
+  .champion { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 20px;
+    border: 1px solid var(--accent); border-radius: var(--radius); background: var(--bg2); margin-bottom: 18px; }
+  .champion .lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); }
+  .champion .nm { font-size: 24px; font-weight: 700; color: var(--green2); }
+
+  .empty-state { padding: 46px 18px; text-align: center; color: var(--text3); font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 14px; }
+    h1 { font-size: 18px; }
+    .round { min-width: 165px; }
+  }
+
+  /* ── Print: this gets taped to the wall and written on in pen ── */
+  @media print {
+    @page { size: landscape; margin: 0.4in; }
+    :root, html[data-theme="light"], html[data-theme="dark"] {
+      --bg: #fff; --bg2: #fff; --bg3: #f2f2f2; --bg4: #eee;
+      --border: #999; --border2: #666;
+      --text: #000; --text2: #222; --text3: #555;
+      --accent: #000; --cream: #000; --green2: #000; --loss: #000; --on-accent: #000;
+    }
+    html, body { background: #fff; font-size: 9.5pt; }
+    header, .setup-card, .btn-row, .theme-btn, .header-felt,
+    #saved-panel, .payout.add, .linkish, .th-actions { display: none !important; }
+    .th-name { font-size: 15pt; color: #000; }
+    .th-meta { font-size: 8pt; color: #555; }
+    main { padding: 0; }
+    .wrap { max-width: none; padding: 0; }
+    .card { border: none; margin-bottom: 10px; break-inside: avoid; }
+    .card-header { background: transparent; border-bottom: 1px solid #000; padding: 0 0 4px; }
+    .card-title { font-size: 11pt; }
+    .bracket-scroll { overflow: visible; padding: 8px 0 0; }
+    /* Browsers drop background colours when printing, and the connectors are
+       coloured divs — without this the bracket prints as boxes with no lines. */
+    .line { background: #000 !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .race-box, .match { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Canvas widths are fixed pixels, so shrink to fit the page. zoom reflows
+       (transform would leave the original height as blank space). */
+    .canvas { zoom: .74; }
+    .match { break-inside: avoid; }
+    .slot { padding: 5px 7px 5px 22px; min-height: 26px; }
+    .slot.won .nm { font-weight: 700; }
+    .slot.lost .nm { text-decoration: line-through; }
+    .race-box { border: 1px solid #666; color: #000; }
+    .champion { border: 1px solid #000; }
+    .print-head { display: block !important; }
+  }
+  footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
+    font-size: 11px; color: var(--text3); letter-spacing: .05em; }
+  .print-head { display: none; margin-bottom: 10px; }
+  .print-head .t { font-size: 14pt; font-weight: 700; }
+  .print-head .d { font-size: 9pt; color: #555; }
+
+  /* ── Chip board ──
+     Built to work on a phone first: whoever is scoring walks between tables,
+     so a table is a card and reporting a winner is one thumb press. */
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .table-card { border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); overflow: hidden; }
+  .table-card.idle { opacity: .55; }
+  .table-head { display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: var(--bg3); border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text3); }
+  .table-timer { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .table-timer.over { color: var(--loss); }
+  .seat { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; padding: 13px 12px; background: none; border: none; border-bottom: 1px solid var(--border);
+    font-family: inherit; font-size: 15px; text-align: left; color: var(--cream); font-weight: 600; }
+  .seat:last-child { border-bottom: none; }
+  .seat.playable { cursor: pointer; }
+  .seat.playable:hover { background: var(--bg3); }
+  .seat.empty { color: var(--text3); font-weight: 400; font-style: italic; }
+  .seat .chips { display: flex; gap: 2px; flex-shrink: 0; }
+  .chip { width: 9px; height: 9px; border-radius: 50%; background: var(--green2); }
+  .chip.spent { background: var(--border2); }
+
+  .queue-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 18px; }
+  .qchip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+    border: 1px solid var(--border); border-radius: 99px; background: var(--bg);
+    font-size: 13px; color: var(--text2); }
+  .qchip .qn { color: var(--cream); font-weight: 600; }
+  .qchip.next { border-color: var(--accent); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 10px; padding: 16px 18px; }
+  .stat { border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); padding: 10px 12px; }
+  .stat .sv { font-size: 21px; font-weight: 700; color: var(--cream);
+    font-variant-numeric: tabular-nums; }
+  .stat .sl { font-size: 10px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text3); margin-top: 2px; }
+  .stat.headline .sv { color: var(--green2); }
+
+  .prow { display: flex; align-items: center; gap: 10px; padding: 11px 18px;
+    border-bottom: 1px solid var(--border); font-size: 14px; }
+  .prow:last-child { border-bottom: none; }
+  .prow.out { opacity: .5; }
+  .prow .pl { width: 26px; font-size: 12px; font-weight: 700; color: var(--text3);
+    font-variant-numeric: tabular-nums; }
+  .prow .pn { flex: 1; color: var(--cream); font-weight: 600; }
+  .prow.out .pn { text-decoration: line-through; font-weight: 400; }
+  .prow .pr { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; }
+  .prow .pw { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums;
+    white-space: nowrap; }
+  .adj { background: none; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text3); width: 24px; height: 24px; cursor: pointer; font-size: 14px;
+    line-height: 1; padding: 0; }
+  .adj:hover { border-color: var(--accent); color: var(--green2); }
+
+  .ticker { padding: 10px 18px; font-size: 13px; color: var(--text2);
+    border-bottom: 1px solid var(--border); }
+  .ticker strong { color: var(--cream); }
+
+  @media (max-width: 560px) {
+    .board { grid-template-columns: 1fr; }
+    .seat { padding: 15px 12px; font-size: 16px; }   /* bigger thumb target */
+  }
+  @media print {
+    .seat.playable { cursor: default; }
+    .adj, .th-actions { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-felt"></div>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <h1>Chip Tournament</h1>
+        <div class="sub">Winner Stays On · Single Games</div>
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">🌙</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <div class="card code-entry" id="code-entry">
+    <div class="card-header"><span class="card-title">Open a tournament</span></div>
+    <div class="pad">
+      <label class="fl" for="code-in">Tournament code</label>
+      <input id="code-in" class="code-input" type="text" maxlength="4" size="4" spellcheck="false"
+        autocomplete="off" autocapitalize="characters" placeholder="ABCD"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')goToCode()">
+      <button class="act primary code-go" onclick="goToCode()">Open</button>
+      <div class="hint" id="hint"></div>
+      <div class="hint" id="saved-note"></div>
+      <div class="code-help">Four characters, from the officer running the tournament.</div>
+    </div>
+  </div>
+
+  <div id="out"></div>
+  <input type="hidden" id="tname"><span id="tid" style="display:none"></span>
+  <input type="hidden" id="fee"><input type="hidden" id="bar">
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.00</div>
+</footer>
+
+<script>
+/* ── Theme ── */
+function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
+}
+function toggleTheme() { applyTheme(isLight() ? 'dark' : 'light'); }
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
+  if (saved !== 'light' && saved !== 'dark') {
+    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
+})();
+
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* ── Chip tournament engine ──
+   Winner stays at the table. The loser drops a chip and joins the back of the
+   queue, or is out at zero. The next player in the queue comes down to that
+   table. As players are knocked out the field collapses onto fewer tables
+   rather than leaving one sitting idle.
+
+   State shape:
+     roster    [{ name, rating, chips, start, draw, wins, losses, outAt }]
+     tables    [[nameOrNull, nameOrNull], ...]   index = table number - 1
+     queue     [name, ...]                       front of the queue is index 0
+     outOrder  [name, ...]                       knocked out, earliest first
+     log       [{ winner, loser, table, at }]
+*/
+
+const chipsFor = (rating) => {
+  const r = Number(rating) || 0;
+  if (r <= 375) return 6;
+  if (r <= 499) return 5;
+  if (r <= 575) return 4;
+  if (r <= 625) return 3;
+  if (r <= 700) return 2;
+  return 1;
+};
+
+const alive = (S) => S.roster.filter(p => p.chips > 0);
+const playerOf = (S, name) => S.roster.find(p => p.name === name);
+
+/* Seats waiting players and folds the field onto fewer tables as it shrinks.
+   Tables mid-match are never disturbed — only ones with an empty seat. */
+function rebalance(S) {
+  const live = alive(S).length;
+  const wanted = Math.max(1, Math.min(S.tableCount, Math.floor(live / 2)));
+
+  // Close surplus tables that aren't mid-match, putting anyone sitting there
+  // back at the front of the queue so they don't lose their turn.
+  for (let t = S.tables.length - 1; t >= wanted; t--) {
+    const seat = S.tables[t].filter(Boolean);
+    if (seat.length === 2) continue;                 // a match is under way here
+    seat.forEach(n => { if (!S.queue.includes(n)) S.queue.unshift(n); });
+    S.tables[t] = [null, null];
+  }
+
+  // Fill empty seats from the front of the queue, lowest table number first.
+  for (let t = 0; t < wanted; t++) {
+    for (let s = 0; s < 2; s++) {
+      if (S.tables[t][s]) continue;
+      if (!S.queue.length) break;
+      S.tables[t][s] = S.queue.shift();
+    }
+  }
+  return S;
+}
+
+function buildChip(players, tableCount, rand = Math.random) {
+  const names = players.map(p => p.name);
+  for (let i = names.length - 1; i > 0; i--) {       // shuffle for the draw
+    const j = Math.floor(rand() * (i + 1));
+    [names[i], names[j]] = [names[j], names[i]];
+  }
+  const roster = names.map((name, i) => {
+    const src = players.find(p => p.name === name) || {};
+    const c = chipsFor(src.rating);
+    return { name, rating: src.rating || 0, chips: c, start: c,
+             draw: i + 1, wins: 0, losses: 0, outAt: null };
+  });
+  const S = { tableCount, roster, tables: Array.from({ length: tableCount }, () => [null, null]),
+              queue: [...names], outOrder: [], log: [] };
+  return rebalance(S);
+}
+
+/* Records a single game. `winnerName` must be one of the two at that table. */
+function reportWin(S, tableIdx, winnerName) {
+  const seat = S.tables[tableIdx];
+  if (!seat || !seat[0] || !seat[1]) return { ok: false, why: 'That table has no match on it.' };
+  if (!seat.includes(winnerName)) return { ok: false, why: 'That player is not at this table.' };
+
+  const loserName = seat[0] === winnerName ? seat[1] : seat[0];
+  const w = playerOf(S, winnerName), l = playerOf(S, loserName);
+  w.wins++; l.losses++;
+  l.chips--;                                          // the winner never gains one
+
+  S.log.unshift({ winner: winnerName, loser: loserName, table: tableIdx + 1, at: Date.now() });
+
+  if (l.chips <= 0) {
+    l.chips = 0;
+    l.outAt = S.outOrder.length + 1;
+    S.outOrder.push(loserName);                       // knocked out, earliest first
+  } else {
+    S.queue.push(loserName);                          // back of the line
+  }
+
+  S.tables[tableIdx] = [winnerName, null];            // winner stays on
+  return { ok: true, loser: loserName, eliminated: l.chips === 0, state: rebalance(S) };
+}
+
+/* Placements are reverse elimination order: last one standing wins, the last
+   player knocked out is 2nd, and so on back down the list. */
+function standings(S) {
+  const left = alive(S).map(p => p.name);
+  const order = [...left.sort((a, b) => playerOf(S, b).chips - playerOf(S, a).chips),
+                 ...[...S.outOrder].reverse()];
+  return order.map((name, i) => ({ place: i + 1, ...playerOf(S, name) }));
+}
+
+const isOver = (S) => alive(S).length <= 1;
+const champion = (S) => isOver(S) ? (alive(S)[0] || {}).name || null : null;
+
+/* Chips left is the clearest measure of how far along the night is — it counts
+   down to exactly zero. */
+function sessionStats(S) {
+  const live = alive(S);
+  return {
+    registered: S.roster.length,
+    distributed: S.roster.reduce((a, p) => a + p.start, 0),
+    remaining: S.roster.reduce((a, p) => a + p.chips, 0),
+    playersLeft: live.length,
+    matches: S.log.length,
+    inPlay: S.tables.filter(t => t[0] && t[1]).length,
+    waiting: S.queue.length,
+  };
+}
+
+/* ── Payouts ──
+   First takes half the pot. The other half splits two-thirds / one-third between
+   second and third — the same as a straight 1/2, 1/3, 1/6 of the whole.
+   First and second round to the nearest $5 so they're payable in bills; third
+   absorbs the difference, keeping the three payouts equal to what was collected. */
+const ORDINALS = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+
+/* The suggested split when you pick a number of spots: first takes half, and
+   the other half is shared among the rest in descending weights. At three spots
+   that lands exactly on the league's usual 50 / 33.33 / 16.67. */
+function suggestedSplit(spots) {
+  const n = Math.max(1, Math.min(10, spots | 0));
+  if (n === 1) return [100];
+  const weights = [];
+  for (let i = 1; i < n; i++) weights.push(n - i);
+  const total = weights.reduce((a, b) => a + b, 0);
+  return [50, ...weights.map(w => (w / total) * 50)];
+}
+
+const DEFAULT_PAYOUTS = suggestedSplit(3).map((pct, i) => ({ label: ORDINALS[i], pct }));
+
+/* Percentages in, dollars out. Every spot rounds to the nearest $5 so it can be
+   paid in bills, and the last one absorbs the difference — so the payouts always
+   add up to exactly what was collected. */
+function computePayouts(players, feeDollars, addOnDollars, spec) {
+  const entries = Math.round(players * feeDollars * 100);    // cents, no float drift
+  const addOn   = Math.round((addOnDollars || 0) * 100);
+  const pot     = entries + addOn;
+  if (pot <= 0) return null;
+
+  const rows = (spec && spec.length ? spec : DEFAULT_PAYOUTS)
+    .map(r => ({ label: r.label, pct: Number(r.pct) || 0 }));
+  const to5 = (cents) => Math.round(cents / 500) * 500;
+
+  let out = rows.map(r => ({ label: r.label, cents: to5(pot * r.pct / 100) }));
+
+  // On a small pot the lower places can round away to nothing. Drop them rather
+  // than listing someone for $0 — this has to catch middle places too, not just
+  // the tail, since the last place is about to absorb the remainder.
+  out = out.filter((r, i) => i === 0 || r.cents > 0);
+
+  for (;;) {
+    const others = out.slice(0, -1).reduce((a, r) => a + r.cents, 0);
+    out[out.length - 1].cents = pot - others;          // last place takes the remainder
+    if (out.length === 1 || out[out.length - 1].cents > 0) break;
+    out.pop();
+  }
+  return { pot, entries, addOn, rows: out };
+}
+
+const money = (cents) => {
+  const v = cents / 100;
+  return '$' + (Number.isInteger(v) ? v.toLocaleString('en-US')
+                                    : v.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+};
+
+/* The generator seeds the split; from there every line is editable and you can
+   add your own (Top Lady, high break, whatever). Once anything is touched the
+   card stops recalculating so an edit can't be wiped by a fee change. */
+function autoPayouts(players, fee, addOn) {
+  const p = computePayouts(players, fee, addOn, S && S.payoutSpec);
+  return p ? p.rows : [];
+}
+
+function payoutRows(players, fee, addOn) {
+  if (!S.payoutsManual) return autoPayouts(players, fee, addOn);
+  return S.payoutsManual;
+}
+
+// Copy the computed rows into an editable set the first time anything changes.
+function goManual(players, fee, addOn) {
+  if (!S.payoutsManual) S.payoutsManual = autoPayouts(players, fee, addOn);
+  return S.payoutsManual;
+}
+
+function editPayout(idx, field) {
+  if (readOnly) return;
+  const el = document.querySelector(`.payout[data-idx="${idx}"] .${field === 'label' ? 'place' : 'amt'}`);
+  if (!el || el.querySelector('input')) return;
+  const rows = goManual(lastPayoutCtx.players, lastPayoutCtx.fee, lastPayoutCtx.addOn);
+  const row = rows[idx];
+  if (!row) return;
+
+  const val = field === 'label' ? row.label : (row.cents / 100);
+  el.innerHTML = `<input class="pay-input ${field}" value="${esc(val)}"
+    ${field === 'amt' ? 'type="number" step="5" min="0"' : 'spellcheck="false"'}>`;
+  const inp = el.querySelector('input');
+  inp.focus(); inp.select();
+
+  let done = false;
+  const commit = (save) => {
+    if (done) return; done = true;
+    if (save) {
+      if (field === 'label') {
+        const t = inp.value.trim();
+        if (!t) rows.splice(idx, 1);            // clearing the label removes the line
+        else row.label = t;
+      } else {
+        row.cents = Math.round((parseFloat(inp.value) || 0) * 100);
+      }
+    }
+    render();
+  };
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') commit(true);
+    if (e.key === 'Escape') commit(false);
+  });
+  inp.addEventListener('blur', () => commit(true));
+}
+
+function addPayout() {
+  if (readOnly) return;
+  const rows = goManual(lastPayoutCtx.players, lastPayoutCtx.fee, lastPayoutCtx.addOn);
+  rows.push({ label: 'Prize', cents: 0 });
+  render();
+  editPayout(rows.length - 1, 'label');
+}
+
+function resetPayouts() { S.payoutsManual = null; render(); }
+
+let lastPayoutCtx = { players: 0, fee: 0, addOn: 0 };
+
+function payoutHTML(players, feeDollars, addOnDollars, champ) {
+  lastPayoutCtx = { players, fee: feeDollars, addOn: addOnDollars };
+  const p = computePayouts(players, feeDollars, addOnDollars, S && S.payoutSpec);
+  if (!p) return '';
+  const rows = payoutRows(players, feeDollars, addOnDollars);
+  const paid = rows.reduce((a, r) => a + r.cents, 0);
+  const off  = paid - p.pot;
+
+  const breakdown = `${players} × ${money(Math.round(feeDollars*100))}`
+    + (p.addOn ? ` + ${money(p.addOn)} bar` : '')
+    + ` = ${money(p.pot)} pot`;
+
+  const tally = off === 0
+    ? `<span class="tally ok">Paying out ${money(paid)} — balanced</span>`
+    : `<span class="tally off">Paying out ${money(paid)} — ${off > 0 ? money(off) + ' over' : money(-off) + ' left'}</span>`;
+
+  return `<div class="card">
+    <div class="card-header">
+      <span class="card-title">Payouts</span>
+      <span class="card-meta">${breakdown}</span>
+    </div>
+    <div class="payouts">
+      ${rows.map((r, i) => `<div class="payout${i === 0 ? ' first' : ''}" data-idx="${i}">
+        <div class="place" onclick="editPayout(${i},'label')">${esc(r.label)}</div>
+        <div class="amt" onclick="editPayout(${i},'amt')">${money(r.cents)}</div>
+      </div>`).join('')}
+      <button class="payout add" onclick="addPayout()" title="Add a payout">+</button>
+    </div>
+    <div class="payout-foot">
+      ${tally}
+      ${S.payoutsManual ? `<button class="linkish" onclick="resetPayouts()">Reset to calculated</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function onFeeChange() { updateCount(); if (S) render(); }
+
+/* ── UI ── */
+let S = null;                 // the session
+let readOnly = true;
+let serverCode = null, adminCode = null, livePoll = null, liveStamp = 0;
+
+const fmtClock = (ms) => {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+};
+
+function chipDots(p) {
+  let out = '';
+  for (let i = 0; i < p.start; i++) out += `<span class="chip${i < p.chips ? '' : ' spent'}"></span>`;
+  return `<span class="chips" title="${p.chips} of ${p.start} chips left">${out}</span>`;
+}
+
+/* Reporting a winner: one press on the name of whoever won. */
+function win(tableIdx, name) {
+  if (readOnly || !S) return;
+  const r = reportWin(S, tableIdx, name);
+  if (!r.ok) { note(r.why, true); return; }
+  S.tableStarts = S.tableStarts || {};
+  S.tableStarts[tableIdx] = Date.now();       // restart that table's clock
+  note(r.eliminated ? `${name} beat ${r.loser} — ${r.loser} is out.`
+                    : `${name} beat ${r.loser}.`);
+  render();
+  queuePush();
+}
+
+function adjustChips(name, delta) {
+  if (readOnly || !S) return;
+  const p = S.roster.find(x => x.name === name);
+  if (!p) return;
+  const was = p.chips;
+  p.chips = Math.max(0, p.chips + delta);
+  if (was > 0 && p.chips === 0) {                     // forfeited their last chip
+    p.outAt = S.outOrder.length + 1;
+    S.outOrder.push(name);
+    S.queue = S.queue.filter(n => n !== name);
+    S.tables = S.tables.map(t => t.map(n => n === name ? null : n));
+  } else if (was === 0 && p.chips > 0) {              // put back in
+    S.outOrder = S.outOrder.filter(n => n !== name);
+    p.outAt = null;
+    if (!S.queue.includes(name) && !S.tables.flat().includes(name)) S.queue.push(name);
+  }
+  rebalance(S);
+  render();
+  queuePush();
+}
+
+function addLatePlayer() {
+  if (readOnly || !S) return;
+  const name = (prompt('Late player — name:', '') || '').trim();
+  if (!name) return;
+  if (S.roster.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    note(`${name} is already registered.`, true); return;
+  }
+  const rating = parseInt(prompt(`Fargo rating for ${name}?`, '450'), 10) || 0;
+  const base = chipsFor(rating);
+  const penalty = parseInt(prompt(
+    `Chip penalty for signing up late?\n0 = on time, 1 = after 4:00, 2 = after 4:30`, '0'), 10) || 0;
+  const chips = Math.max(1, base - Math.max(0, penalty));
+  S.roster.push({ name, rating, chips, start: chips,
+                  draw: S.roster.length + 1, wins: 0, losses: 0, outAt: null });
+  S.queue.push(name);
+  rebalance(S);
+  note(`${name} added with ${chips} chip${chips === 1 ? '' : 's'}.`);
+  render();
+  queuePush();
+}
+
+function render() {
+  if (!S) return;
+  const st = sessionStats(S);
+  const champ = champion(S);
+  const scoring = !!(serverCode && adminCode);
+  const fee = Number(document.getElementById('fee').value) || 0;
+  const bar = Number(document.getElementById('bar').value) || 0;
+  const tName = (document.getElementById('tname').value || '').trim();
+  const now = Date.now();
+  S.tableStarts = S.tableStarts || {};
+
+  const tables = S.tables.map((seat, i) => {
+    const live = seat[0] && seat[1];
+    const started = S.tableStarts[i];
+    const el = started ? now - started : null;
+    const over = el !== null && el > 4 * 60 * 1000;      // the 4-minute call
+    const seatHTML = [0,1].map(k => {
+      const n = seat[k];
+      if (!n) return `<div class="seat empty">Waiting for a player</div>`;
+      const p = S.roster.find(x => x.name === n);
+      return `<button class="seat${live && scoring ? ' playable' : ''}"
+        ${live && scoring ? `onclick="win(${i}, ${JSON.stringify(n)})"` : 'disabled'}>
+        <span>${esc(n)}</span>${chipDots(p)}</button>`;
+    }).join('');
+    return `<div class="table-card${live ? '' : ' idle'}">
+      <div class="table-head"><span>Table ${i + 1}</span>
+        ${live && el !== null ? `<span class="table-timer${over ? ' over' : ''}">${fmtClock(el)}</span>` : ''}
+      </div>${seatHTML}</div>`;
+  }).join('');
+
+  const board = S.tables.some(t => t[0] || t[1]) ? tables : '';
+  const order = standings(S);
+
+  document.getElementById('out').innerHTML = `
+    ${scoring ? `<div class="ro-banner"><span class="live-dot"></span>Scoring — tap whoever won. Anyone watching sees it within twenty seconds.</div>` : ''}
+    <div class="tourney-head">
+      <div class="th-left">
+        <div class="th-name">${tName ? esc(tName) : 'Chip tournament'}</div>
+        <div class="th-meta"><span class="th-id">${esc(serverCode || '')}</span><span id="save-meta"></span></div>
+      </div>
+      <div class="th-actions">
+        ${scoring ? `<button class="act" onclick="addLatePlayer()">Add late player</button>
+                     <button class="act" onclick="copyViewLink()">Copy view link</button>` : ''}
+        <button class="act" onclick="window.print()">Print</button>
+      </div>
+    </div>
+
+    ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}
+    ${payoutHTML(st.registered, fee, bar, champ)}
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-header"><span class="card-title">Session</span>
+        <span class="card-meta">${st.matches} game${st.matches === 1 ? '' : 's'} played</span></div>
+      <div class="stat-grid">
+        <div class="stat headline"><div class="sv">${st.remaining}</div><div class="sl">Chips left</div></div>
+        <div class="stat"><div class="sv">${st.playersLeft}</div><div class="sl">Players in</div></div>
+        <div class="stat"><div class="sv">${st.registered}</div><div class="sl">Registered</div></div>
+        <div class="stat"><div class="sv">${st.distributed}</div><div class="sl">Chips given out</div></div>
+        <div class="stat"><div class="sv">${st.inPlay}</div><div class="sl">Tables on</div></div>
+        <div class="stat"><div class="sv">${st.waiting}</div><div class="sl">Waiting</div></div>
+      </div>
+    </div>
+
+    ${board ? `<div class="card" style="margin-bottom:18px">
+      <div class="card-header"><span class="card-title">Tables</span></div>
+      ${S.log.length ? `<div class="ticker"><strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${S.log[0].table}</div>` : ''}
+      <div class="pad"><div class="board">${board}</div></div>
+    </div>` : ''}
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-header"><span class="card-title">Queue</span>
+        <span class="card-meta">${st.waiting} waiting</span></div>
+      ${S.queue.length
+        ? `<div class="queue-list">${S.queue.map((n, i) => {
+            const p = S.roster.find(x => x.name === n);
+            return `<span class="qchip${i === 0 ? ' next' : ''}"><span class="qn">${esc(n)}</span>${chipDots(p)}</span>`;
+          }).join('')}</div>`
+        : `<div class="pad" style="color:var(--text3);font-size:14px">Nobody waiting.</div>`}
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Players</span>
+        <span class="card-meta">${champ ? 'Final placings' : 'Order as it stands'}</span></div>
+      ${order.map(p => `<div class="prow${p.chips === 0 ? ' out' : ''}">
+        <span class="pl">${p.place}</span>
+        <span class="pn">${esc(p.name)}</span>
+        <span class="pr">${p.rating || ''}</span>
+        <span class="pw">won ${p.wins} lost ${p.losses}</span>
+        ${p.chips ? chipDots(p) : '<span class="pw">out</span>'}
+        ${scoring ? `<button class="adj" title="Take a chip (forfeit)"
+             onclick="adjustChips(${JSON.stringify(p.name)}, -1)">−</button>
+           <button class="adj" title="Give a chip back"
+             onclick="adjustChips(${JSON.stringify(p.name)}, 1)">+</button>` : ''}
+      </div>`).join('')}
+    </div>`;
+}
+
+/* ── Server tournaments ──
+   A tournament created on the admin page is opened here by its code.
+     ?t=ABCD          anyone — read only
+     ?t=ABCD&a=WXYZ   whoever is scoring — can advance players
+   Without a code the page works standalone on local storage as before. */
+
+async function openFromServer(code, admin) {
+  serverCode = code;
+  adminCode = admin || null;
+  readOnly = !adminCode;
+  note('Loading ' + code + '…');
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(code), {
+      headers: adminCode ? { 'X-Admin-Code': adminCode } : {},
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) {
+      document.getElementById('code-entry').style.display = 'none';
+      document.getElementById('out').innerHTML = `<div class="notice-card">${
+        j.code === 'not_configured'
+          ? 'Tournaments are not set up on this site yet.'
+          : 'No tournament with code <strong>' + esc(code) + '</strong>.'}</div>`;
+      return;
+    }
+    if (adminCode && !j.canScore) {
+      adminCode = null; readOnly = true;
+      note('That admin code was not accepted — showing it read only.', true);
+    }
+    applyServer(j.data);
+    // Watchers poll; whoever is scoring already has the current copy.
+    if (readOnly && !livePoll) livePoll = setInterval(pollServer, 20000);
+  } catch (e) {
+    document.getElementById('code-entry').style.display = 'none';
+    document.getElementById('out').innerHTML = '<div class="notice-card">Could not reach the server.</div>';
+  }
+}
+
+async function pollServer() {
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(serverCode));
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok && (j.data.saved || 0) !== liveStamp) applyServer(j.data);
+  } catch (e) {}
+}
+function applyServer(d) {
+  liveStamp = d.saved || 0;
+  serverCode = d.code || serverCode;
+  document.getElementById('tname').value = d.name || '';
+  document.getElementById('tid').textContent = serverCode;
+  document.getElementById('fee').value = d.fee ?? '';
+  document.getElementById('bar').value = d.bar ?? '';
+  S = {
+    tableCount: d.tableCount || (d.tables ? d.tables.length : 4),
+    roster: d.roster || [], tables: d.tables || [], queue: d.queue || [],
+    outOrder: d.outOrder || [], log: d.log || [],
+    tableStarts: d.tableStarts || {},
+    payoutSpec: d.payoutSpec || null, payoutsManual: d.payoutsManual || null,
+  };
+  document.getElementById('code-entry').style.display = 'none';
+  document.body.classList.toggle('read-only', readOnly);
+  render();
+}
+
+function snapshot() {
+  if (!S || !serverCode) return null;
+  const st = sessionStats(S);
+  return {
+    schema: 1, code: serverCode, id: serverCode,
+    name: (document.getElementById('tname').value || '').trim(),
+    kind: 'chip', saved: Date.now(),
+    tableCount: S.tableCount, roster: S.roster, tables: S.tables, queue: S.queue,
+    outOrder: S.outOrder, log: S.log.slice(0, 200), tableStarts: S.tableStarts,
+    bySeed: Object.fromEntries(S.roster.map(p => [p.draw, p.name])),
+    progress: { played: st.matches, total: st.distributed },
+    champion: champion(S),
+    fee: document.getElementById('fee').value,
+    bar: document.getElementById('bar').value,
+    payoutSpec: S.payoutSpec || null,
+    payoutsManual: S.payoutsManual || null,
+  };
+}
+
+function note(msg, bad) {
+  const el = document.getElementById('saved-note');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = bad ? 'var(--loss)' : 'var(--text3)';
+}
+
+async function pushToServer() {
+  if (!serverCode || !adminCode) return;
+  const data = snapshot();
+  if (!data) return;
+  try {
+    const r = await fetch('/api/t/' + encodeURIComponent(serverCode), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Code': adminCode },
+      body: JSON.stringify(data),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) {
+      liveStamp = data.saved;
+      const t = new Date();
+      const sm = document.getElementById('save-meta');
+      const msg = ` · Saved ${t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`
+                + ` · ${data.progress.played}/${data.progress.total} played`;
+      if (sm) sm.textContent = msg;
+    } else if (j.code === 'bad_admin') {
+      note('That admin code stopped working — reload the link.', true);
+    }
+  } catch (e) { note('Could not reach the server — that result is not saved yet.', true); }
+}
+
+let pushTimer = null;
+function queuePush() {
+  if (!serverCode || !adminCode) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushToServer, 600);
+}
+
+
+/* Clears the slate so the next draw is a separate tournament rather than
+   overwriting the one that's open. */
+
+
+function updateCount() {}
+
+
+
+function pick(id, slotIdx) {
+  if (readOnly) return;
+  const m = S.matches.find(x => x.id === id);
+  if (!m || m.autoWon || !m.live) return;
+  if (m.players[0] === undefined || m.players[1] === undefined) return;
+  m.winner = (m.winner === slotIdx) ? null : slotIdx;   // click again to undo
+  render();
+}
+
+async function copyViewLink() {
+  const url = `${location.origin}${location.pathname}?t=${serverCode}`;
+  try { await navigator.clipboard.writeText(url); note('View link copied — code ' + serverCode + '.'); }
+  catch (e) { prompt('View link:', url); }
+}
+
+function goToCode() {
+  const v = (document.getElementById('code-in').value || '').trim().toUpperCase();
+  if (v.length !== 4) {
+    const h = document.getElementById('hint');
+    h.textContent = 'Codes are four characters.'; h.style.color = 'var(--loss)';
+    return;
+  }
+  location.search = '?t=' + v;
+}
+
+// Table clocks tick without redrawing the whole board.
+setInterval(() => {
+  if (!S) return;
+  S.tables.forEach((seat, i) => {
+    if (!(seat[0] && seat[1]) || !S.tableStarts[i]) return;
+    const el = document.querySelectorAll('.table-card')[i]?.querySelector('.table-timer');
+    if (!el) return;
+    const ms = Date.now() - S.tableStarts[i];
+    el.textContent = fmtClock(ms);
+    el.classList.toggle('over', ms > 4 * 60 * 1000);
+  });
+}, 1000);
+
+(function () {
+  const q = new URLSearchParams(location.search);
+  const code = (q.get('t') || '').toUpperCase();
+  if (code) openFromServer(code, (q.get('a') || '').toUpperCase());
+})();
+</script>
+</body>
+</html>

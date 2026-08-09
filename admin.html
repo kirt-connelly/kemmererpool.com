@@ -157,25 +157,32 @@
   .linkish:hover { color: var(--text); }
   .hint { font-size: 13px; color: var(--text3); }
 
-  /* ── Payout config ── */
-  .payout-cfg { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
-  .payout-cfg-head { display: flex; align-items: baseline; justify-content: space-between;
-    gap: 12px; margin-bottom: 10px; }
-  .pct-total { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  /* ── Grouped section ── */
+  .section { margin-top: 20px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); overflow: hidden; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 11px 16px; background: var(--bg3); border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text2); }
+  .section .grid { padding: 16px 16px 0; }
+  .section .hint { padding: 0 16px 16px; }
+  .pct-total { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+    letter-spacing: 0; text-transform: none; }
   .pct-total.ok { color: var(--green2); }
   .pct-total.off { color: var(--loss); }
-  .pct-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
+  .pct-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px; padding: 14px 16px; }
   .pct-row { border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--bg); padding: 10px 12px; }
+    background: var(--bg2); padding: 9px 11px; }
   .pct-row.first { border-color: var(--accent); }
-  .pct-place { font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  .pct-place { font-size: 10px; font-weight: 700; letter-spacing: .08em;
     text-transform: uppercase; color: var(--text3); }
-  .pct-in { display: flex; align-items: baseline; gap: 3px; margin-top: 4px; }
+  .pct-in { display: flex; align-items: baseline; gap: 2px; margin-top: 3px; }
   .pct-in input { width: 100%; min-width: 0; border: none; background: none; color: var(--text);
-    font-family: inherit; font-size: 19px; font-weight: 700; padding: 0;
+    font-family: inherit; font-size: 18px; font-weight: 700; padding: 0;
     font-variant-numeric: tabular-nums; }
   .pct-in input:focus { outline: none; }
-  .pct-in span { color: var(--text3); font-size: 14px; }
+  .pct-in span { color: var(--text3); font-size: 13px; }
 
   /* ── Admin ── */
   .gate { max-width: 420px; margin: 60px auto; }
@@ -282,6 +289,10 @@
             <div class="mt">Fargo rated races</div>
             <div class="md">Looks players up and works races out from the chart.</div>
           </button>
+          <button class="mode" id="mode-chip" onclick="setMode('chip')">
+            <div class="mt">Chip tournament</div>
+            <div class="md">Winner stays on. Chips by Fargo rating, single games.</div>
+          </button>
         </div>
 
         <div class="grid" style="margin-bottom:16px">
@@ -318,21 +329,8 @@
           <div id="roster" class="roster"></div>
         </div>
 
-        <div class="grid" style="margin-top:16px">
+        <div id="chart-wrap" class="grid" style="margin-top:16px;display:none">
           <div>
-            <label class="field-lbl" for="fee">Entry fee</label>
-            <input id="fee" class="inp" type="number" min="0" step="1" value="10">
-          </div>
-          <div>
-            <label class="field-lbl" for="bar">Bar add-on</label>
-            <input id="bar" class="inp" type="number" min="0" step="5" value="0">
-          </div>
-          <div>
-            <label class="field-lbl" for="spots">Payout spots</label>
-            <input id="spots" class="inp" type="number" min="1" max="10" step="1" value="3"
-              oninput="onSpotsChange()">
-          </div>
-          <div id="chart-wrap" style="display:none">
             <label class="field-lbl" for="chart">Race chart</label>
             <select id="chart" class="inp">
               <option value="R2">R2 — hot</option>
@@ -344,17 +342,36 @@
             </select>
           </div>
         </div>
+
+        <div id="tables-wrap" class="grid" style="margin-top:16px;display:none">
+          <div>
+            <label class="field-lbl" for="tables">Tables in play</label>
+            <input id="tables" class="inp" type="number" min="1" max="20" step="1" value="4">
+          </div>
         </div>
 
-        <div class="payout-cfg">
-          <div class="payout-cfg-head">
-            <span class="field-lbl" style="margin:0">Payout percentages</span>
+        <div class="section">
+          <div class="section-head">
+            <span>Buy-in and payouts</span>
             <span id="pct-total" class="pct-total"></span>
           </div>
-          <div id="pct-rows" class="pct-rows"></div>
-          <div class="hint" style="margin-top:10px">
-            Suggested when you change the number of spots — adjust as you like, but they have to total 100%.
+          <div class="grid">
+            <div>
+              <label class="field-lbl" for="fee">Entry fee</label>
+              <input id="fee" class="inp" type="number" min="0" step="1" value="10">
+            </div>
+            <div>
+              <label class="field-lbl" for="bar">Bar add-on</label>
+              <input id="bar" class="inp" type="number" min="0" step="5" value="0">
+            </div>
+            <div>
+              <label class="field-lbl" for="spots">Payout spots</label>
+              <input id="spots" class="inp" type="number" min="1" max="10" step="1" value="3"
+                oninput="onSpotsChange()">
+            </div>
           </div>
+          <div id="pct-rows" class="pct-rows"></div>
+          <div class="hint">Percentages are suggested when you change the number of spots. Adjust freely — they just have to total 100%.</div>
         </div>
       </div>
       <div class="btn-row">
@@ -387,7 +404,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.04</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.05</div>
 </footer>
 
 <script>
@@ -645,11 +662,15 @@ function showAdmin(list) {
 let mode = 'bracket';
 function setMode(m) {
   mode = m;
-  document.getElementById('mode-bracket').classList.toggle('on', m === 'bracket');
-  document.getElementById('mode-tournament').classList.toggle('on', m === 'tournament');
+  ['bracket','tournament','chip'].forEach(k =>
+    document.getElementById('mode-' + k).classList.toggle('on', k === m));
+  // Chip uses the same Fargo lookup as the rated tournament.
   document.getElementById('pane-bracket').style.display = m === 'bracket' ? '' : 'none';
-  document.getElementById('pane-tournament').style.display = m === 'tournament' ? '' : 'none';
+  document.getElementById('pane-tournament').style.display = m === 'bracket' ? 'none' : '';
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
+  document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
+  // A chip tournament has no bracket to seed, so format doesn't apply.
+  document.getElementById('format').closest('.grid').style.display = m === 'chip' ? 'none' : '';
   updateCount();
 }
 
@@ -724,6 +745,35 @@ function shuffle(arr) {
   return a;
 }
 
+/* Chips by Fargo rating, straight off the rules sheet at the bar. */
+function chipsFor(rating) {
+  const r = Number(rating) || 0;
+  if (r <= 375) return 6;
+  if (r <= 499) return 5;
+  if (r <= 575) return 4;
+  if (r <= 625) return 3;
+  if (r <= 700) return 2;
+  return 1;
+}
+
+/* Builds the opening state: everyone draws a number, the first 2 per table sit
+   down in pairs, and the rest form the queue in draw order. */
+function buildChipState(players, tableCount) {
+  const drawn = shuffle(players.map(p => p.name));
+  const roster = drawn.map((name, i) => {
+    const src = players.find(p => p.name === name) || {};
+    return { name, rating: src.rating || 0, chips: chipsFor(src.rating),
+             start: chipsFor(src.rating), draw: i + 1, wins: 0, losses: 0, outAt: null };
+  });
+  const tables = [];
+  const seated = Math.min(tableCount * 2, drawn.length - (drawn.length % 2));
+  for (let t = 0; t < tableCount; t++) {
+    const a = drawn[t * 2], b = drawn[t * 2 + 1];
+    tables.push(t * 2 + 1 < seated ? [a, b] : [null, null]);
+  }
+  return { roster, tables, queue: drawn.slice(seated), log: [], outOrder: [] };
+}
+
 async function createTournament() {
   const msg = document.getElementById('create-msg');
   const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? 'var(--loss)' : 'var(--text3)'; };
@@ -731,6 +781,8 @@ async function createTournament() {
   const entries = mode === 'bracket' ? parseEntries() : roster.map(p => ({ name: p.name }));
   if (entries.length < 2) { say('Add at least 2 players.', true); return; }
   if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
+
+  if (mode === 'chip') { await createChip(say); return; }
 
   const names = shuffle(entries.map(e => e.name));
   let size = 1; while (size < names.length) size *= 2;
@@ -776,7 +828,40 @@ async function createTournament() {
   } catch (e) { say('Could not reach the server.', true); }
 }
 
-const pageFor = kind => kind === 'tournament' ? 'tournament.html' : 'bracket.html';
+async function createChip(say) {
+  const tableCount = Math.max(1, Math.min(20, parseInt(document.getElementById('tables').value, 10) || 4));
+  const state = buildChipState(roster, tableCount);
+  const data = {
+    schema: 1,
+    name: (document.getElementById('tname').value || '').trim(),
+    kind: 'chip',
+    saved: Date.now(),
+    tableCount,
+    ...state,
+    bySeed: Object.fromEntries(state.roster.map(p => [p.draw, p.name])),   // so the API recognises it
+    progress: { played: 0, total: state.roster.reduce((a, p) => a + p.chips, 0) },
+    champion: null,
+    fee: document.getElementById('fee').value,
+    bar: document.getElementById('bar').value,
+    payoutSpec: payoutSpec(),
+  };
+  say('Creating…');
+  try {
+    const r = await fetch('/api/t', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-League-Key': leagueKey() },
+      body: JSON.stringify(data),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { say(j.error || 'Could not create it.', true); return; }
+    say('');
+    showLinks(data.name, 'chip', j.code, j.adminCode);
+    refreshList();
+  } catch (e) { say('Could not reach the server.', true); }
+}
+
+const pageFor = kind => kind === 'chip' ? 'chip.html'
+  : kind === 'tournament' ? 'tournament.html' : 'bracket.html';
 
 function showLinks(name, kind, code, adminCode) {
   const base = `${location.origin}/${pageFor(kind)}`;
@@ -831,8 +916,8 @@ function renderList(list) {
     return `<div class="trow">
       <span class="tn">${esc(t.name || 'Untitled')}</span>
       <span class="tc">${esc(t.code)}${t.adminCode ? `<span class="tc-admin">-${esc(t.adminCode)}</span>` : ''}</span>
-      <span class="tag">${t.kind === 'tournament' ? 'Fargo' : 'Races'}</span>
-      <span class="tag">${t.format === 'single' ? 'Single elim' : 'Double elim'}</span>
+      <span class="tag">${t.kind === 'chip' ? 'Chips' : t.kind === 'tournament' ? 'Fargo' : 'Races'}</span>
+      ${t.kind === 'chip' ? '' : `<span class="tag">${t.format === 'single' ? 'Single elim' : 'Double elim'}</span>`}
       ${done}
       <span class="tm">${t.players} players · ${prog} · ${when}</span>
       <a class="act" href="/${pageFor(t.kind)}?t=${esc(t.code)}" target="_blank" rel="noopener">View</a>

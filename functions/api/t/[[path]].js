@@ -52,7 +52,7 @@ function entryFor(code, data, adminCode) {
     adminCode,                       // officers need this to open a scoring link
 
     name: String(data.name || '').slice(0, 120),
-    kind: data.kind === 'tournament' ? 'tournament' : 'bracket',
+    kind: ['tournament','chip'].includes(data.kind) ? data.kind : 'bracket',
     format: data.format === 'single' ? 'single' : 'double',
     players: Object.values(data.bySeed || {}).filter(Boolean).length,
     progress: data.progress || null,
