@@ -341,7 +341,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.11</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.12</div>
 </footer>
 
 <script>
@@ -1010,6 +1010,69 @@ function editBye(mid, i) {
   inp.addEventListener('blur', () => commit(true));
 }
 
+/* ── Late entry ──
+   A latecomer is drawn at random into one of the open byes rather than placed
+   by hand, so nobody gets to pick the soft side of the draw. A bye only counts
+   as open while nothing downstream of it has been played — once the player who
+   got that bye has won a real match, dropping someone in would wipe a result. */
+function downstreamPlayed(mid) {
+  const deps = {};
+  B.matches.forEach(m => m.slots.forEach(s => {
+    if (s.of) (deps[s.of] = deps[s.of] || []).push(m.id);
+  }));
+  const byId = Object.fromEntries(B.matches.map(m => [m.id, m]));
+  const seen = new Set([mid]);
+  const stack = [mid];
+  while (stack.length) {
+    for (const nid of (deps[stack.pop()] || [])) {
+      if (seen.has(nid)) continue;
+      seen.add(nid);
+      const m = byId[nid];
+      if (m && (m.winner === 0 || m.winner === 1)) return true;   // a real result rides on this
+      stack.push(nid);
+    }
+  }
+  return false;
+}
+
+function openByes() {
+  const out = [];
+  B.matches.filter(m => m.bracket === 'W' && m.round === 1).forEach(m => {
+    m.slots.forEach((s, i) => {
+      if (s.type === 'seed' && B.bySeed[s.seed] === null && !downstreamPlayed(m.id))
+        out.push({ mid: m.id, seed: s.seed });
+    });
+  });
+  return out;
+}
+
+function addLatePlayer() {
+  if (readOnly || !B) return;
+  const open = openByes();
+  if (!open.length) {
+    note('No open spots left — every bye has already been played through.', true);
+    return;
+  }
+  const raw = prompt(`Late player — ${open.length} spot${open.length === 1 ? '' : 's'} still open:`, '');
+  if (raw === null) return;
+  const name = raw.trim();
+  if (!name) return;
+  if (Object.values(B.bySeed).some(n => n && n.toLowerCase() === name.toLowerCase())) {
+    note(`${name} is already in this tournament.`, true);
+    return;
+  }
+  const r = prompt(`Fargo rating for ${name}?`, '450');
+  if (r === null) return;
+  roster = roster.filter(x => x.name.toLowerCase() !== name.toLowerCase());
+  roster.push({ name, rating: parseInt(r, 10) || 0, division: null });
+  const spot = open[Math.floor(Math.random() * open.length)];
+  B.bySeed[spot.seed] = name;
+  clearDownstream(spot.mid);
+  const no = B.matches.find(m => m.id === spot.mid).no;
+  render();
+  note(`${name} drawn into match ${no}.`);
+}
+
 /* Adding a player mid-tournament invalidates anything decided after that match,
    so those results are cleared rather than left pointing at the wrong person. */
 function clearDownstream(mid) {
@@ -1187,6 +1250,8 @@ function render() {
           <span id="save-meta"></span></div>
       </div>
       <div class="th-actions">
+        ${scoring && openByes().length
+          ? `<button class="act" onclick="addLatePlayer()">Add late player</button>` : ''}
         ${scoring ? `<button class="act" onclick="copyViewLink()">Copy view link</button>` : ''}
         <button class="act" onclick="window.print()">Print</button>
       </div>
