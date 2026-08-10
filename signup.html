@@ -232,7 +232,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Signup &nbsp;&middot;&nbsp; v1.01</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Signup &nbsp;&middot;&nbsp; v1.02</div>
 </footer>
 
 <script>
@@ -265,31 +265,43 @@ const LMS   = 'https://lms.fargorate.com/PublicReport';
    the division dropdown on the LMS league page when a new one starts. */
 const LEAGUE_ID = '6e402f34-de51-4e68-9e30-aeeb014fb597';   // Jenkins Music & Vending
 
-/* Fallback only. The live list is read from the LMS division dropdown at load
-   time, because these IDs change every season — this is what to fall back on if
-   that fetch fails. Current as of August 2026. */
+/* Every division we know of, past and present. The LMS dropdown only lists
+   divisions that are running right now, so a player whose winter league has
+   finished disappears from it — but they still turn up to tournaments. The
+   discovered list is ADDED to this one rather than replacing it. */
 const DIVISIONS = [
-  ['e9b068bc-155c-4b51-aea7-b37d01026668', 'Afton 8 Ball 25/26'],
-  ['5607ca18-56b5-45a1-a8a0-b203003df484', 'Bridger Valley A 2024-25'],
+  ['e9b068bc-155c-4b51-aea7-b37d01026668', "Afton 8 Ball 25/26"],
+  ['5607ca18-56b5-45a1-a8a0-b203003df484', "Bridger Valley A 2024-25"],
   ['f4399f90-0c64-49f1-8b0a-b46a014a6186', "Bridger Valley Summer 10-Ball/Scotch '26"],
-  ['19e3dc05-7d67-4c77-8f36-b3b600f992cf', 'Dubois 25/26'],
+  ['19e3dc05-7d67-4c77-8f36-b3b600f992cf', "Dubois 25/26"],
   ['18e0f3a3-3c8a-4d3c-a769-b42f00b35c96', "Evanston Spring 10-Ball '26"],
-  ['1dc8b2aa-62eb-41a6-a8f6-b379014efe83', 'Kemmerer 8 Ball 25-26'],
-  ['c97cf1bf-ff08-44a0-b916-b4520124b3e6', 'Kemmerer Summer 10 Ball 2026'],
-  ['f73e5d93-9d85-4f25-ad40-b48501232c67', 'Lander Summer 10 Ball 2026'],
-  ['915b2c1d-72c3-4365-9130-b30e01504c6c', 'Lander Summer 9 Ball'],
-  ['77b7699b-2970-4094-8012-b370010637cd', 'Lander Valley 8 Ball 25/26'],
-  ['5f253980-93db-4984-8cc9-b46401249525', 'Riverton Summer 9-Ball/Scotch 2026'],
-  ['b2f40913-6cee-4653-a691-b36e010710e1', 'Sublette County 8 Ball 25/26'],
-  ['b84871df-aaef-42d5-adce-b46a0118883c', 'Sublette County 9/10 Scotch 26'],
-  ['e32cc8d3-222d-4c0e-b065-b38c016a32ab', 'Sublette County Top Gun 25/26'],
-  ['ac0a71bc-e011-4c98-a3e7-b463010d8b26', 'SWC 10-Ball Capped Summer 2026'],
-  ['da5a4c20-a467-4204-8e16-b463015de862', 'SWC 10-Ball No Cap Summer 2026'],
+  ['1dc8b2aa-62eb-41a6-a8f6-b379014efe83', "Kemmerer 8 Ball 25-26"],
+  ['c97cf1bf-ff08-44a0-b916-b4520124b3e6', "Kemmerer Summer 10 Ball 2026"],
+  ['f73e5d93-9d85-4f25-ad40-b48501232c67', "Lander Summer 10 Ball 2026"],
+  ['915b2c1d-72c3-4365-9130-b30e01504c6c', "Lander Summer 9 Ball"],
+  ['77b7699b-2970-4094-8012-b370010637cd', "Lander Valley 8 Ball 25/26"],
+  ['6b247e98-1e1b-4939-9126-b37201326a31', "Riverton A 25-26"],
+  ['8d5b74fb-0d6a-4822-bda2-b37201393295', "Riverton B 25-26"],
+  ['5f253980-93db-4984-8cc9-b46401249525', "Riverton Summer 9-Ball/Scotch 2026"],
+  ['111465aa-9e4f-4ade-9994-b3600166c88f', "SWC 10-Ball Capped 25-26"],
+  ['ac0a71bc-e011-4c98-a3e7-b463010d8b26', "SWC 10-Ball Capped Summer 2026"],
+  ['19ce8161-03b2-4f79-84cf-b3600168abe6', "SWC 10-Ball No Cap 25-26"],
+  ['da5a4c20-a467-4204-8e16-b463015de862', "SWC 10-Ball No Cap Summer 2026"],
+  ['8b9cf341-bc42-40ad-a7ce-b35e01346dee', "SWC A 8-Ball 25-26"],
+  ['54ea8a12-5fc9-433e-8712-b3600163ce04', "SWC B-10 8-Ball 25-26"],
+  ['7b490715-8070-49f0-9dfd-b360015c9a6f', "SWC B-12 8-Ball 25-26"],
+  ['be575a0e-cd22-48b9-a1ee-b233017afc43', "Sublette 24/25"],
+  ['b2f40913-6cee-4653-a691-b36e010710e1', "Sublette County 8 Ball 25/26"],
+  ['b84871df-aaef-42d5-adce-b46a0118883c', "Sublette County 9/10 Scotch 26"],
+  ['e32cc8d3-222d-4c0e-b065-b38c016a32ab', "Sublette County Top Gun 25/26"],
 ];
 
-/* Every division page carries the full dropdown, so fetching any one of them
-   gives the current list — new seasons included, without editing this file. */
+/* Any division page carries the dropdown of what's currently running, which is
+   how new seasons get picked up. Those are MERGED with the list above — a
+   division that has finished still holds ratings for people who play in the
+   next one, and dropping them loses hundreds of players. */
 async function fetchDivisions() {
+  const merged = new Map(DIVISIONS.map(d => [d[0], d[1]]));
   for (const seed of DIVISIONS.map(d => d[0])) {
     try {
       const r = await fetch(PROXY + encodeURIComponent(`${LMS}/LeagueReports/${seed}`));
@@ -297,21 +309,21 @@ async function fetchDivisions() {
       const html = await r.text();
       const sel = html.match(/<select[^>]*id="division-list"[^>]*>([\s\S]*?)<\/select>/i);
       if (!sel) continue;
-      const found = [];
+      let m, found = 0;
       const re = /<option[^>]*value="([0-9a-f-]{36})"[^>]*>([\s\S]*?)<\/option>/gi;
-      let m;
       while ((m = re.exec(sel[1]))) {
-        found.push([m[1], m[2].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').trim()]);
+        merged.set(m[1], m[2].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').trim());
+        found++;
       }
-      if (found.length) return found;
+      if (found) break;                       // one page lists them all
     } catch (e) { /* try the next seed */ }
   }
-  return DIVISIONS;
+  return [...merged.entries()];
 }
 
 /* Ratings move once a week, so a day-old index is fine and saves rebuilding it
    on every visit. */
-const INDEX_CACHE = 'kpl-fargo-index';
+const INDEX_CACHE = 'kpl-fargo-index-v2';
 const CACHE_HOURS = 24;
 
 function readCache() {
