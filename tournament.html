@@ -342,7 +342,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.13</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.14</div>
 </footer>
 
 <script>
@@ -736,10 +736,24 @@ function currentChart() {
   return RACE_CHARTS[k] ? k : 'R3';
 }
 
+/* Two ways to set races. A hot chart works off the gap between the two players,
+   so the same person races differently depending who they draw. Custom bands
+   give each player one race from their own rating, whoever is across the table. */
+function bandRace(rating) {
+  const rows = (B && B.raceBands && B.raceBands.length) ? B.raceBands : null;
+  if (!rows) return DEFAULT_RACE;
+  if (!rating) return rows[rows.length - 1].race;      // unrated gets the longest
+  for (const b of rows) {
+    if (b.max === null || b.max === undefined || rating <= b.max) return b.race;
+  }
+  return rows[rows.length - 1].race;
+}
+
 const DEFAULT_RACE = 3;
 
-/* Returns [raceForA, raceForB] for two ratings under the selected chart. */
+/* Returns [raceForA, raceForB] for two ratings. */
 function hotRace(ra, rb) {
+  if (B && B.raceMode === 'bands') return [bandRace(ra), bandRace(rb)];
   const chart = RACE_CHARTS[currentChart()];
   const even  = chart[0][2][0];                 // the chart's level race, e.g. 3 for R3
   if (!ra || !rb) return [even, even];
@@ -792,6 +806,8 @@ function snapshot() {
     winners,
     payoutsManual: B.payoutsManual || null,
     payoutSpec: B.payoutSpec || null,     // spots and percentages set on the admin page
+    raceMode: B.raceMode || 'chart',
+    raceBands: B.raceBands || null,
     fee: (document.getElementById('fee') || {}).value,
     bar: (document.getElementById('bar') || {}).value,
     chart: (document.getElementById('chart')||{}).value,
@@ -891,6 +907,8 @@ function applyServer(d) {
   roster = d.roster || [];
   B.payoutsManual = d.payoutsManual || null;
   B.payoutSpec = d.payoutSpec || null;
+  B.raceMode = d.raceMode || 'chart';
+  B.raceBands = d.raceBands || null;
   B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
   document.getElementById('code-entry').style.display = 'none';
   document.body.classList.toggle('read-only', readOnly);
@@ -1260,7 +1278,7 @@ function render() {
 
   document.getElementById('print-head').innerHTML =
     `<div class="t">Kemmerer Pool League — Tournament</div>
-     <div class="d">${live} players${byeNote} · ${currentChart()} hot races · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
+     <div class="d">${live} players${byeNote} · ${B.raceMode === 'bands' ? 'custom races' : currentChart() + ' hot races'} · Drawn ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
 
   const fee = parseFloat(document.getElementById('fee').value) || 0;
   const bar = parseFloat(document.getElementById('bar').value) || 0;
@@ -1290,7 +1308,7 @@ function render() {
     <div class="card">
       <div class="card-header">
         <span class="card-title">${single ? 'Bracket' : 'Winners Bracket'}</span>
-        <span class="card-meta">${live} players${byeNote} · ${currentChart()} hot</span>
+        <span class="card-meta">${live} players${byeNote} · ${B.raceMode === 'bands' ? 'custom races' : currentChart() + ' hot'}</span>
       </div>
       <div class="bracket-scroll">${bracketHTML(wbAll, wbLabel, LANE)}</div>
     </div>

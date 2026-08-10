@@ -389,6 +389,13 @@
 
         <div id="chart-wrap" class="grid" style="margin-top:16px;display:none">
           <div>
+            <label class="field-lbl" for="racemode">How races are set</label>
+            <select id="racemode" class="inp" onchange="onRaceModeChange()">
+              <option value="chart">FargoRate hot chart</option>
+              <option value="bands">Custom, by each player's rating</option>
+            </select>
+          </div>
+          <div id="chart-pick">
             <label class="field-lbl" for="chart">Race chart</label>
             <select id="chart" class="inp">
               <option value="R2">R2 — hot</option>
@@ -506,7 +513,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.11</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.12</div>
 </footer>
 
 <script>
@@ -782,6 +789,7 @@ function setMode(m) {
   document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
   document.getElementById('race-bands-wrap').style.display = 'none';
   if (m === 'chip') renderBands();
+  if (m === 'tournament') onRaceModeChange();
   // A chip tournament has no bracket to seed, so format doesn't apply.
   document.getElementById('format').closest('.grid').style.display =
     (m === 'chip' || m === 'signup') ? 'none' : '';
@@ -810,6 +818,15 @@ function suggestedSplit(spots) {
 }
 
 const round2 = (v) => Math.round(v * 100) / 100;
+
+/* The hot charts work off the gap between two players; custom bands give each
+   player a race from their own rating, whoever they draw. */
+function onRaceModeChange() {
+  var custom = document.getElementById('racemode').value === 'bands';
+  document.getElementById('chart-pick').style.display = custom ? 'none' : '';
+  document.getElementById('race-bands-wrap').style.display = custom ? '' : 'none';
+  if (custom) renderRaceBands();
+}
 
 function onSpotsChange() {
   const n = Math.max(1, Math.min(10, parseInt(document.getElementById('spots').value, 10) || 1));
@@ -1033,6 +1050,8 @@ async function createTournament() {
   if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
 
   if (mode === 'bracket' && !checkRaceBands()) { say('Check the race bands before creating.', true); return; }
+  if (mode === 'tournament' && document.getElementById('racemode').value === 'bands'
+      && !checkRaceBands()) { say('Check the race bands before creating.', true); return; }
   if (mode === 'chip') {
     if (!checkBands()) { say('Check the chip bands before creating.', true); return; }
     await createChip(say);
@@ -1065,7 +1084,14 @@ async function createTournament() {
     data.names = document.getElementById('names').value;
   } else {
     data.roster = roster;
-    data.chart = document.getElementById('chart').value;
+    data.raceMode = document.getElementById('racemode').value;
+    if (data.raceMode === 'bands') {
+      data.raceBands = raceBands.map(function (b) {
+        return { max: b.max === undefined ? null : b.max, race: Number(b.race) };
+      });
+    } else {
+      data.chart = document.getElementById('chart').value;
+    }
   }
 
   say('Creating…');
@@ -1189,6 +1215,7 @@ async function openSheetPicker() {
   const bands = document.getElementById('race-bands-wrap');
   if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
   // A signup list gives ratings, not races — so this is where the bands matter.
+  // In Fargo mode they're already on screen if custom races were chosen.
   if (mode === 'bracket') { bands.style.display = ''; renderRaceBands(); }
   msg.textContent = 'Looking…'; msg.style.color = 'var(--text3)';
   try {
