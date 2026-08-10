@@ -202,13 +202,6 @@
   .slot .src { font-size: 11px; font-weight: 600; font-style: normal; letter-spacing: .04em;
     color: var(--text3); opacity: .8; }
   .slot.locked { cursor: default; }
-  .slot.bye.open { cursor: pointer; }
-  .slot.bye.open .nm { color: var(--accent); font-style: normal; font-weight: 600; }
-  .slot.bye.open:hover { background: var(--bg3); }
-  .slot-input { width: 100%; font-family: inherit; font-size: 13px; font-weight: 600;
-    color: var(--cream); background: var(--bg2); border: 1px solid var(--accent);
-    border-radius: 3px; padding: 3px 6px; }
-  .slot-input:focus { outline: none; }
   .race-box { width: 24px; height: 21px; flex-shrink: 0; border: 1px solid var(--border);
     border-radius: 3px; background: var(--bg2); display: flex; align-items: center;
     justify-content: center; font-size: 12px; font-weight: 700; color: var(--text2);
@@ -317,7 +310,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.15</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.16</div>
 </footer>
 
 <script>
@@ -1011,22 +1004,21 @@ function slotHTML(m, i) {
   if (v === undefined) {
     cls += ' empty locked';
     label = `<span class="src">${sourceLabel(m.slots[i])}</span>`;
+    click = '';
   }
   else if (v === null) {
-    // A first-round bye can be filled in when someone turns up late. Byes
-    // further down the losers bracket are consequences, not open slots.
-    if (seedSlot !== null) { cls += ' bye open'; label = 'Bye — add player';
-                             click = `editBye('${m.id}',${i})`; }
-    else                   { cls += ' bye locked'; label = 'Bye'; }
+    // Byes are never typed into. A latecomer is drawn into one at random by the
+    // Add late player button, so nobody can pick a soft spot in the draw.
+    cls += ' bye locked';
+    label = 'Bye';
+    click = '';                    // a bye can't be picked as a winner either
   } else {
     label = esc(v);
     if (m.resolved) cls += (m.winner === i || (m.autoWon && m.winnerName === v)) ? ' won' : ' lost';
     if (m.autoWon) cls += ' locked';
-    if (seedSlot !== null) cls += ' named';           // right-click to correct a name
   }
   const race = (v !== undefined && v !== null) ? raceOf(v) : '';
-  return `<div class="${cls}" data-m="${m.id}" data-i="${i}" onclick="${click}"${
-    seedSlot !== null ? ` oncontextmenu="editBye('${m.id}',${i});return false"` : ''}>
+  return `<div class="${cls}" data-m="${m.id}" data-i="${i}" onclick="${click}">
     <span class="nm">${label}</span><span class="race-box">${race}</span></div>`;
 }
 
@@ -1040,45 +1032,6 @@ function sourceLabel(slot) {
 }
 
 /* Replace a slot with an input so a latecomer can be typed straight in. */
-function editBye(mid, i) {
-  if (readOnly) return;
-  const m = B.matches.find(x => x.id === mid);
-  if (!m || m.slots[i].type !== 'seed') return;
-  const seed = m.slots[i].seed;
-  const el = document.querySelector(`.slot[data-m="${mid}"][data-i="${i}"]`);
-  if (!el || el.querySelector('input')) return;
-
-  const cur = B.bySeed[seed] || '';
-  const curRace = cur ? raceOf(cur) : DEFAULT_RACE;
-  const current = cur && curRace !== DEFAULT_RACE ? `${cur} ${curRace}` : cur;
-  el.innerHTML = `<input class="slot-input" value="${esc(current)}"
-    placeholder="Name, or Name 2 for a race" spellcheck="false">`;
-  const inp = el.querySelector('input');
-  inp.focus(); inp.select();
-
-  let done = false;
-  const commit = (save) => {
-    if (done) return; done = true;
-    if (save) {
-      const raw = inp.value.trim();
-      const { name, race } = parseEntry(raw);
-      const changed = (B.bySeed[seed] || '') !== name;
-      B.bySeed[seed] = name || null;        // blank puts the bye back
-      if (name) {
-        B.races = B.races || {};
-        B.races[name] = race;
-      }
-      if (changed) clearDownstream(mid);
-    }
-    render();
-  };
-  inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter') commit(true);
-    if (e.key === 'Escape') commit(false);
-  });
-  inp.addEventListener('blur', () => commit(true));
-}
-
 /* ── Late entry ──
    A latecomer is drawn at random into one of the open byes rather than placed
    by hand, so nobody gets to pick the soft side of the draw. A bye only counts
