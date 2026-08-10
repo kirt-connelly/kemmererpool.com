@@ -232,7 +232,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Signup &nbsp;&middot;&nbsp; v1.03</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Signup &nbsp;&middot;&nbsp; v1.04</div>
 </footer>
 
 <script>
@@ -565,6 +565,7 @@ async function load(c) {
     sheet = j.data;
     document.getElementById('code-entry').style.display = 'none';
     render();
+    if (!sheet.closed) loadIndex().catch(() => {});   // warm it while they read the details
   } catch (e) { codeMsg('Could not reach the server.', true); }
 }
 

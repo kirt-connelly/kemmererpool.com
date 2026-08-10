@@ -198,6 +198,14 @@
   .esmall:hover { border-color: var(--loss); color: var(--loss); }
   .eempty { padding: 22px 18px; color: var(--text3); font-size: 14px; }
 
+  .idx-state { margin-left: auto; margin-right: 14px; font-size: 12px; color: var(--text3);
+    white-space: nowrap; }
+  .idx-state .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border2); margin-right: 6px; vertical-align: middle; }
+  .idx-state.working .dot { background: var(--green2); animation: pulse 1.6s ease-in-out infinite; }
+  .idx-state.ready .dot { background: var(--green2); }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+
   /* ── Grouped section ── */
   .section { margin-top: 20px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--bg); overflow: hidden; }
@@ -329,6 +337,7 @@
     <div class="card" style="margin-bottom:18px">
       <div class="card-header">
         <span class="card-title">New tournament</span>
+        <span class="idx-state" id="idx-state"></span>
         <button class="linkish" onclick="signOut()">Sign out</button>
       </div>
       <div class="pad">
@@ -534,7 +543,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.20</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.22</div>
 </footer>
 
 <script>
@@ -744,13 +753,15 @@ function parsePlayerList(html, divLabel) {
 }
 
 async function loadIndex() {
-  if (playerIndex) return playerIndex;
+  // Already built — say so, since the caller may have just reset the indicator.
+  if (playerIndex) { idxState(`${playerIndex.length} players ready`, 'ready'); return playerIndex; }
   if (indexLoading) return indexLoading;
 
   const cached = readCache();
   if (cached) {
     playerIndex = cached.players;
     setStatus(`${playerIndex.length} players (saved earlier today)`);
+    idxState(`${playerIndex.length} players ready`, 'ready');
     return playerIndex;
   }
 
@@ -772,6 +783,7 @@ async function loadIndex() {
         } catch (e) { failed++; }
         done++;
         setStatus(`Loading players… ${done} of ${divisions.length} divisions`);
+        idxState(`Player list ${done}/${divisions.length}`, 'working');
       }));
     }
 
@@ -787,9 +799,20 @@ async function loadIndex() {
     setStatus(playerIndex.length
       ? `${playerIndex.length} players from ${divisions.length} divisions${failed ? ` · ${failed} unavailable` : ''}`
       : 'No players came back — check the proxy, or add players by hand.');
+    idxState(playerIndex.length ? `${playerIndex.length} players ready` : 'Player list unavailable',
+             playerIndex.length ? 'ready' : '');
     return playerIndex;
   })();
   return indexLoading;
+}
+
+/* The lookup pane is hidden in some modes, so progress is mirrored into the
+   card header where it can always be seen. */
+function idxState(text, cls) {
+  const el = document.getElementById('idx-state');
+  if (!el) return;
+  el.innerHTML = text ? `<span class="dot"></span>${text}` : '';
+  el.className = 'idx-state' + (cls ? ' ' + cls : '');
 }
 
 function setStatus(msg, bad) {
@@ -962,6 +985,10 @@ function showAdmin(list) {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('admin').style.display = '';
   renderList(list || []);
+  // Build the player index now, while they're naming the tournament and setting
+  // tables — by the time anyone types a name it's usually ready.
+  idxState('Player list loading…', 'working');
+  loadIndex().catch(() => idxState('Player list unavailable', ''));
 }
 
 /* ── Mode ── */
