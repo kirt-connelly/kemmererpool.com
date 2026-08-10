@@ -347,6 +347,16 @@ var CHARTS = {
 /* Each player's race for this match. A manual-race bracket carries them per
    player; a Fargo tournament works them out from the two ratings, so both
    players have to be known before either race means anything. */
+function bandRaceOf(rating, rows) {
+  if (!rows || !rows.length) return null;
+  if (!rating) return rows[rows.length - 1].race;      // unrated gets the longest
+  for (var i = 0; i < rows.length; i++) {
+    var b = rows[i];
+    if (b.max === null || b.max === undefined || rating <= b.max) return b.race;
+  }
+  return rows[rows.length - 1].race;
+}
+
 function racesFor(d, m) {
   var a = m.players[0], b = m.players[1];
   if (d.kind === 'bracket') {
@@ -361,6 +371,13 @@ function racesFor(d, m) {
     if (roster[i].name === a) ratA = roster[i].rating;
     if (roster[i].name === b) ratB = roster[i].rating;
   }
+
+  // Custom bands give each player a race from their own rating, whoever they
+  // draw. A hot chart works off the gap between the two instead.
+  if (d.raceMode === 'bands') {
+    return [bandRaceOf(ratA, d.raceBands), bandRaceOf(ratB, d.raceBands)];
+  }
+
   if (!ratA || !ratB) return [null, null];
   var chart = CHARTS[d.chart] || CHARTS.R3;
   var diff = Math.abs(ratA - ratB), row = chart[chart.length - 1], j;
@@ -369,28 +386,6 @@ function racesFor(d, m) {
   }
   var fav = row[2], dog = row[3];
   return ratA >= ratB ? [fav, dog] : [dog, fav];
-}
-
-function raceText(data, a, b) {
-  if (data.kind === 'bracket') {
-    var races = data.races || {};
-    var ra = races[a] || 3, rb = races[b] || 3;
-    return ra + ' &ndash; ' + rb;
-  }
-  if (data.kind !== 'tournament') return '';
-  var roster = data.roster || [], i, ratA = 0, ratB = 0;
-  for (i = 0; i < roster.length; i++) {
-    if (roster[i].name === a) ratA = roster[i].rating;
-    if (roster[i].name === b) ratB = roster[i].rating;
-  }
-  if (!ratA || !ratB) return '';
-  var chart = CHARTS[data.chart] || CHARTS.R3;
-  var diff = Math.abs(ratA - ratB), row = chart[chart.length - 1], j;
-  for (j = 0; j < chart.length; j++) {
-    if (chart[j][1] === null || diff <= chart[j][1]) { row = chart[j]; break; }
-  }
-  var fav = row[2], dog = row[3];
-  return (ratA >= ratB ? fav + ' &ndash; ' + dog : dog + ' &ndash; ' + fav);
 }
 
 /* ── Drawing ── */
