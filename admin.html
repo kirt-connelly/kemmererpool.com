@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex" />
-<title>Tournament Admin — Kemmerer Pool League</title>
+<title>Tournament and Sign Up Admin — Kemmerer Pool League</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
@@ -297,7 +297,7 @@
   <div class="wrap">
     <div class="header-inner">
       <div>
-        <h1>Tournament Admin</h1>
+        <h1>Tournament and Sign Up Admin</h1>
         <div class="sub">Kemmerer Pool League</div>
       </div>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">🌙</button>
@@ -334,19 +334,19 @@
       <div class="pad">
         <div class="modes">
           <button class="mode on" id="mode-bracket" onclick="setMode('bracket')">
-            <div class="mt">Bracket with races</div>
+            <div class="mt">Custom Race Bracket</div>
             <div class="md">You set each player's race. No ratings needed.</div>
           </button>
           <button class="mode" id="mode-tournament" onclick="setMode('tournament')">
-            <div class="mt">Fargo rated races</div>
+            <div class="mt">Fargo Rated Races</div>
             <div class="md">Looks players up and works races out from the chart.</div>
           </button>
           <button class="mode" id="mode-chip" onclick="setMode('chip')">
-            <div class="mt">Chip tournament</div>
+            <div class="mt">Chip Tournament</div>
             <div class="md">Winner stays on. Chips by Fargo rating, single games.</div>
           </button>
           <button class="mode" id="mode-signup" onclick="setMode('signup')">
-            <div class="mt">Signup sheet</div>
+            <div class="mt">Signup Sheet</div>
             <div class="md">Players add themselves, then you launch it as a tournament.</div>
           </button>
         </div>
@@ -534,7 +534,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.13</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.14</div>
 </footer>
 
 <script>
