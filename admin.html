@@ -534,7 +534,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.16</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.17</div>
 </footer>
 
 <script>
@@ -708,18 +708,30 @@ function manualAdd() {
    doesn't: Kirt C, then Kirt Co, and so on. */
 const SUFFIXES = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'];
 
-function shortName(full, taken) {
-  let parts = String(full || '').trim().split(/\s+/).filter(Boolean);
-  // "John Smith Jr" should read John S, not John J.
-  while (parts.length > 2 && SUFFIXES.indexOf(parts[parts.length - 1].toLowerCase()) >= 0) parts.pop();
-  if (parts.length < 2) return parts[0] || '';
-  const first = parts[0], last = parts[parts.length - 1];
-  const clash = (n) => (taken || []).some(t => String(t).toLowerCase() === n.toLowerCase());
+/* First name plus as much of the surname as it takes to be unique. */
+function uniqueShort(first, last, taken) {
+  const list = taken || [];
   for (let i = 1; i <= last.length; i++) {
     const cand = first + ' ' + last.slice(0, i);
-    if (!clash(cand)) return cand;
+    if (!list.some(t => String(t).toLowerCase() === cand.toLowerCase())) return cand;
   }
-  return String(full).trim();
+  return first + ' ' + last;
+}
+
+function shortName(full, taken) {
+  const raw = String(full || '').trim();
+  // FargoRate carries nicknames in brackets — "Taydon (TK) Reilly". Everyone at
+  // the bar calls him TK, so that's the name that goes on the sheet.
+  const nick = (raw.match(/\(([^)]+)\)/) || [])[1];
+  let parts = raw.replace(/\([^)]*\)/g, ' ').trim().split(/\s+/).filter(Boolean);
+  // "John Smith Jr" should read John S, not John J.
+  while (parts.length > 2 && SUFFIXES.indexOf(parts[parts.length - 1].toLowerCase()) >= 0) parts.pop();
+  if (nick) {
+    if (!parts.length) return nick.trim();
+    return uniqueShort(nick.trim(), parts[parts.length - 1], taken);
+  }
+  if (parts.length < 2) return parts[0] || '';
+  return uniqueShort(parts[0], parts[parts.length - 1], taken);
 }
 
 function addToRoster(fullName, rating, division) {

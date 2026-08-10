@@ -410,7 +410,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.26</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.27</div>
 </footer>
 
 <script>
@@ -641,16 +641,32 @@ function tablePill(m) {
    same thing keep letters of the surname until they differ. */
 const NAME_SUFFIXES = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'];
 
-function shortenName(full, taken) {
-  let parts = String(full || '').trim().split(/\s+/).filter(Boolean);
-  while (parts.length > 2 && NAME_SUFFIXES.indexOf(parts[parts.length - 1].toLowerCase()) >= 0) parts.pop();
-  if (parts.length < 2) return parts[0] || '';
-  const first = parts[0], last = parts[parts.length - 1];
+
+/* First name plus as much of the surname as it takes to be unique. */
+function uniqueShort(first, last, taken) {
+  const list = taken || [];
   for (let i = 1; i <= last.length; i++) {
     const cand = first + ' ' + last.slice(0, i);
-    if (!taken.some(t => t.toLowerCase() === cand.toLowerCase())) return cand;
+    if (!list.some(t => String(t).toLowerCase() === cand.toLowerCase())) return cand;
   }
-  return String(full).trim();
+  return first + ' ' + last;
+}
+
+function shortenName(full, taken) {
+  const raw = String(full || '').trim();
+  // FargoRate carries nicknames in brackets — "Taydon (TK) Reilly". Everyone at
+  // the bar calls him TK, so that's the name that goes on the sheet.
+  const nick = (raw.match(/\(([^)]+)\)/) || [])[1];
+  let parts = raw.replace(/\([^)]*\)/g, ' ').trim().split(/\s+/).filter(Boolean);
+  while (parts.length > 2 && NAME_SUFFIXES.indexOf(parts[parts.length - 1].toLowerCase()) >= 0) parts.pop();
+  if (nick) {
+    if (!parts.length) return nick.trim();
+    const surname = parts[parts.length - 1];
+    return uniqueShort(nick.trim(), surname, taken);
+  }
+  if (parts.length < 2) return parts[0] || '';
+  const first = parts[0], last = parts[parts.length - 1];
+  return uniqueShort(first, last, taken);
 }
 
 /* Built once per render so the whole field is considered together. */

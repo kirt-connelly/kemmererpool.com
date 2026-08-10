@@ -397,23 +397,36 @@ function racesFor(d, m) {
 var NAME_SUFFIXES = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'];
 var DISPLAY = {};
 
-function shortenName(full, taken) {
-  var parts = String(full || '').replace(/^\s+|\s+$/g, '').split(/\s+/);
-  var clean = [], i;
-  for (i = 0; i < parts.length; i++) if (parts[i]) clean.push(parts[i]);
-  while (clean.length > 2 &&
-         NAME_SUFFIXES.indexOf(clean[clean.length - 1].toLowerCase()) >= 0) clean.pop();
-  if (clean.length < 2) return clean[0] || '';
-  var first = clean[0], last = clean[clean.length - 1], j, k, cand, hit;
+function uniqueShort(first, last, taken) {
+  var j, k, cand, hit;
   for (j = 1; j <= last.length; j++) {
     cand = first + ' ' + last.slice(0, j);
     hit = false;
     for (k = 0; k < taken.length; k++) {
-      if (taken[k].toLowerCase() === cand.toLowerCase()) { hit = true; break; }
+      if (String(taken[k]).toLowerCase() === cand.toLowerCase()) { hit = true; break; }
     }
     if (!hit) return cand;
   }
-  return String(full);
+  return first + ' ' + last;
+}
+
+function shortenName(full, taken) {
+  var raw = String(full || '').replace(/^\s+|\s+$/g, '');
+  // FargoRate carries nicknames in brackets — "Taydon (TK) Reilly". Everyone at
+  // the bar calls him TK, so that is the name that goes on the board.
+  var nickMatch = raw.match(/\(([^)]+)\)/);
+  var nick = nickMatch ? nickMatch[1].replace(/^\s+|\s+$/g, '') : '';
+  var parts = raw.replace(/\([^)]*\)/g, ' ').replace(/^\s+|\s+$/g, '').split(/\s+/);
+  var clean = [], i;
+  for (i = 0; i < parts.length; i++) if (parts[i]) clean.push(parts[i]);
+  while (clean.length > 2 &&
+         NAME_SUFFIXES.indexOf(clean[clean.length - 1].toLowerCase()) >= 0) clean.pop();
+  if (nick) {
+    if (!clean.length) return nick;
+    return uniqueShort(nick, clean[clean.length - 1], taken);
+  }
+  if (clean.length < 2) return clean[0] || '';
+  return uniqueShort(clean[0], clean[clean.length - 1], taken);
 }
 
 function buildDisplayNames(names) {
