@@ -210,20 +210,28 @@
     text-align: center; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
   .line { position: absolute; background: var(--border2); }
   .match { position: absolute; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+    background: var(--bg); display: flex; flex-direction: column; }
+  /* overflow:hidden used to round the ends; the pill sits above the box now, so
+     the slots do their own rounding instead. */
+  .match .slot:first-of-type { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+  .match .slot:last-of-type { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
   .match.decided { border-color: var(--border2); }
   .match.ready { border-color: var(--accent); }
   /* The table this match is on, so players can be pointed at the right one. */
   .wait-tbl { color: var(--loss); font-weight: 600; }
-  .match-tbl { position: absolute; top: -1px; right: -1px; font-size: 10px; font-weight: 700;
-    background: var(--accent); color: var(--on-accent); padding: 1px 6px;
-    border-radius: 0 var(--radius-sm) 0 var(--radius-sm); letter-spacing: .04em; }
-  .match-tbl i { font-style: normal; opacity: .6; margin-right: 1px; }
+  /* Straddles the top edge, centred, so it reads as a label on the match rather
+     than crowding the race box in the corner. */
+  .match-tbl { position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    z-index: 3; font-size: 9px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; white-space: nowrap; line-height: 1.3;
+    background: var(--accent); color: var(--on-accent); padding: 1px 8px;
+    border-radius: 99px; }
   .match-tbl.pick { cursor: pointer; }
-  .match-tbl.none { background: none; color: var(--text3); font-weight: 600;
-    border: 1px dashed var(--border2); border-radius: 0 var(--radius-sm) 0 var(--radius-sm);
-    font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+  .match-tbl.none { background: var(--bg2); color: var(--text3); font-weight: 600;
+    border: 1px dashed var(--border2); padding: 0 7px; }
   .match-tbl.none:hover { border-color: var(--accent); color: var(--green2); }
+  .match-tbl.held { background: var(--bg2); color: var(--loss); border: 1px solid var(--loss);
+    padding: 0 7px; }
 
   /* ── Moving a match to another table ── */
   .tbl-menu { position: fixed; z-index: 60; min-width: 190px; background: var(--bg2);
@@ -362,7 +370,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.20</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.22</div>
 </footer>
 
 <script>
@@ -576,10 +584,14 @@ function tablePill(m) {
   const t = B.assigned && B.assigned[m.id];
   const ready = !m.resolved && m.players[0] !== undefined && m.players[1] !== undefined
              && m.players[0] !== null && m.players[1] !== null;
+  if (B.held && B.held[m.id]) {
+    return `<span class="match-tbl held${scoring ? ' pick' : ''}"${
+      scoring ? ` onclick="openTableMenu(event,'${m.id}')"` : ''}>On hold</span>`;
+  }
   if (!t && (!ready || !scoring || !(B.tableList || []).length)) return '';
   const cls = 'match-tbl' + (t ? '' : ' none') + (scoring ? ' pick' : '');
   const click = scoring ? ` onclick="openTableMenu(event,'${m.id}')"` : '';
-  return `<span class="${cls}"${click}>${t ? `<i>T</i>${esc(t)}` : 'table'}</span>`;
+  return `<span class="${cls}"${click}>${t ? `Table ${esc(t)}` : 'No table'}</span>`;
 }
 
 /* ── Table assignment ──
@@ -604,6 +616,7 @@ function tablePill(m) {
 function readyMatches(B) {
   return B.matches.filter(function (m) {
     return m.live && !m.resolved
+        && !(B.held && B.held[m.id])          // a player has stepped out
         && m.players[0] !== undefined && m.players[1] !== undefined
         && m.players[0] !== null && m.players[1] !== null;
   });
@@ -636,6 +649,7 @@ function assignTables(B) {
   list.sort(function (a, b) { return a.priority - b.priority; });
 
   var prev = B.assigned || {};
+  Object.keys(B.held || {}).forEach(function (id) { delete prev[id]; });
   var ready = readyMatches(B);
   var readyIds = {};
   ready.forEach(function (m) { readyIds[m.id] = m; });
@@ -960,6 +974,7 @@ function snapshot() {
     payoutSpec: B.payoutSpec || null,     // spots and percentages set on the admin page
     tableList: B.tableList || null,
     assigned: B.assigned || {},
+    held: B.held || {},
     raceMode: B.raceMode || 'chart',
     raceBands: B.raceBands || null,
     fee: (document.getElementById('fee') || {}).value,
@@ -1063,6 +1078,7 @@ function applyServer(d) {
   B.payoutSpec = d.payoutSpec || null;
   B.tableList = d.tableList || null;
   B.assigned = d.assigned || {};
+  B.held = d.held || {};
   B.raceMode = d.raceMode || 'chart';
   B.raceBands = d.raceBands || null;
   B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
@@ -1465,7 +1481,8 @@ function openTableMenu(ev, mid) {
         return `<button class="${t.label === here ? 'on' : ''}" data-t="${esc(t.label)}">
           Table ${esc(t.label)}<span class="who">${who ? 'now ' + who : 'free'}</span></button>`;
       }).join('')
-    + (here ? `<button class="clear" data-t="">Take off a table</button>` : '');
+    + `<button class="clear" data-hold="1">${B.held && B.held[mid]
+        ? 'Back in play' : 'Hold &mdash; a player has stepped out'}</button>`;
 
   document.body.appendChild(menu);
   const r = ev.target.getBoundingClientRect();
@@ -1476,7 +1493,14 @@ function openTableMenu(ev, mid) {
   menu.querySelectorAll('button').forEach(b => {
     b.onclick = (e) => {
       e.stopPropagation();
-      moveMatchToTable(B, mid, b.dataset.t || null);
+      B.held = B.held || {};
+      if (b.dataset.hold) {
+        if (B.held[mid]) delete B.held[mid];
+        else { B.held[mid] = true; delete B.assigned[mid]; }   // frees it for someone else
+      } else {
+        delete B.held[mid];
+        moveMatchToTable(B, mid, b.dataset.t || null);
+      }
       closeTableMenu();
       renderKeepingTables();
     };
