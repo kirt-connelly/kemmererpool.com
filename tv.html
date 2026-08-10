@@ -27,9 +27,9 @@ body {
   padding: 26px 30px 40px;
 }
 
-.head { border-bottom: 2px solid #363636; padding-bottom: 14px; margin-bottom: 22px; overflow: hidden; }
-.head h1 { font-size: 40px; font-weight: 700; color: #e8ddd0; float: left; }
-.head .meta { float: right; text-align: right; font-size: 19px; color: #666058; padding-top: 10px; }
+.head { border-bottom: 2px solid #363636; padding-bottom: 10px; margin-bottom: 16px; overflow: hidden; }
+.head h1 { font-size: 27px; font-weight: 700; color: #e8ddd0; float: left; }
+.head .meta { float: right; text-align: right; font-size: 17px; color: #666058; padding-top: 4px; }
 .head .code { font-family: monospace; letter-spacing: .1em; color: #b0a898; }
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
   background: #32a870; margin-right: 8px; vertical-align: middle; }
@@ -96,14 +96,23 @@ body {
   padding-bottom: 7px; border-bottom: 2px solid #363636; }
 .ln { position: absolute; background: #4a4a4a; }
 .mt { position: absolute; border: 2px solid #363636; border-radius: 7px;
-  background: #1a1a1a; overflow: hidden; }
+  background: #1a1a1a; }
+/* overflow used to round the ends; the table pill sits above the box now, so
+   the rows round themselves instead. */
+.mt .sl:first-child { border-radius: 5px 5px 0 0; }
+.mt .sl:last-child { border-radius: 0 0 5px 5px; }
 .mt.ready { border-color: #27855a; }
 .mt.done { border-color: #2e2e2e; }
 .mt .no { position: absolute; top: -2px; left: -2px; font-size: 14px; font-weight: 700;
   background: #262626; color: #8a8378; padding: 1px 7px; border-radius: 5px 0 5px 0; }
-/* Which table this match is on, so players can be sent to the right one. */
-.mt .tbl { position: absolute; top: -2px; right: -2px; font-size: 14px; font-weight: 700;
-  background: #27855a; color: #ffffff; padding: 1px 8px; border-radius: 0 5px 0 5px; }
+/* Which table this match is on, centred on the top edge so it clears the races
+   in the right-hand corner. */
+.mt .tbl { position: absolute; top: -11px; left: 50%;
+  -webkit-transform: translateX(-50%); transform: translateX(-50%);
+  z-index: 3; font-size: 13px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; white-space: nowrap; line-height: 1.5;
+  background: #27855a; color: #ffffff; padding: 1px 10px; border-radius: 99px; }
+.mt .tbl.held { background: #1e1e1e; color: #cc4444; border: 1px solid #cc4444; }
 .sl { height: 33px; line-height: 33px; padding: 0 12px 0 34px; font-size: 21px;
   font-weight: 600; color: #e8ddd0; border-bottom: 1px solid #2e2e2e;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -572,14 +581,17 @@ function canvas(list, labelFor, lane, d) {
   html += connectors(list, pos);
   for (i = 0; i < list.length; i++) {
     m = list[i]; p = pos[m.id];
-    var ready = !m.resolved && m.players[0] !== undefined && m.players[1] !== undefined
+    var ready = !m.resolved && !(d.held && d.held[m.id])
+             && m.players[0] !== undefined && m.players[1] !== undefined
              && m.players[0] !== null && m.players[1] !== null;
     html += '<div class="mt' + (ready ? ' ready' : '') + (m.resolved ? ' done' : '')
           + '" style="left:' + colX(p.col) + 'px;top:' + Math.round(p.y - MATCH_H / 2)
           + 'px;width:' + COL_W + 'px;height:' + MATCH_H + 'px">'
           + '<span class="no">' + m.no + '</span>'
-          + ((d.assigned && d.assigned[m.id])
-              ? '<span class="tbl">' + esc(d.assigned[m.id]) + '</span>' : '')
+          + ((d.held && d.held[m.id])
+              ? '<span class="tbl held">On hold</span>'
+              : (d.assigned && d.assigned[m.id])
+                ? '<span class="tbl">Table ' + esc(d.assigned[m.id]) + '</span>' : '')
           + slotHTML(m, 0, d) + slotHTML(m, 1, d) + '</div>';
   }
   html += '</div>';
