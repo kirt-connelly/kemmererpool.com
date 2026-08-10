@@ -168,6 +168,22 @@
     letter-spacing: .06em; }
   .srow .sm2 { font-size: 12px; color: var(--text3); }
 
+  /* ── Tables ── */
+  .table-rows { padding: 14px 16px 4px; }
+  .trow2 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .trow2 .pri { width: 92px; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--text3); }
+  .trow2.best .pri { color: var(--green2); }
+  .trow2 .lbl2 { font-size: 12px; color: var(--text3); }
+  .trow2 .tin { width: 96px; }
+  .trow2 .mv { background: none; border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text3); width: 28px; height: 28px; cursor: pointer; font-size: 13px; padding: 0; }
+  .trow2 .mv:hover:not(:disabled) { border-color: var(--accent); color: var(--green2); }
+  .trow2 .mv:disabled { opacity: .3; cursor: default; }
+  .trow2 .rm { background: none; border: none; color: var(--text3); cursor: pointer;
+    font-size: 15px; padding: 4px 6px; }
+  .trow2 .rm:hover { color: var(--loss); }
+
   /* ── Signup sheet ── */
   .erow { display: flex; align-items: center; gap: 10px; padding: 10px 18px;
     border-bottom: 1px solid var(--border); font-size: 14px; }
@@ -408,10 +424,15 @@
           </div>
         </div>
 
-        <div id="tables-wrap" class="grid" style="margin-top:16px;display:none">
-          <div>
-            <label class="field-lbl" for="tables">Tables in play</label>
-            <input id="tables" class="inp" type="number" min="1" max="20" step="1" value="4">
+        <div class="section" id="tables-wrap">
+          <div class="section-head">
+            <span>Tables</span>
+            <span class="hint" style="padding:0;text-transform:none;letter-spacing:0">Best table at the top</span>
+          </div>
+          <div id="table-rows" class="table-rows"></div>
+          <div class="band-actions">
+            <button class="act" onclick="addTable()">Add a table</button>
+            <span class="hint" id="tables-msg"></span>
           </div>
         </div>
 
@@ -513,7 +534,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.12</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.13</div>
 </footer>
 
 <script>
@@ -785,7 +806,9 @@ function setMode(m) {
     m === 'signup' ? 'Create signup sheet' : 'Randomize & create';
   if (m !== 'signup') document.getElementById('sheet-pick').style.display = 'none';
   document.getElementById('chart-wrap').style.display = m === 'tournament' ? '' : 'none';
-  document.getElementById('tables-wrap').style.display = m === 'chip' ? '' : 'none';
+  // Every format needs tables now, but a signup sheet is only a list of names.
+  document.getElementById('tables-wrap').style.display = m === 'signup' ? 'none' : '';
+  if (m !== 'signup') renderTables();
   document.getElementById('bands-wrap').style.display = m === 'chip' ? '' : 'none';
   document.getElementById('race-bands-wrap').style.display = 'none';
   if (m === 'chip') renderBands();
@@ -876,6 +899,59 @@ function shuffle(arr) {
   }
   return a;
 }
+
+/* ── Tables ──
+   A label is whatever is painted on the table at the bar; priority is the order
+   they're used. Best table first, and it's the one the final is held for. */
+let tables = [
+  { label: '1' }, { label: '2' }, { label: '3' }, { label: '4' },
+];
+
+function renderTables() {
+  document.getElementById('table-rows').innerHTML = tables.map((t, i) => `
+    <div class="trow2${i === 0 ? ' best' : ''}">
+      <span class="pri">${i === 0 ? 'Best table' : 'Priority ' + (i + 1)}</span>
+      <span class="lbl2">labelled</span>
+      <input class="inp tin" type="text" maxlength="6" value="${esc(t.label)}"
+        data-i="${i}" oninput="onTableEdit(this)">
+      <button class="mv" title="Higher priority" ${i === 0 ? 'disabled' : ''}
+        onclick="moveTable(${i},-1)">&uarr;</button>
+      <button class="mv" title="Lower priority" ${i === tables.length - 1 ? 'disabled' : ''}
+        onclick="moveTable(${i},1)">&darr;</button>
+      ${tables.length > 1 ? `<button class="rm" title="Remove" onclick="removeTable(${i})">&#10005;</button>` : ''}
+    </div>`).join('');
+  checkTables();
+}
+
+function onTableEdit(el) {
+  tables[Number(el.dataset.i)].label = el.value;
+  checkTables();
+}
+function addTable() {
+  if (tables.length >= 20) return;
+  tables.push({ label: String(tables.length + 1) });
+  renderTables();
+}
+function removeTable(i) { tables.splice(i, 1); renderTables(); }
+function moveTable(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= tables.length) return;
+  const t = tables[i]; tables[i] = tables[j]; tables[j] = t;
+  renderTables();
+}
+
+function checkTables() {
+  const msg = document.getElementById('tables-msg');
+  const labels = tables.map(t => String(t.label).trim());
+  let problem = '';
+  if (labels.some(l => !l)) problem = 'Every table needs a label.';
+  else if (new Set(labels.map(l => l.toLowerCase())).size !== labels.length) problem = 'Two tables share a label.';
+  if (msg) { msg.textContent = problem; msg.style.color = problem ? 'var(--loss)' : 'var(--text3)'; }
+  return !problem;
+}
+
+/* Priority is simply the order they're listed, so it can't disagree with itself. */
+const tableList = () => tables.map((t, i) => ({ label: String(t.label).trim(), priority: i + 1 }));
 
 /* ── Races by Fargo rating ──
    Only matters for a manual-race bracket built from a signup list: the sheet
@@ -1049,6 +1125,7 @@ async function createTournament() {
   if (entries.length < 2) { say('Add at least 2 players.', true); return; }
   if (!updatePctTotal()) { say('Payout percentages have to total 100%.', true); return; }
 
+  if (!checkTables()) { say('Check the table labels before creating.', true); return; }
   if (mode === 'bracket' && !checkRaceBands()) { say('Check the race bands before creating.', true); return; }
   if (mode === 'tournament' && document.getElementById('racemode').value === 'bands'
       && !checkRaceBands()) { say('Check the race bands before creating.', true); return; }
@@ -1078,6 +1155,7 @@ async function createTournament() {
     fee: document.getElementById('fee').value,
     bar: document.getElementById('bar').value,
     payoutSpec: payoutSpec(),
+    tableList: tableList(),
   };
   if (mode === 'bracket') {
     data.races = Object.fromEntries(parseEntries().map(e => [e.name, e.race]));
@@ -1135,7 +1213,8 @@ async function createSignup(say) {
 }
 
 async function createChip(say) {
-  const tableCount = Math.max(1, Math.min(20, parseInt(document.getElementById('tables').value, 10) || 4));
+  const list = tableList();
+  const tableCount = list.length;
   const state = buildChipState(roster, tableCount);
   const data = {
     schema: 1,
@@ -1143,6 +1222,7 @@ async function createChip(say) {
     kind: 'chip',
     saved: Date.now(),
     tableCount,
+    tableList: list,
     chipBands: bands.map(b => ({ max: b.max ?? null, chips: Number(b.chips) })),
     ...state,
     bySeed: Object.fromEntries(state.roster.map(p => [p.draw, p.name])),   // so the API recognizes it
@@ -1460,6 +1540,7 @@ async function removeTournament(code) {
 
 setMode('bracket');
 onSpotsChange();
+renderTables();
 </script>
 </body>
 </html>

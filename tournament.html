@@ -213,6 +213,10 @@
     background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
   .match.decided { border-color: var(--border2); }
   .match.ready { border-color: var(--accent); }
+  /* The table this match is on, so players can be pointed at the right one. */
+  .match-tbl { position: absolute; top: -1px; right: -1px; font-size: 10px; font-weight: 700;
+    background: var(--accent); color: var(--on-accent); padding: 1px 6px;
+    border-radius: 0 var(--radius-sm) 0 var(--radius-sm); letter-spacing: .04em; }
   .match-no { position: absolute; top: -1px; left: -1px; font-size: 9px; font-weight: 700;
     background: var(--bg3); color: var(--text3); padding: 1px 5px; border-radius: var(--radius-sm) 0 var(--radius-sm) 0;
     letter-spacing: .04em; }
@@ -342,7 +346,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.14</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.15</div>
 </footer>
 
 <script>
@@ -546,6 +550,120 @@ function champion(b) {
   if (!gf || !gf.resolved) return null;
   if (gf.winner === 0) return gf.winnerName;
   return gf2.resolved ? gf2.winnerName : null;
+}
+
+/* ── Table assignment ──
+   Matches that are ready to play get a table, best table first. The rules, in
+   the order they bite:
+
+     1. Once the final is ready it claims the top-priority table. If that table
+        is busy the final waits for it rather than dropping to a lesser one.
+        Until the final is ready the top table is used normally — reserving it
+        all tournament would leave the best table dark all night.
+     2. Winners-bracket matches get first call on what's left, lowest match
+        number first.
+     3. A losers-bracket match may only take the top table when no winners match
+        is still unplayed. Otherwise it waits, even if that leaves the table
+        empty for a while.
+     4. An assignment sticks until the match is played, so nobody gets moved
+        mid-rack, and an admin can override any of it.
+
+   `assigned` maps matchId -> table label, and is carried with the tournament. */
+
+function readyMatches(B) {
+  return B.matches.filter(function (m) {
+    return m.live && !m.resolved
+        && m.players[0] !== undefined && m.players[1] !== undefined
+        && m.players[0] !== null && m.players[1] !== null;
+  });
+}
+
+/* The last match on the winners side — a grand final, or for single elimination
+   the winners final itself. */
+function finalIds(B) {
+  var ids = [];
+  var gf = B.matches.filter(function (m) { return m.bracket === 'GF'; });
+  if (gf.length) {
+    gf.forEach(function (m) { ids.push(m.id); });
+  } else {
+    B.matches.forEach(function (m) {
+      if (m.bracket === 'W' && m.round === B.rounds) ids.push(m.id);
+    });
+  }
+  return ids;
+}
+
+function anyWinnersUnplayed(B) {
+  return B.matches.some(function (m) {
+    return m.live && m.bracket === 'W' && !m.resolved;
+  });
+}
+
+function assignTables(B) {
+  var list = (B.tableList || []).slice();
+  if (!list.length) { B.assigned = {}; return B.assigned; }
+  list.sort(function (a, b) { return a.priority - b.priority; });
+
+  var prev = B.assigned || {};
+  var ready = readyMatches(B);
+  var readyIds = {};
+  ready.forEach(function (m) { readyIds[m.id] = m; });
+
+  // Keep what's already out there; drop assignments for matches now played.
+  var next = {}, taken = {};
+  Object.keys(prev).forEach(function (id) {
+    if (readyIds[id] && list.some(function (t) { return t.label === prev[id]; })
+        && !taken[prev[id]]) {
+      next[id] = prev[id];
+      taken[prev[id]] = true;
+    }
+  });
+
+  var top = list[0].label;
+  var finals = finalIds(B);
+  var isFinal = function (id) { return finals.indexOf(id) >= 0; };
+
+  // A ready final claims the top table, displacing nothing — it simply waits
+  // until that table comes free.
+  var readyFinal = ready.filter(function (m) { return isFinal(m.id) && !next[m.id]; })[0];
+  if (readyFinal && !taken[top]) { next[readyFinal.id] = top; taken[top] = true; }
+
+  var winnersLeft = anyWinnersUnplayed(B);
+
+  var queue = ready
+    .filter(function (m) { return !next[m.id] && !isFinal(m.id); })
+    .sort(function (a, b) {
+      if (a.bracket !== b.bracket) return a.bracket === 'W' ? -1 : 1;
+      return a.no - b.no;
+    });
+
+  queue.forEach(function (m) {
+    for (var i = 0; i < list.length; i++) {
+      var t = list[i];
+      if (taken[t.label]) continue;
+      // The best table is held back from the losers bracket while any winners
+      // match is still to be played, and always while a final is pending.
+      if (t.label === top && m.bracket !== 'W' && winnersLeft) continue;
+      next[m.id] = t.label;
+      taken[t.label] = true;
+      return;
+    }
+  });
+
+  B.assigned = next;
+  return next;
+}
+
+/* Moving a match by hand: whatever was on that table gets bumped off, rather
+   than two matches claiming the same one. */
+function moveMatchToTable(B, matchId, label) {
+  B.assigned = B.assigned || {};
+  if (!label) { delete B.assigned[matchId]; return B.assigned; }
+  Object.keys(B.assigned).forEach(function (id) {
+    if (B.assigned[id] === label && id !== matchId) delete B.assigned[id];
+  });
+  B.assigned[matchId] = label;
+  return B.assigned;
 }
 
 /* ── Payouts ──
@@ -806,6 +924,8 @@ function snapshot() {
     winners,
     payoutsManual: B.payoutsManual || null,
     payoutSpec: B.payoutSpec || null,     // spots and percentages set on the admin page
+    tableList: B.tableList || null,
+    assigned: B.assigned || {},
     raceMode: B.raceMode || 'chart',
     raceBands: B.raceBands || null,
     fee: (document.getElementById('fee') || {}).value,
@@ -907,6 +1027,8 @@ function applyServer(d) {
   roster = d.roster || [];
   B.payoutsManual = d.payoutsManual || null;
   B.payoutSpec = d.payoutSpec || null;
+  B.tableList = d.tableList || null;
+  B.assigned = d.assigned || {};
   B.raceMode = d.raceMode || 'chart';
   B.raceBands = d.raceBands || null;
   B.matches.forEach(m => { if (d.winners && d.winners[m.id] !== undefined) m.winner = d.winners[m.id]; });
@@ -1236,7 +1358,9 @@ function bracketHTML(list, labelFor, lane) {
     const p = pos[m.id];
     return `<div class="match${m.resolved ? ' decided' : ''}"
       style="left:${colX(p.col)}px;top:${Math.round(p.y - MATCH_H / 2)}px;width:${COL_W}px;height:${MATCH_H}px">
-      <span class="match-no">${m.no}</span>${slotHTML(m,0)}${slotHTML(m,1)}</div>`;
+      <span class="match-no">${m.no}</span>${
+        B.assigned && B.assigned[m.id] ? `<span class="match-tbl">${esc(B.assigned[m.id])}</span>` : ''
+      }${slotHTML(m,0)}${slotHTML(m,1)}</div>`;
   }).join('');
 
   return `<div class="canvas" style="height:${Math.round(height)}px;width:${width}px">
@@ -1245,6 +1369,7 @@ function bracketHTML(list, labelFor, lane) {
 
 function render() {
   resolve(B);
+  assignTables(B);
   queueSave();
   const wb = B.matches.filter(m => m.bracket === 'W');
   const lb = B.matches.filter(m => m.bracket === 'L');

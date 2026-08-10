@@ -101,6 +101,9 @@ body {
 .mt.done { border-color: #2e2e2e; }
 .mt .no { position: absolute; top: -2px; left: -2px; font-size: 14px; font-weight: 700;
   background: #262626; color: #8a8378; padding: 1px 7px; border-radius: 5px 0 5px 0; }
+/* Which table this match is on, so players can be sent to the right one. */
+.mt .tbl { position: absolute; top: -2px; right: -2px; font-size: 14px; font-weight: 700;
+  background: #27855a; color: #ffffff; padding: 1px 8px; border-radius: 0 5px 0 5px; }
 .sl { height: 33px; line-height: 33px; padding: 0 12px 0 34px; font-size: 21px;
   font-weight: 600; color: #e8ddd0; border-bottom: 1px solid #2e2e2e;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -433,7 +436,8 @@ function drawChip(d) {
   html += '<div class="panel"><h2>Tables</h2>';
   for (i = 0; i < tables.length; i++) {
     if (!tables[i][0] && !tables[i][1]) continue;
-    html += '<div class="match"><span class="no">' + (i + 1) + '</span><span class="who">'
+    var tl = (d.tableList && d.tableList[i]) ? d.tableList[i].label : String(i + 1);
+    html += '<div class="match"><span class="no">' + esc(tl) + '</span><span class="who">'
           + esc(tables[i][0] || 'Open') + '<span class="vs">v</span>'
           + esc(tables[i][1] || 'Open') + '</span></div>';
   }
@@ -444,8 +448,12 @@ function drawChip(d) {
     html += '<div class="panel"><h2>Just played</h2>';
     for (i = 0; i < Math.min(6, log.length); i++) {
       if (log[i].manual) html += '<div class="log">' + esc(log[i].text) + '</div>';
-      else html += '<div class="log"><b>' + esc(log[i].winner) + '</b> beat '
-                 + esc(log[i].loser) + ' on table ' + log[i].table + '</div>';
+      else {
+        var lt = (d.tableList && d.tableList[log[i].table - 1])
+          ? d.tableList[log[i].table - 1].label : log[i].table;
+        html += '<div class="log"><b>' + esc(log[i].winner) + '</b> beat '
+              + esc(log[i].loser) + ' on table ' + esc(lt) + '</div>';
+      }
     }
     html += '</div>';
   }
@@ -570,6 +578,8 @@ function canvas(list, labelFor, lane, d) {
           + '" style="left:' + colX(p.col) + 'px;top:' + Math.round(p.y - MATCH_H / 2)
           + 'px;width:' + COL_W + 'px;height:' + MATCH_H + 'px">'
           + '<span class="no">' + m.no + '</span>'
+          + ((d.assigned && d.assigned[m.id])
+              ? '<span class="tbl">' + esc(d.assigned[m.id]) + '</span>' : '')
           + slotHTML(m, 0, d) + slotHTML(m, 1, d) + '</div>';
   }
   html += '</div>';

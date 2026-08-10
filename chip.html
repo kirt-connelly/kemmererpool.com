@@ -407,7 +407,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.06</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.07</div>
 </footer>
 
 <script>
@@ -923,8 +923,11 @@ function render() {
   const now = Date.now();
   S.tableStarts = S.tableStarts || {};
 
-  const seatedAt = {};                       // name → table number, for the left column
-  S.tables.forEach((seat, i) => seat.forEach(n => { if (n) seatedAt[n] = i + 1; }));
+  // Tables are held in priority order, so index 0 is the best table and
+  // consolidation closing from the end drops the weakest first.
+  const tLabel = (i) => (S.tableList && S.tableList[i]) ? S.tableList[i].label : String(i + 1);
+  const seatedAt = {};                       // name → table label, for the left column
+  S.tables.forEach((seat, i) => seat.forEach(n => { if (n) seatedAt[n] = tLabel(i); }));
 
   // ── Right: the tables ──
   const tables = S.tables.map((seat, i) => {
@@ -942,7 +945,7 @@ function render() {
         <span class="sn">${esc(n)}</span>${chipDots(p)}</button>`;
     }).join('');
     return `<div class="table-card${live ? '' : ' idle'}">
-      <div class="table-head"><span>Table ${i + 1}</span>
+      <div class="table-head"><span>Table ${esc(tLabel(i))}</span>
         ${live && el !== null ? `<span class="table-timer${over ? ' over' : ''}">${fmtClock(el)}</span>` : ''}
       </div>${seats}</div>`;
   }).join('');
@@ -971,7 +974,7 @@ function render() {
     const at = seatedAt[p.name];
     const upNext = S.queue.indexOf(p.name);
     const where = p.chips === 0 ? '<span class="tag out">Out</span>'
-      : at ? `<span class="tag on">Table ${at}</span>`
+      : at ? `<span class="tag on">Table ${esc(at)}</span>`
       : upNext === 0 ? '<span class="tag next">Up next</span>'
       : upNext > 0 ? `<span class="tag">#${upNext + 1} in line</span>` : '';
     // A rule above each table's first player keeps the two together as a pair.
@@ -1030,7 +1033,7 @@ function render() {
               : 'adjust chips, swap players between seats, or reorder the queue'}</div>` : ''}
           ${S.log.length ? `<div class="ticker">${S.log[0].manual
               ? esc(S.log[0].text)
-              : `<strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${S.log[0].table}`}</div>` : ''}
+              : `<strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${esc(tLabel(S.log[0].table - 1))}`}</div>` : ''}
           <div class="plist">${players}</div>
         </div>
       </div>
@@ -1108,6 +1111,7 @@ function applyServer(d) {
     outOrder: d.outOrder || [], log: d.log || [],
     tableStarts: d.tableStarts || {},
     chipBands: d.chipBands || null,
+    tableList: d.tableList || null,
     payoutSpec: d.payoutSpec || null, payoutsManual: d.payoutsManual || null,
   };
   document.getElementById('code-entry').style.display = 'none';
@@ -1123,6 +1127,7 @@ function snapshot() {
     name: (document.getElementById('tname').value || '').trim(),
     kind: 'chip', saved: Date.now(),
     tableCount: S.tableCount, chipBands: S.chipBands || null,
+    tableList: S.tableList || null,
     roster: S.roster, tables: S.tables, queue: S.queue,
     outOrder: S.outOrder, log: S.log.slice(0, 200), tableStarts: S.tableStarts,
     bySeed: Object.fromEntries(S.roster.map(p => [p.draw, p.name])),
