@@ -398,7 +398,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.24</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Tournament &nbsp;·&nbsp; v1.25</div>
 </footer>
 
 <script>
@@ -1199,7 +1199,12 @@ function pick(id, slotIdx) {
   const m = B.matches.find(x => x.id === id);
   if (!m || m.autoWon || !m.live) return;
   if (m.players[0] === undefined || m.players[1] === undefined) return;
+  const was = m.winner;
   m.winner = (m.winner === slotIdx) ? null : slotIdx;   // click again to undo
+  // Anything decided further along was decided by different players, so it has
+  // to go. Without this a later match keeps its old winner and reappears as a
+  // result nobody played.
+  if (was !== m.winner) clearDownstream(id, true);   // keep this result, drop what followed
   render();
 }
 
@@ -1471,7 +1476,9 @@ function downstreamPlayed(mid) {
       if (seen.has(nid)) continue;
       seen.add(nid);
       const m = byId[nid];
-      if (m && (m.winner === 0 || m.winner === 1)) return true;   // a real result rides on this
+      // Only a result that still stands counts. A stored winner on a match whose
+      // players are no longer known is stale, and shouldn't keep a bye shut.
+      if (m && m.live && m.resolved && !m.autoWon) return true;
       stack.push(nid);
     }
   }
@@ -1524,7 +1531,7 @@ function placeLatePlayer(name, rating) {
 
 /* Adding a player mid-tournament invalidates anything decided after that match,
    so those results are cleared rather than left pointing at the wrong person. */
-function clearDownstream(mid) {
+function clearDownstream(mid, keepSelf) {
   const deps = {};
   B.matches.forEach(m => m.slots.forEach(s => {
     if (s.of) (deps[s.of] = deps[s.of] || []).push(m.id);
@@ -1540,7 +1547,7 @@ function clearDownstream(mid) {
     });
   };
   const self = B.matches.find(x => x.id === mid);
-  if (self) self.winner = null;
+  if (self && !keepSelf) self.winner = null;
   walk(mid);
 }
 
