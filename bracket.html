@@ -341,7 +341,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.21</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.22</div>
 </footer>
 
 <script>
@@ -564,6 +564,40 @@ function tablePill(m) {
   const click = scoring ? ` onclick="openTableMenu(event,'${m.id}')"` : '';
   return `<span class="${cls}"${click}>${t ? `Table ${esc(t)}` : 'No table'}</span>`;
 }
+
+/* ── Display names ──
+   A bracket box has room for "Kirt C", not "Kirt Connelly". Shortening happens
+   here rather than in the stored data, so tournaments created before this and
+   names typed in by hand get the same treatment. Two people who shorten to the
+   same thing keep letters of the surname until they differ. */
+const NAME_SUFFIXES = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'];
+
+function shortenName(full, taken) {
+  let parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+  while (parts.length > 2 && NAME_SUFFIXES.indexOf(parts[parts.length - 1].toLowerCase()) >= 0) parts.pop();
+  if (parts.length < 2) return parts[0] || '';
+  const first = parts[0], last = parts[parts.length - 1];
+  for (let i = 1; i <= last.length; i++) {
+    const cand = first + ' ' + last.slice(0, i);
+    if (!taken.some(t => t.toLowerCase() === cand.toLowerCase())) return cand;
+  }
+  return String(full).trim();
+}
+
+/* Built once per render so the whole field is considered together. */
+function buildDisplayNames(names) {
+  const map = {}, taken = [];
+  names.filter(Boolean).forEach(full => {
+    if (map[full]) return;
+    const s = shortenName(full, taken);
+    taken.push(s);
+    map[full] = s;
+  });
+  return map;
+}
+
+const disp = (n) => (DISPLAY && DISPLAY[n]) || n;
+let DISPLAY = {};
 
 /* ── Table assignment ──
    Matches that are ready to play get a table, best table first. The rules, in
@@ -1070,7 +1104,7 @@ function slotHTML(m, i) {
     label = 'Bye';
     click = '';                    // a bye can't be picked as a winner either
   } else {
-    label = esc(v);
+    label = esc(disp(v));
     if (m.resolved) cls += (m.winner === i || (m.autoWon && m.winnerName === v)) ? ' won' : ' lost';
     if (m.autoWon) cls += ' locked';
   }
@@ -1269,6 +1303,7 @@ function bracketHTML(list, labelFor, lane) {
 
 function render() {
   resolve(B);
+  DISPLAY = buildDisplayNames(Object.keys(B.bySeed).sort((a, b) => a - b).map(k => B.bySeed[k]));
   assignTables(B);
   const waitingForTable = B.tableList && B.tableList.length
     ? readyMatches(B).filter(m => !B.assigned[m.id]).length : 0;
@@ -1331,7 +1366,7 @@ function render() {
       </div>
     </div>
     ${payoutHTML(live, fee, bar, champ)}
-    ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}
+    ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(disp(champ))}</span></div>` : ''}
     <div class="card">
       <div class="card-header">
         <span class="card-title">${single ? 'Bracket' : 'Winners Bracket'}</span>

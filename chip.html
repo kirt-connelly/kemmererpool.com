@@ -407,7 +407,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.08</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.09</div>
 </footer>
 
 <script>
@@ -791,6 +791,37 @@ function addLatePlayer() {
   queuePush();
 }
 
+/* ── Display names ──
+   "Kirt C" fits a table card; "Kirt Connelly" does not. Done at render time so
+   sessions created earlier, and names typed in by hand, read the same way. */
+const NAME_SUFFIXES = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'];
+
+function shortenName(full, taken) {
+  let parts = String(full || '').trim().split(/\s+/).filter(Boolean);
+  while (parts.length > 2 && NAME_SUFFIXES.indexOf(parts[parts.length - 1].toLowerCase()) >= 0) parts.pop();
+  if (parts.length < 2) return parts[0] || '';
+  const first = parts[0], last = parts[parts.length - 1];
+  for (let i = 1; i <= last.length; i++) {
+    const cand = first + ' ' + last.slice(0, i);
+    if (!taken.some(t => t.toLowerCase() === cand.toLowerCase())) return cand;
+  }
+  return String(full).trim();
+}
+
+let DISPLAY = {};
+const disp = (n) => DISPLAY[n] || n;
+
+function buildDisplayNames(names) {
+  const map = {}, taken = [];
+  names.filter(Boolean).forEach(full => {
+    if (map[full]) return;
+    const s = shortenName(full, taken);
+    taken.push(s);
+    map[full] = s;
+  });
+  return map;
+}
+
 /* ── Undo ──
    A single result moves a chip, requeues the loser, pulls the next player down,
    can knock someone out and can collapse a table. Unwinding all that field by
@@ -914,6 +945,7 @@ function winFrom(el) { win(Number(el.dataset.t), el.dataset.n); }
 
 function render() {
   if (!S) return;
+  DISPLAY = buildDisplayNames(S.roster.map(p => p.name));
   const st = sessionStats(S);
   const champ = champion(S);
   const scoring = !!(serverCode && adminCode);
@@ -942,7 +974,7 @@ function render() {
       return `<button class="seat${live && scoring ? ' playable' : ''}"
         data-t="${i}" data-n="${esc(n)}"
         ${live && scoring ? 'onclick="winFrom(this)"' : 'disabled'}>
-        <span class="sn">${esc(n)}</span>${chipDots(p)}</button>`;
+        <span class="sn">${esc(disp(n))}</span>${chipDots(p)}</button>`;
     }).join('');
     return `<div class="table-card${live ? '' : ' idle'}">
       <div class="table-head"><span>Table ${esc(tLabel(i))}</span>
@@ -994,7 +1026,7 @@ function render() {
       </span>` : '';
     return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}${newTable ? ' table-start' : ''}${swapFrom === p.name ? ' armed' : ''}">
       ${champ ? `<span class="pl">${p.place}</span>` : ''}
-      <span class="pn">${esc(p.name)}</span>
+      <span class="pn">${esc(disp(p.name))}</span>
       ${chipDots(p)}
       ${where}
       <span class="pw">${p.wins}&ndash;${p.losses}</span>
@@ -1019,7 +1051,7 @@ function render() {
       </div>
     </div>
 
-    ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(champ)}</span></div>` : ''}
+    ${champ ? `<div class="champion"><span class="lbl">Champion</span><span class="nm">${esc(disp(champ))}</span></div>` : ''}
 
     <div class="split">
       <div class="col-players">
@@ -1033,7 +1065,7 @@ function render() {
               : 'adjust chips, swap players between seats, or reorder the queue'}</div>` : ''}
           ${S.log.length ? `<div class="ticker">${S.log[0].manual
               ? esc(S.log[0].text)
-              : `<strong>${esc(S.log[0].winner)}</strong> beat ${esc(S.log[0].loser)} on table ${esc(tLabel(S.log[0].table - 1))}`}</div>` : ''}
+              : `<strong>${esc(disp(S.log[0].winner))}</strong> beat ${esc(disp(S.log[0].loser))} on table ${esc(tLabel(S.log[0].table - 1))}`}</div>` : ''}
           <div class="plist">${players}</div>
         </div>
       </div>

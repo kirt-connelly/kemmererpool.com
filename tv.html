@@ -395,6 +395,45 @@ function raceText(data, a, b) {
 
 /* ── Drawing ── */
 
+/* ── Display names ──
+   Bracket boxes have room for "Kirt C", not "Kirt Connelly". Shortened here at
+   draw time, so tournaments created before this read the same way. Two people
+   who shorten alike keep letters of the surname until they differ. */
+var NAME_SUFFIXES = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'];
+var DISPLAY = {};
+
+function shortenName(full, taken) {
+  var parts = String(full || '').replace(/^\s+|\s+$/g, '').split(/\s+/);
+  var clean = [], i;
+  for (i = 0; i < parts.length; i++) if (parts[i]) clean.push(parts[i]);
+  while (clean.length > 2 &&
+         NAME_SUFFIXES.indexOf(clean[clean.length - 1].toLowerCase()) >= 0) clean.pop();
+  if (clean.length < 2) return clean[0] || '';
+  var first = clean[0], last = clean[clean.length - 1], j, k, cand, hit;
+  for (j = 1; j <= last.length; j++) {
+    cand = first + ' ' + last.slice(0, j);
+    hit = false;
+    for (k = 0; k < taken.length; k++) {
+      if (taken[k].toLowerCase() === cand.toLowerCase()) { hit = true; break; }
+    }
+    if (!hit) return cand;
+  }
+  return String(full);
+}
+
+function buildDisplayNames(names) {
+  var map = {}, taken = [], i, s;
+  for (i = 0; i < names.length; i++) {
+    if (!names[i] || map[names[i]]) continue;
+    s = shortenName(names[i], taken);
+    taken.push(s);
+    map[names[i]] = s;
+  }
+  return map;
+}
+
+function disp(n) { return DISPLAY[n] || n; }
+
 /* ── Chip session board ──
    Out on top, then the queue reading down, then whoever is on a table — the same
    order as the scoring page, so the two read alike. */
@@ -425,12 +464,12 @@ function drawChip(d) {
   html += '<div class="panel"><h2>Players<span class="n">' + alive + ' of ' + roster.length
         + ' in &middot; ' + chipsLeft + ' chips left</span></h2>';
   for (i = 0; i < out.length; i++) {
-    html += '<div class="row out"><span class="nm">' + esc(out[i].name)
+    html += '<div class="row out"><span class="nm">' + esc(disp(out[i].name))
           + '</span><span class="rt">out</span></div>';
   }
   for (i = 0; i < queued.length; i++) {
     p = queued[i];
-    html += '<div class="row"><span class="nm">' + esc(p.name) + '</span>' + chipDots(p) + '</div>';
+    html += '<div class="row"><span class="nm">' + esc(disp(p.name)) + '</span>' + chipDots(p) + '</div>';
   }
   var lastTable = null;
   for (i = 0; i < seated.length; i++) {
@@ -438,7 +477,7 @@ function drawChip(d) {
     var isNew = seated[i].table !== lastTable;
     lastTable = seated[i].table;
     html += '<div class="row seat' + (isNew ? ' tstart' : '') + '">'
-          + '<span class="nm">' + esc(p.name) + '</span>' + chipDots(p) + '</div>';
+          + '<span class="nm">' + esc(disp(p.name)) + '</span>' + chipDots(p) + '</div>';
   }
   html += '</div></div><div class="col right">';
 
@@ -447,8 +486,8 @@ function drawChip(d) {
     if (!tables[i][0] && !tables[i][1]) continue;
     var tl = (d.tableList && d.tableList[i]) ? d.tableList[i].label : String(i + 1);
     html += '<div class="match"><span class="no">' + esc(tl) + '</span><span class="who">'
-          + esc(tables[i][0] || 'Open') + '<span class="vs">v</span>'
-          + esc(tables[i][1] || 'Open') + '</span></div>';
+          + esc(tables[i][0] ? disp(tables[i][0]) : 'Open') + '<span class="vs">v</span>'
+          + esc(tables[i][1] ? disp(tables[i][1]) : 'Open') + '</span></div>';
   }
   html += '</div>';
 
@@ -460,8 +499,8 @@ function drawChip(d) {
       else {
         var lt = (d.tableList && d.tableList[log[i].table - 1])
           ? d.tableList[log[i].table - 1].label : log[i].table;
-        html += '<div class="log"><b>' + esc(log[i].winner) + '</b> beat '
-              + esc(log[i].loser) + ' on table ' + esc(lt) + '</div>';
+        html += '<div class="log"><b>' + esc(disp(log[i].winner)) + '</b> beat '
+              + esc(disp(log[i].loser)) + ' on table ' + esc(lt) + '</div>';
       }
     }
     html += '</div>';
@@ -556,7 +595,7 @@ function slotHTML(m, i, d) {
     cls += ' empty';
   } else if (v === null) { label = '<span class="src">Bye</span>'; cls += ' empty'; }
   else {
-    label = esc(v);
+    label = esc(disp(v));
     if (m.resolved) cls += (m.winnerName === v) ? ' won' : ' lost';
     var rr = racesFor(d, m);
     if (rr[i]) race = '<span class="rc">' + rr[i] + '</span>';
@@ -668,6 +707,13 @@ function fit(w, h) {
 
 function draw(d) {
   LAST = d;
+  var pool = [], k;
+  if (d.kind === 'chip') {
+    for (k = 0; k < (d.roster || []).length; k++) pool.push(d.roster[k].name);
+  } else {
+    for (k in (d.bySeed || {})) { if (d.bySeed.hasOwnProperty(k)) pool.push(d.bySeed[k]); }
+  }
+  DISPLAY = buildDisplayNames(pool);
   $('board').style.display = '';
   $('enter').style.display = 'none';
   $('title').innerHTML = esc(d.name || 'Tournament');
@@ -676,7 +722,7 @@ function draw(d) {
   var champ = championOf(d), html = '';
   if (champ) {
     html += '<div class="champ"><span class="lbl">Champion</span><span class="nm">'
-          + esc(champ) + '</span></div>';
+          + esc(disp(champ)) + '</span></div>';
   }
 
   if (d.kind === 'chip') { $('body').innerHTML = html + drawChip(d); return; }
