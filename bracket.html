@@ -103,6 +103,32 @@
     color: var(--text3); line-height: 1.6; }
   .code-entry .hint:not(:empty) { margin-top: 10px; text-align: center; }
 
+  /* ── Dialogs ── */
+  .modal-back { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 80;
+    background: rgba(0,0,0,.55); display: flex; align-items: flex-start;
+    justify-content: center; padding: 8vh 16px 16px; overflow-y: auto; }
+  .modal { width: 100%; max-width: 440px; background: var(--bg2);
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+  .modal-head { padding: 14px 18px; background: var(--bg3);
+    border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 600;
+    color: var(--cream); border-radius: var(--radius) var(--radius) 0 0; }
+  .modal-head .mh-sub { float: right; font-size: 12px; font-weight: 400; color: var(--text3);
+    padding-top: 3px; }
+  @media print { .modal-back { display: none !important; } }
+
+  /* ── Removing a player ── */
+  .rm-list { max-height: 300px; overflow-y: auto; }
+  .rm-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 12px 14px; margin-bottom: 6px; font-family: inherit; font-size: 14px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text); cursor: pointer; }
+  .rm-row:hover { border-color: var(--loss); }
+  .rm-row .rn2 { flex: 1; min-width: 0; color: var(--cream); font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-row .rm2 { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .rm-none { padding: 18px 4px; color: var(--text3); font-size: 14px; line-height: 1.6; }
+
   /* ── Tournament header ── */
   .tourney-head { display: flex; align-items: flex-start; justify-content: space-between;
     gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -341,7 +367,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.23</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Bracket Draw &nbsp;·&nbsp; v1.24</div>
 </footer>
 
 <script>
@@ -1128,6 +1154,73 @@ function sourceLabel(slot) {
 }
 
 /* Replace a slot with an input so a latecomer can be typed straight in. */
+/* ── Removing a player ──
+   Only before they have played. Taking someone out after a real result would
+   invalidate it, so the same downstream check that governs byes applies here:
+   their own match must be undecided and nothing after it played. */
+function removablePlayers() {
+  const out = [];
+  B.matches.filter(m => m.bracket === 'W' && m.round === 1).forEach(m => {
+    const ownPlayed = m.resolved && !m.autoWon;
+    if (ownPlayed || downstreamPlayed(m.id)) return;
+    m.slots.forEach((s) => {
+      if (s.type !== 'seed') return;
+      const name = B.bySeed[s.seed];
+      if (!name) return;
+      out.push({ name, seed: s.seed, mid: m.id, no: m.no });
+    });
+  });
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function closeRemove() {
+  const el = document.getElementById('rm-back');
+  if (el) el.remove();
+}
+
+function showRemove() {
+  if (readOnly || !B) return;
+  closeRemove();
+  const list = removablePlayers();
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  back.id = 'rm-back';
+  back.onclick = (e) => { if (e.target === back) closeRemove(); };
+  back.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">Remove a player
+        <span class="mh-sub">${list.length} can be removed</span>
+      </div>
+      <div class="pad">
+        ${list.length ? `
+          <div class="hint" style="margin-bottom:10px">
+            Their spot becomes a bye. Only players who haven't played yet are listed.
+          </div>
+          <div class="rm-list">${list.map(r => `
+            <button class="rm-row" data-seed="${r.seed}" data-mid="${r.mid}"
+              data-name="${esc(r.name)}" onclick="removeFrom(this)">
+              <span class="rn2">${esc(disp(r.name))}</span>
+              <span class="rm2">match ${r.no}</span>
+            </button>`).join('')}</div>`
+        : `<div class="rm-none">Nobody can be removed &mdash; everyone still in has
+             played a match, or has a result riding on theirs.</div>`}
+      </div>
+    </div>`;
+  document.body.appendChild(back);
+}
+
+function removeFrom(el) {
+  const name = el.dataset.name;
+  if (!confirm(`Take ${name} out? Their spot becomes a bye.`)) return;
+  const seed = Number(el.dataset.seed);
+  B.bySeed[seed] = null;
+  clearDownstream(el.dataset.mid);
+  if (B.races) delete B.races[name];
+  closeRemove();
+  render();
+  note(`${name} removed — their spot is a bye.`);
+}
+
 /* ── Late entry ──
    A latecomer is drawn at random into one of the open byes rather than placed
    by hand, so nobody gets to pick the soft side of the draw. A bye only counts
@@ -1368,6 +1461,8 @@ function render() {
       <div class="th-actions">
         ${scoring && openByes().length
           ? `<button class="act" onclick="addLatePlayer()">Add late player</button>` : ''}
+        ${scoring && removablePlayers().length
+          ? `<button class="act" onclick="showRemove()">Remove player</button>` : ''}
         ${scoring ? `<button class="act" onclick="copyViewLink()">Copy view link</button>` : ''}
         <button class="act" onclick="window.print()">Print</button>
       </div>
