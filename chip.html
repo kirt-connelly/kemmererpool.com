@@ -271,6 +271,37 @@
   .print-head .t { font-size: 14pt; font-weight: 700; }
   .print-head .d { font-size: 9pt; color: #555; }
 
+  /* ── Add late player ── */
+  .modal-back { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 80;
+    background: rgba(0,0,0,.55); display: flex; align-items: flex-start;
+    justify-content: center; padding: 8vh 16px 16px; overflow-y: auto; }
+  .modal { width: 100%; max-width: 460px; background: var(--bg2);
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+  .modal-head { padding: 14px 18px; background: var(--bg3);
+    border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 600;
+    color: var(--cream); border-radius: var(--radius) var(--radius) 0 0; }
+  .late-in { width: 100%; font-family: inherit; font-size: 15px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 11px 13px; }
+  .late-in:focus { outline: none; border-color: var(--accent); }
+  .pen-row { display: flex; gap: 6px; }
+  .pen { flex: 1; font-family: inherit; font-size: 12px; font-weight: 600; padding: 9px 6px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text3); cursor: pointer; white-space: nowrap; }
+  .pen.on { border-color: var(--accent); color: var(--green2); background: var(--seat-tint); }
+  #late-results { margin-top: 10px; max-height: 250px; overflow-y: auto; }
+  #late-results .res { display: flex; align-items: baseline; gap: 10px; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+    margin-bottom: 6px; cursor: pointer; }
+  #late-results .res:hover, #late-results .res.sel { border-color: var(--accent); background: var(--bg3); }
+  #late-results .rn { flex: 1; min-width: 0; color: var(--cream); font-weight: 600; font-size: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #late-results .rd { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  #late-results .rf { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #late-results .rc2 { font-size: 11px; font-weight: 700; color: var(--green2); white-space: nowrap; }
+  @media print { .modal-back { display: none !important; } }
+
   /* ── Chip board ──
      Players down the left with their chips, tables on the right — the whole
      field readable at a glance. Stacks on a phone, tables first, since whoever
@@ -407,7 +438,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.10</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.11</div>
 </footer>
 
 <script>
@@ -770,25 +801,8 @@ function win(tableIdx, name) {
 
 function addLatePlayer() {
   if (readOnly || !S) return;
-  const name = (prompt('Late player — name:', '') || '').trim();
-  if (!name) return;
-  if (S.roster.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-    note(`${name} is already registered.`, true); return;
-  }
-  const rating = parseInt(prompt(`Fargo rating for ${name}?`, '450'), 10) || 0;
-  const base = chipsFor(rating, S.chipBands);
-  const penalty = parseInt(prompt(
-    `Chip penalty for signing up late?\n0 = on time, 1 = after 4:00, 2 = after 4:30`, '0'), 10) || 0;
-  const chips = Math.max(1, base - Math.max(0, penalty));
-  pushUndo(`added ${name}`);
-  S.roster.push({ name, rating, chips, start: chips,
-                  draw: S.roster.length + 1, wins: 0, losses: 0, outAt: null });
-  logNote(`${name} joined late with ${chips} chip${chips === 1 ? '' : 's'}`);
-  S.queue.push(name);
-  rebalance(S);
-  note(`${name} added with ${chips} chip${chips === 1 ? '' : 's'}.`);
-  render();
-  queuePush();
+  latePenalty = 0;
+  showLate();
 }
 
 /* ── Display names ──
@@ -836,6 +850,315 @@ function buildDisplayNames(names) {
     map[full] = s;
   });
   return map;
+}
+
+/* ── Looking a latecomer up ──
+   A chip tournament is built on ratings — 375 gets six chips, 376 gets five —
+   so a guessed rating changes how long someone lasts. Searching is the first
+   offer; typing it by hand is there for anyone not in a Jenkins league. */
+const PROXY = '/proxy?url=';
+const LMS   = 'https://lms.fargorate.com/PublicReport';
+
+/* Jenkins divisions the lookup searches. IDs change each season — refresh from
+   the division dropdown on the LMS league page when a new one starts. */
+const LEAGUE_ID = '6e402f34-de51-4e68-9e30-aeeb014fb597';   // Jenkins Music & Vending
+
+/* Fallback only. The live list is read from the LMS division dropdown at load
+   time, because these IDs change every season — this is what to fall back on if
+   that fetch fails. Current as of August 2026. */
+const DIVISIONS = [
+  ['e9b068bc-155c-4b51-aea7-b37d01026668', 'Afton 8 Ball 25/26'],
+  ['5607ca18-56b5-45a1-a8a0-b203003df484', 'Bridger Valley A 2024-25'],
+  ['f4399f90-0c64-49f1-8b0a-b46a014a6186', "Bridger Valley Summer 10-Ball/Scotch '26"],
+  ['19e3dc05-7d67-4c77-8f36-b3b600f992cf', 'Dubois 25/26'],
+  ['18e0f3a3-3c8a-4d3c-a769-b42f00b35c96', "Evanston Spring 10-Ball '26"],
+  ['1dc8b2aa-62eb-41a6-a8f6-b379014efe83', 'Kemmerer 8 Ball 25-26'],
+  ['c97cf1bf-ff08-44a0-b916-b4520124b3e6', 'Kemmerer Summer 10 Ball 2026'],
+  ['f73e5d93-9d85-4f25-ad40-b48501232c67', 'Lander Summer 10 Ball 2026'],
+  ['915b2c1d-72c3-4365-9130-b30e01504c6c', 'Lander Summer 9 Ball'],
+  ['77b7699b-2970-4094-8012-b370010637cd', 'Lander Valley 8 Ball 25/26'],
+  ['5f253980-93db-4984-8cc9-b46401249525', 'Riverton Summer 9-Ball/Scotch 2026'],
+  ['b2f40913-6cee-4653-a691-b36e010710e1', 'Sublette County 8 Ball 25/26'],
+  ['b84871df-aaef-42d5-adce-b46a0118883c', 'Sublette County 9/10 Scotch 26'],
+  ['e32cc8d3-222d-4c0e-b065-b38c016a32ab', 'Sublette County Top Gun 25/26'],
+  ['ac0a71bc-e011-4c98-a3e7-b463010d8b26', 'SWC 10-Ball Capped Summer 2026'],
+  ['da5a4c20-a467-4204-8e16-b463015de862', 'SWC 10-Ball No Cap Summer 2026'],
+];
+
+/* Every division page carries the full dropdown, so fetching any one of them
+   gives the current list — new seasons included, without editing this file. */
+async function fetchDivisions() {
+  for (const seed of DIVISIONS.map(d => d[0])) {
+    try {
+      const r = await fetch(PROXY + encodeURIComponent(`${LMS}/LeagueReports/${seed}`));
+      if (!r.ok) continue;
+      const html = await r.text();
+      const sel = html.match(/<select[^>]*id="division-list"[^>]*>([\s\S]*?)<\/select>/i);
+      if (!sel) continue;
+      const found = [];
+      const re = /<option[^>]*value="([0-9a-f-]{36})"[^>]*>([\s\S]*?)<\/option>/gi;
+      let m;
+      while ((m = re.exec(sel[1]))) {
+        found.push([m[1], m[2].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').trim()]);
+      }
+      if (found.length) return found;
+    } catch (e) { /* try the next seed */ }
+  }
+  return DIVISIONS;
+}
+
+/* Ratings move once a week, so a day-old index is fine and saves rebuilding it
+   on every visit. */
+const INDEX_CACHE = 'kpl-fargo-index';
+const CACHE_HOURS = 24;
+
+function readCache() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(INDEX_CACHE));
+    if (!raw || !raw.at || !Array.isArray(raw.players)) return null;
+    if (Date.now() - raw.at > CACHE_HOURS * 3600 * 1000) return null;
+    return raw;
+  } catch (e) { return null; }
+}
+function writeCache(players, divisions) {
+  try {
+    localStorage.setItem(INDEX_CACHE, JSON.stringify({ at: Date.now(), players, divisions }));
+  } catch (e) { /* storage full or blocked — the index just rebuilds next time */ }
+}
+
+
+let playerIndex = null;      // [{name, rating, division}] across every division
+let indexLoading = null;
+let roster = [];             // [{name, rating, division|null}]
+
+/* ── Fargo lookup ── */
+function parsePlayerList(html, divLabel) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  const table = d.querySelector('table');
+  if (!table) return [];
+
+  const rows = [...table.querySelectorAll('tr')];
+  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
+  if (!headers.length && rows[0]) headers = [...rows[0].querySelectorAll('td')].map(td => td.textContent.trim());
+  const ratingIdx = headers.findIndex(h => /rating|fargo/i.test(h));
+  const nameIdx   = headers.findIndex(h => /name/i.test(h));
+
+  const out = [];
+  rows.slice(1).forEach(tr => {
+    const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.replace(/\s+/g,' ').trim());
+    if (!cells.length) return;
+    const raw = cells[nameIdx >= 0 ? nameIdx : 1] || cells[0];
+    const rating = parseInt(cells[ratingIdx >= 0 ? ratingIdx : cells.length - 1], 10);
+    if (!raw || !rating) return;
+    // FargoRate lists names "Last, First" — flip for searching
+    const name = /,\s/.test(raw) ? raw.replace(/^([^,]+),\s*(.+)$/, '$2 $1') : raw;
+    out.push({ name, rating, division: divLabel });
+  });
+  return out;
+}
+
+async function loadIndex() {
+  if (playerIndex) return playerIndex;
+  if (indexLoading) return indexLoading;
+
+  const cached = readCache();
+  if (cached) {
+    playerIndex = cached.players;
+    lateStatus(`${playerIndex.length} players (saved earlier today)`);
+    return playerIndex;
+  }
+
+  lateStatus('Loading player lists from FargoRate…');
+  indexLoading = (async () => {
+    const divisions = await fetchDivisions();
+    const all = [];
+    let failed = 0;
+    await Promise.all(divisions.map(async ([id, label]) => {
+      try {
+        const r = await fetch(PROXY + encodeURIComponent(`${LMS}/GeneratePlayerListReport/${id}`));
+        if (!r.ok) throw new Error(r.status);
+        all.push(...parsePlayerList(await r.text(), label));
+      } catch (e) { failed++; }
+    }));
+
+    // Same player can appear in several divisions — keep the highest rating.
+    const byKey = {};
+    all.forEach(p => {
+      const k = p.name.toLowerCase();
+      if (!byKey[k] || p.rating > byKey[k].rating) byKey[k] = p;
+    });
+    playerIndex = Object.values(byKey).sort((a, b) => a.name.localeCompare(b.name));
+    if (playerIndex.length) writeCache(playerIndex, divisions.map(d => d[1]));
+
+    lateStatus(playerIndex.length
+      ? `${playerIndex.length} players from ${divisions.length} divisions${failed ? ` · ${failed} unavailable` : ''}`
+      : 'No players came back — check the proxy, or add players by hand.');
+    return playerIndex;
+  })();
+  return indexLoading;
+}
+
+function lateStatus(msg, bad) {
+  const el = document.getElementById('late-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = bad ? 'var(--loss)' : 'var(--text3)';
+}
+
+let lateSel = 0, lateHits = [], latePenalty = 0;
+
+function closeLate() {
+  const el = document.getElementById('late-back');
+  if (el) el.remove();
+}
+
+function showLate() {
+  closeLate();
+  const back = document.createElement('div');
+  back.className = 'modal-back';
+  back.id = 'late-back';
+  back.onclick = (e) => { if (e.target === back) closeLate(); };
+  back.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">Add late player</div>
+      <div class="pad">
+        <label class="fl">Signed up</label>
+        <div class="pen-row">
+          <button class="pen on" data-p="0" onclick="setPenalty(this)">On time</button>
+          <button class="pen" data-p="1" onclick="setPenalty(this)">After 4:00 &minus;1</button>
+          <button class="pen" data-p="2" onclick="setPenalty(this)">After 4:30 &minus;2</button>
+        </div>
+
+        <div id="late-find" style="margin-top:16px">
+          <label class="fl" for="late-search">Find them in a Jenkins division</label>
+          <input id="late-search" class="late-in" type="text" spellcheck="false" autocomplete="off"
+            placeholder="Type a name…" oninput="lateSearch()" onkeydown="lateKey(event)">
+          <div class="hint" id="late-status"></div>
+          <div id="late-results"></div>
+          <div style="margin-top:12px">
+            <button class="linkish" onclick="lateManualMode()">Not in a league? Enter it by hand</button>
+          </div>
+        </div>
+
+        <div id="late-hand" style="display:none;margin-top:16px">
+          <label class="fl" for="late-name">Name</label>
+          <input id="late-name" class="late-in" type="text" spellcheck="false" placeholder="Barry McIff">
+          <label class="fl" for="late-rating" style="margin-top:12px">Fargo rating</label>
+          <input id="late-rating" class="late-in" type="number" min="0" max="1200" placeholder="450"
+            oninput="previewChips()">
+          <div class="hint" id="late-hand-msg" style="margin-top:8px"></div>
+          <div class="btn-row" style="padding:14px 0 0;border:none">
+            <button class="act primary" onclick="lateAddByHand()">Add player</button>
+            <button class="linkish" onclick="lateFindMode()">Search instead</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(back);
+  document.getElementById('late-search').focus();
+  loadIndex();
+}
+
+function setPenalty(el) {
+  latePenalty = Number(el.dataset.p);
+  [...document.querySelectorAll('.pen')].forEach(b => b.classList.toggle('on', b === el));
+  lateSearch();
+  previewChips();
+}
+
+/* Chips for a rating under this tournament's own bands, less any late penalty. */
+function chipsWithPenalty(rating) {
+  return Math.max(1, chipsFor(rating, S.chipBands) - latePenalty);
+}
+
+function previewChips() {
+  const v = parseInt((document.getElementById('late-rating') || {}).value, 10);
+  const msg = document.getElementById('late-hand-msg');
+  if (!msg) return;
+  if (!v) { msg.textContent = ''; return; }
+  const n = chipsWithPenalty(v);
+  msg.textContent = `${n} chip${n === 1 ? '' : 's'} at ${v}`;
+  msg.style.color = 'var(--text3)';
+}
+
+function lateManualMode() {
+  document.getElementById('late-find').style.display = 'none';
+  document.getElementById('late-hand').style.display = '';
+  document.getElementById('late-name').focus();
+}
+function lateFindMode() {
+  document.getElementById('late-hand').style.display = 'none';
+  document.getElementById('late-find').style.display = '';
+  document.getElementById('late-search').focus();
+}
+
+async function lateSearch() {
+  const box = document.getElementById('late-results');
+  if (!box) return;
+  const q = (document.getElementById('late-search').value || '').trim().toLowerCase();
+  if (q.length < 2) { box.innerHTML = ''; lateHits = []; return; }
+  const index = await loadIndex();
+  if (!index) return;
+  lateHits = index.filter(p => p.name.toLowerCase().includes(q)).slice(0, 8);
+  lateSel = 0;
+  box.innerHTML = lateHits.length
+    ? lateHits.map((p, i) => {
+        const n = chipsWithPenalty(p.rating);
+        return `<div class="res${i === lateSel ? ' sel' : ''}"
+          data-n="${esc(p.name)}" data-r="${p.rating}" onclick="lateAddFrom(this)">
+          <span class="rn">${esc(p.name)}</span>
+          <span class="rd">${esc(p.division)}</span>
+          <span class="rf">${p.rating}</span>
+          <span class="rc2">${n} chip${n === 1 ? '' : 's'}</span></div>`;
+      }).join('')
+    : `<div class="hint" style="padding:8px 0">Nobody by that name — add them by hand.</div>`;
+}
+
+function lateKey(e) {
+  if (!lateHits.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    lateSel = Math.max(0, Math.min(lateHits.length - 1, lateSel + (e.key === 'ArrowDown' ? 1 : -1)));
+    [...document.querySelectorAll('#late-results .res')].forEach((el, i) =>
+      el.classList.toggle('sel', i === lateSel));
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const el = document.querySelectorAll('#late-results .res')[lateSel];
+    if (el) lateAddFrom(el);
+  }
+  if (e.key === 'Escape') closeLate();
+}
+
+function lateAddFrom(el) { placeLatePlayer(el.dataset.n, parseInt(el.dataset.r, 10) || 0); }
+
+function lateAddByHand() {
+  const name = (document.getElementById('late-name').value || '').trim();
+  const rating = parseInt(document.getElementById('late-rating').value, 10) || 0;
+  const msg = document.getElementById('late-hand-msg');
+  if (!name) { msg.textContent = 'Give them a name.'; msg.style.color = 'var(--loss)'; return; }
+  placeLatePlayer(name, rating);
+}
+
+function placeLatePlayer(name, rating) {
+  if (S.roster.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    lateStatus(`${name} is already registered.`, true);
+    const hm = document.getElementById('late-hand-msg');
+    if (hm) { hm.textContent = `${name} is already registered.`; hm.style.color = 'var(--loss)'; }
+    return;
+  }
+  const chips = chipsWithPenalty(rating);
+  pushUndo(`added ${name}`);
+  S.roster.push({ name, rating, chips, start: chips,
+                  draw: S.roster.length + 1, wins: 0, losses: 0, outAt: null });
+  S.queue.push(name);
+  logNote(`${name} joined late with ${chips} chip${chips === 1 ? '' : 's'}`);
+  rebalance(S);
+  closeLate();
+  note(`${name} added with ${chips} chip${chips === 1 ? '' : 's'}.`);
+  render();
+  queuePush();
 }
 
 /* ── Undo ──
