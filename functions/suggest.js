@@ -3,7 +3,7 @@
  *
  * Required Cloudflare Pages environment variables:
  *   RESEND_API_KEY  — from resend.com/api-keys  (mark as "Encrypted")
- *   SUGGEST_TO      — optional, defaults to suggestions@kemmererpool.com
+ *   SUGGEST_TO      — optional, defaults to officers@kemmererpool.com
  *   SUGGEST_FROM    — optional, defaults to noreply@send.kemmererpool.com
  *                     (must be on a domain verified in Resend)
  */
@@ -63,7 +63,7 @@ export async function onRequest({ request, env }) {
     );
   }
 
-  const to = env.SUGGEST_TO || 'suggestions@kemmererpool.com';
+  const to = env.SUGGEST_TO || 'officers@kemmererpool.com';
   const from = env.SUGGEST_FROM || 'Kemmerer Pool League <noreply@send.kemmererpool.com>';
   const who = name || 'Anonymous';
 
