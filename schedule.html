@@ -82,11 +82,7 @@
      column of width — which is what made this unreadable on a phone. Matches
      line up in a grid on a wide screen and fold onto two lines on a narrow one. */
   .page { max-width: 900px; margin: 0 auto; padding: 0 20px 40px; }
-  .bar-top { display: flex; align-items: center; justify-content: space-between;
-    gap: 14px; flex-wrap: wrap; padding: 18px 0 14px; }
-  .bar-top .who { font-size: 22px; font-weight: 700; color: var(--cream); }
-  .bar-top .who small { display: block; font-size: 12px; font-weight: 400;
-    letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin-top: 2px; }
+  .bar-top { display: flex; justify-content: flex-end; padding: 16px 0 14px; }
   .acts { display: flex; gap: 8px; flex-wrap: wrap; }
   .act { display: inline-flex; align-items: center; font-family: inherit; font-size: 14px;
     font-weight: 600; padding: 9px 16px; border-radius: var(--radius-sm); cursor: pointer;
@@ -125,9 +121,9 @@
 
   @media (max-width: 620px) {
     .page { padding: 0 12px 30px; }
-    .bar-top { padding: 14px 0 12px; }
-    .bar-top .who { font-size: 19px; }
-    .act { font-size: 13px; padding: 8px 12px; }
+    .bar-top { padding: 12px 0; }
+    .acts { width: 100%; }
+    .act { font-size: 13px; padding: 8px 12px; flex: 1; justify-content: center; }
     /* Teams on one line, the bar beneath — nothing gets squeezed. */
     .match { grid-template-columns: 1fr 30px 1fr; gap: 6px; padding: 10px 14px; font-size: 15px; }
     /* The bar sits under the pairing, centred on it rather than adrift on the left. */
@@ -140,11 +136,12 @@
     font-size: 11px; color: var(--text3); letter-spacing: .05em; margin-top: 30px; }
   @media print {
     body { background: #fff; color: #000; }
-    .acts, .theme-btn, .pill { display: none !important; }
+    .acts, .theme-btn, .pill, .bar-top { display: none !important; }
     .page { max-width: none; padding: 0; }
-    .bar-top { padding: 0 0 8px; border-bottom: 2px solid #000; margin-bottom: 10px; }
-    .bar-top .who { font-size: 15pt; color: #000; }
-    .bar-top .who small { color: #444; }
+    .header-felt { display: none; }
+    header { padding: 0 0 8px; border-bottom: 2px solid #000; margin-bottom: 10px; background: none; }
+    header h1 { font-size: 15pt; color: #000; }
+    header .sub { font-size: 9pt; color: #444; }
     .week { border: none; border-top: 1.5px solid #888; border-radius: 0; background: none;
       margin-bottom: 0; break-inside: avoid; page-break-inside: avoid; }
     .week-hdr { background: none; border-bottom: 1px solid #ccc; padding: 5px 0 3px; }
@@ -164,7 +161,7 @@
   <div class="wrap">
     <div class="header-inner">
       <div>
-        <h1>Schedule</h1>
+        <h1 id="lg-title">Schedule</h1>
         <div class="sub">Kemmerer Pool League</div>
       </div>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">&#127769;</button>
@@ -175,7 +172,6 @@
 <main>
 <div class="page">
   <div class="bar-top">
-    <div class="who"><span id="lg-name">Schedule</span><small>Full season</small></div>
     <div class="acts">
       <a class="act" href="index.html">&larr; Back to the site</a>
       <a class="act" id="other-link" href="#">Other schedule</a>
@@ -187,7 +183,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Schedule &nbsp;&middot;&nbsp; v1.03</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Schedule &nbsp;&middot;&nbsp; v1.04</div>
 </footer>
 
 <script>
@@ -224,7 +220,7 @@ const DIVISIONS = {
 const league = (new URLSearchParams(location.search).get('league') || '10ball');
 const div = DIVISIONS[league] || DIVISIONS['10ball'];
 
-document.getElementById('lg-name').textContent = div.label;
+document.getElementById('lg-title').textContent = div.label + ' Schedule';
 document.title = div.label + ' Schedule — Kemmerer Pool League';
 document.getElementById('other-link').href =
   'schedule.html?league=' + (league === '8ball' ? '10ball' : '8ball');
