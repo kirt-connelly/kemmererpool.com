@@ -201,6 +201,14 @@
       .bar-track { width: 50px !important; }
     }
 
+    /* ── Officer contact ── */
+    .officer-contact { padding: 14px 18px; border-top: 1px solid var(--border);
+      font-size: 14px; color: var(--text2); }
+    .officer-contact a { color: var(--green2); font-weight: 600; text-decoration: none;
+      word-break: break-all; }
+    .officer-contact a:hover { text-decoration: underline; }
+    @media print { .officer-contact a { color: #000; } }
+
     /* ── Suggestion form ── */
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
@@ -331,7 +339,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v1.96
+      &nbsp;·&nbsp; v1.97
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -1431,6 +1439,10 @@ function renderEvents() {
           </tr>
         </tbody>
       </table></div>
+      <div class="officer-contact">
+        Need to reach them directly?
+        <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
+      </div>
     </div>
 
     <div class="card">
