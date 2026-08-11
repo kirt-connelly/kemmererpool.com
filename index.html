@@ -209,6 +209,22 @@
     .officer-contact a:hover { text-decoration: underline; }
     @media print { .officer-contact a { color: #000; } }
 
+    /* ── Local bars ── */
+    .thanks-note { padding: 14px 18px 0; font-size: 14px; color: var(--text2); line-height: 1.6; }
+    .bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px; padding: 14px 18px 18px; }
+    .bar { border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg); padding: 14px 16px; }
+    .bar .bn { font-size: 16px; font-weight: 700; color: var(--green2); }
+    .bar .ba { font-size: 13px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+    .bar .bp { display: inline-block; margin-top: 8px; font-size: 15px; font-weight: 600;
+      color: var(--cream); text-decoration: none; font-variant-numeric: tabular-nums; }
+    .bar .bp:hover { color: var(--green2); }
+    @media print {
+      .bar { break-inside: avoid; }
+      .bar .bp { color: #000; }
+    }
+
     /* ── Suggestion form ── */
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
@@ -339,7 +355,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v1.97
+      &nbsp;·&nbsp; v1.98
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -1411,6 +1427,14 @@ function renderTeamDetail(html, teamName) {
   `;
 }
 
+/* The bars that host league nights. Phone numbers are tel: links so they can be
+   tapped from a phone. */
+const BARS = [
+  { name: 'Grumpies',       address: '815 S Main St., Kemmerer', phone: '307-877-5661' },
+  { name: 'Sage Lanes',     address: '918 Sage Ave, Kemmerer',   phone: '307-877-2973' },
+  { name: 'Stock Exchange', address: '712 JC Penny Dr, Kemmerer', phone: '307-877-3244' },
+];
+
 function renderEvents() {
   return `
   <div style="display:flex;flex-direction:column;gap:20px">
@@ -1442,6 +1466,22 @@ function renderEvents() {
       <div class="officer-contact">
         Need to reach them directly?
         <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Thanks to Our Local Bars</span>
+      </div>
+      <div class="thanks-note">
+        The league runs on their tables and their hospitality. Give them your business.
+      </div>
+      <div class="bars">
+        ${BARS.map(b => `<div class="bar">
+          <div class="bn">${b.name}</div>
+          <div class="ba">${b.address}</div>
+          <a class="bp" href="tel:${b.phone.replace(/[^0-9]/g, '')}">${b.phone}</a>
+        </div>`).join('')}
       </div>
     </div>
 
