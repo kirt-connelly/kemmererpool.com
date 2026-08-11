@@ -338,8 +338,8 @@
     </div>
     <div class="league-tabs">
       <button class="ltab" id="ltab-info" onclick="switchLeague('info')">Info</button>
-      <button class="ltab active" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 2026</button>
-      <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 25-26</button>
+      <button class="ltab active" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
+      <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 26</button>
       <button class="ltab" id="ltab-events" onclick="switchLeague('events')">Events</button>
     </div>
   </div>
@@ -368,7 +368,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v1.99
+      &nbsp;·&nbsp; v2.01
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -1452,6 +1452,7 @@ const BARS = [
 /* The photos that dress the Info tab. Kept small — they are decoration, and the
    page should still open quickly on bar wifi. */
 const PHOTOS = [
+  { src: 'images/grumpies-team.jpg', alt: 'League night at Grumpies' },
   { src: 'images/play-1.jpg',       alt: 'League night at the table' },
   { src: 'images/play-2.jpg',       alt: 'Lining up a shot' },
   { src: 'images/play-3.jpg',       alt: 'Down on the cue' },
@@ -1468,12 +1469,13 @@ function renderInfo() {
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title">League Rules</span>
+        <span class="card-title">League Rules and Information</span>
         <span class="card-meta">Coming soon</span>
       </div>
       <div class="pad-note">
-        The full rule set is being written up and will land here. Until then, ask an
-        officer or check the sheet behind the bar.
+        2026&ndash;27 8-Ball season information coming soon. The full rule set is being
+        written up and will land here too. Until then, ask an officer or check the
+        sheet behind the bar.
       </div>
     </div>
 
