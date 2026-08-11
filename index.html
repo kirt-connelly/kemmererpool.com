@@ -201,10 +201,19 @@
       .bar-track { width: 50px !important; }
     }
 
+    /* ── Schedule links on Info ── */
+    .sched-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; padding: 16px 18px; }
+    .sched-link { display: block; text-align: left; font-family: inherit; cursor: pointer;
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 14px 16px; transition: border-color .15s; }
+    .sched-link:hover { border-color: var(--accent); }
+    .sched-link .sl-name { display: block; font-size: 16px; font-weight: 700; color: var(--green2); }
+    .sched-link .sl-sub { display: block; font-size: 12px; color: var(--text3); margin-top: 3px; }
+
     /* ── Schedule, compact ──
        Every week on one sheet: the format people actually ask for when they say
        "can I get a schedule". Hidden on screen unless asked for; always printed. */
-    .sched-actions { display: flex; gap: 8px; }
     .sched-table-wrap { display: none; overflow-x: auto; margin-bottom: 14px; }
     .sched-table-wrap.on { display: block; }
     .sched-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -334,7 +343,6 @@
       .sched-table .dt, .sched-table .tm { color: #000; }
       .sched-table tr { break-inside: avoid; page-break-inside: avoid; }
       #sched-cards { display: none !important; }
-      .sched-actions { display: none !important; }
       .sched-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; border: 1px solid #999; }
       .sched-date-hdr { padding: 5px 9px; font-size: 9.5pt; border-bottom: 1px solid #999; }
       .match-grid { gap: 0; }
@@ -406,7 +414,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v2.04
+      &nbsp;·&nbsp; v2.05
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -765,6 +773,10 @@ function renderList(data) {
 }
 
 /* ── Schedule ── */
+/* Set when arriving from the Info tab's Schedules card, so that link lands on
+   the plain list rather than the match cards. */
+let simpleSchedule = false;
+
 function renderSchedule(data) {
   if (!data.live || !data.html) return notice('Schedule will appear here once live data loads.');
   const d = document.createElement('div');
@@ -859,15 +871,13 @@ function renderSchedule(data) {
       Kemmerer Pool League &mdash; ${DIVISIONS[league].label}
       <span class="print-sub">Printed ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
     </div>
-    <div class="sched-actions">
-      <button class="print-btn" onclick="toggleSchedLayout()" id="sched-layout-btn">Simple list</button>
-      <button class="print-btn" onclick="window.print()">Print Schedule</button>
-    </div>
+    <button class="print-btn" onclick="window.print()">Print Schedule</button>
   </div>
 
   <!-- The whole season on one page: week, date, who plays whom, and where.
-       This is what prints; the cards below are for reading on screen. -->
-  <div class="sched-table-wrap" id="sched-table">
+       Shown when someone follows the Schedules link on the Info tab, and always
+       what prints — the cards would run to a dozen pages. -->
+  <div class="sched-table-wrap${simpleSchedule ? ' on' : ''}" id="sched-table">
     <table class="sched-table">
       <thead><tr>
         <th class="wk">Wk</th>
@@ -893,7 +903,7 @@ function renderSchedule(data) {
       </tbody>
     </table>
   </div>
-  <div id="sched-cards" style="display:flex;flex-direction:column;gap:10px">
+  <div id="sched-cards" style="display:${simpleSchedule ? 'none' : 'flex'};flex-direction:column;gap:10px">
     ${blocks.map((block, bi) => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
@@ -1561,6 +1571,23 @@ function renderInfo() {
 
     <div class="card">
       <div class="card-header">
+        <span class="card-title">Schedules</span>
+        <span class="card-meta">Who plays who, and where</span>
+      </div>
+      <div class="sched-links">
+        <button class="sched-link" onclick="openSchedule('10ball')">
+          <span class="sl-name">10-Ball 26</span>
+          <span class="sl-sub">Full season schedule</span>
+        </button>
+        <button class="sched-link" onclick="openSchedule('8ball')">
+          <span class="sl-name">8-Ball 26</span>
+          <span class="sl-sub">Full season schedule</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
         <span class="card-title">League Officers</span>
       </div>
       <div style="overflow-x:auto"><table class="tbl">
@@ -1793,6 +1820,7 @@ const PAGE_TABS = ['info', 'events'];          // not leagues, so no standings v
 
 function switchLeague(lg) {
   league = lg;
+  if (PAGE_TABS.includes(lg)) simpleSchedule = false;
   ['info','10ball','8ball','events'].forEach(k => {
     const el = document.getElementById(`ltab-${k}`);
     el.classList.toggle('active', k === lg);
@@ -1807,21 +1835,18 @@ function switchLeague(lg) {
   cache = {};
   loadView();
 }
-/* Screen toggle between the reading view and the one-page list. */
-function toggleSchedLayout() {
-  const t = document.getElementById('sched-table');
-  const c = document.getElementById('sched-cards');
-  const b = document.getElementById('sched-layout-btn');
-  if (!t || !c) return;
-  const showTable = !t.classList.contains('on');
-  t.classList.toggle('on', showTable);
-  c.style.display = showTable ? 'none' : 'flex';
-  b.textContent = showTable ? 'Match cards' : 'Simple list';
+/* The Info tab's shortcut: jump to a league's schedule as a plain list. */
+function openSchedule(lg) {
+  simpleSchedule = true;
+  switchLeague(lg);
+  switchView('schedule');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function switchView(vw) {
   view = vw;
   ['teams','players','byteam','list','schedule'].forEach(k => document.getElementById(`vt-${k}`).classList.toggle('active', k===vw));
+  if (vw !== 'schedule') simpleSchedule = false;
   loadView();
 }
 
