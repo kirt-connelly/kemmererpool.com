@@ -78,10 +78,10 @@
     .refresh-note { font-size: 11px; color: var(--text3); }
 
   /* ── The schedule ──
-     One row per match, the week's date carried on its first row only. Teams and
-     bar share the same weight so the eye reads straight across; a heavier rule
-     divides one week from the next. */
-  .page { max-width: 1000px; margin: 0 auto; padding: 0 20px 40px; }
+     Each week is a block with its date as a header, so the date never eats a
+     column of width — which is what made this unreadable on a phone. Matches
+     line up in a grid on a wide screen and fold onto two lines on a narrow one. */
+  .page { max-width: 900px; margin: 0 auto; padding: 0 20px 40px; }
   .bar-top { display: flex; align-items: center; justify-content: space-between;
     gap: 14px; flex-wrap: wrap; padding: 18px 0 14px; }
   .bar-top .who { font-size: 22px; font-weight: 700; color: var(--cream); }
@@ -95,57 +95,60 @@
   .act:hover { background: var(--bg4); color: var(--text); }
   .act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
-  .sched { width: 100%; border-collapse: collapse; font-size: 15px;
-    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); }
-  .sched th { text-align: left; padding: 11px 14px; font-size: 11px; font-weight: 700;
-    letter-spacing: .07em; text-transform: uppercase; color: var(--text3);
-    background: var(--bg3); border-bottom: 1px solid var(--border2); white-space: nowrap; }
-  .sched td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--cream); }
-  .sched tr:last-child td { border-bottom: none; }
-
-  /* A heavier line marks the start of each week. */
-  .sched tr.wk-start td { border-top: 2px solid var(--border2); }
-  .sched tbody tr:first-child td { border-top: none; }
-
-  .sched .wk { width: 40px; color: var(--text3); font-weight: 700;
-    font-variant-numeric: tabular-nums; }
-  .sched .dt { width: 130px; white-space: nowrap; font-weight: 600; }
-  .sched .tm { font-weight: 500; }
-  .sched .vs { width: 26px; text-align: center; color: var(--text3); font-size: 13px; }
-  .sched .bar { width: 150px; }
-  .sched tr.past td { color: var(--text3); font-weight: 400; }
-  .sched tr.next .dt { color: var(--green2); }
-  .pill { display: inline-block; margin-left: 8px; vertical-align: middle; font-size: 10px; font-weight: 700;
-    letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px;
+  .week { border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg2); overflow: hidden; margin-bottom: 14px; }
+  .week-hdr { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px;
+    background: var(--bg3); border-bottom: 1px solid var(--border2); }
+  .wkno { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text3); }
+  .wkdate { font-size: 15px; font-weight: 700; color: var(--cream); }
+  .week.next .wkdate { color: var(--green2); }
+  .pill { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 99px;
     background: var(--accent); color: var(--on-accent); }
+
+  .match { display: grid; grid-template-columns: 1fr 24px 1fr 160px; align-items: center;
+    gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 15px; }
+  .match:last-child { border-bottom: none; }
+  .side { color: var(--cream); font-weight: 500; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; }
+  .away { text-align: left; }
+  .vs { text-align: center; color: var(--text3); font-size: 13px; }
+  .at { color: var(--text2); text-align: right; }
+
+  /* Weeks already played stay readable but recede. */
+  .week.past .wkdate { color: var(--text2); }
+  .week.past .side, .week.past .at { color: var(--text3); font-weight: 400; }
+
+  @media (max-width: 620px) {
+    .page { padding: 0 12px 30px; }
+    .bar-top { padding: 14px 0 12px; }
+    .bar-top .who { font-size: 19px; }
+    .act { font-size: 13px; padding: 8px 12px; }
+    /* Teams on one line, the bar beneath — nothing gets squeezed. */
+    .match { grid-template-columns: 1fr auto 1fr; gap: 8px; padding: 10px 14px; font-size: 15px; }
+    .at { grid-column: 1 / -1; text-align: left; font-size: 12px; color: var(--text3); }
+  }
 
   .msg { padding: 40px 20px; text-align: center; color: var(--text3); font-size: 15px; }
   footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
     font-size: 11px; color: var(--text3); letter-spacing: .05em; margin-top: 30px; }
-  @media print { footer { display: none; } }
-
-  @media (max-width: 620px) {
-    .page { padding: 0 12px 30px; }
-    .sched { font-size: 14px; }
-    .sched th, .sched td { padding: 9px 8px; }
-    .sched .dt { width: auto; }
-    .sched .bar { width: auto; font-size: 13px; }
-  }
-
   @media print {
     body { background: #fff; color: #000; }
-    .acts, .theme-btn { display: none !important; }
+    .acts, .theme-btn, .pill { display: none !important; }
     .page { max-width: none; padding: 0; }
-    .bar-top { padding: 0 0 10px; border-bottom: 2px solid #000; margin-bottom: 10px; }
+    .bar-top { padding: 0 0 8px; border-bottom: 2px solid #000; margin-bottom: 10px; }
     .bar-top .who { font-size: 15pt; color: #000; }
     .bar-top .who small { color: #444; }
-    .sched { font-size: 9.5pt; border: none; background: none; }
-    .sched th { background: none; color: #000; border-bottom: 1.5px solid #000; padding: 4px 6px; }
-    .sched td { color: #000; padding: 4px 6px; border-bottom: 1px solid #e0e0e0; }
-    .sched tr.wk-start td { border-top: 1.5px solid #888; }
-    .sched tr.past td { color: #000; }
-    .sched tr { break-inside: avoid; page-break-inside: avoid; }
-    .pill { display: none; }
+    .week { border: none; border-top: 1.5px solid #888; border-radius: 0; background: none;
+      margin-bottom: 0; break-inside: avoid; page-break-inside: avoid; }
+    .week-hdr { background: none; border-bottom: 1px solid #ccc; padding: 5px 0 3px; }
+    .wkno, .wkdate { color: #000; font-size: 10pt; }
+    .match { padding: 3px 0; border-bottom: none; font-size: 9.5pt;
+      grid-template-columns: 1fr 20px 1fr 150px; }
+    .side, .at { color: #000 !important; font-weight: 400; }
+    .week.past .side, .week.past .at { color: #444 !important; }
+    footer { display: none; }
   }
 </style>
 </head>
@@ -179,7 +182,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Schedule &nbsp;&middot;&nbsp; v1.00</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Schedule &nbsp;&middot;&nbsp; v1.01</div>
 </footer>
 
 <script>
@@ -271,39 +274,29 @@ function render(weeks) {
     return d && d >= today;
   });
 
-  document.getElementById('board').innerHTML = `
-    <table class="sched">
-      <thead><tr>
-        <th class="wk">Wk</th>
-        <th class="dt">Date</th>
-        <th class="tm">Home</th>
-        <th class="vs"></th>
-        <th class="tm">Away</th>
-        <th class="bar">Bar</th>
-      </tr></thead>
-      <tbody>
-        ${weeks.map((w, wi) => {
-          const d = parseDate(w.date);
-          const past = d && d < today;
-          const next = wi === nextIdx;
-          return w.matches.map((m, mi) => `
-            <tr class="${mi === 0 ? 'wk-start ' : ''}${past ? 'past' : ''}${next ? ' next' : ''}">
-              <td class="wk">${mi === 0 ? wi + 1 : ''}</td>
-              <td class="dt">${mi === 0 ? esc(fmtDate(w.date)) : ''}${
-                mi === 0 && next ? '<span class="pill">Next</span>' : ''}</td>
-              <td class="tm">${esc(m.home)}</td>
-              <td class="vs">v</td>
-              <td class="tm">${esc(m.away)}</td>
-              <td class="bar">${esc(m.venue)}</td>
-            </tr>`).join('');
-        }).join('')}
-      </tbody>
-    </table>`;
+  document.getElementById('board').innerHTML = weeks.map((w, wi) => {
+    const d = parseDate(w.date);
+    const past = d && d < today;
+    const next = wi === nextIdx;
+    return `<section class="week${past ? ' past' : ''}${next ? ' next' : ''}"${next ? ' id="next-week"' : ''}>
+      <header class="week-hdr">
+        <span class="wkno">Week ${wi + 1}</span>
+        <span class="wkdate">${esc(fmtDate(w.date))}</span>
+        ${next ? '<span class="pill">Next up</span>' : ''}
+      </header>
+      ${w.matches.map(m => `<div class="match">
+        <span class="side home">${esc(m.home)}</span>
+        <span class="vs">v</span>
+        <span class="side away">${esc(m.away)}</span>
+        <span class="at">${esc(m.venue)}</span>
+      </div>`).join('')}
+    </section>`;
+  }).join('');
 
-  const el = document.querySelector('tr.next');
   // Land on the next week to be played rather than the top of the season.
+  const el = document.getElementById('next-week');
   if (el && el.scrollIntoView) {
-    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
   }
 }
 
