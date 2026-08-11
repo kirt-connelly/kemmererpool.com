@@ -201,6 +201,33 @@
       .bar-track { width: 50px !important; }
     }
 
+    /* ── Schedule, compact ──
+       Every week on one sheet: the format people actually ask for when they say
+       "can I get a schedule". Hidden on screen unless asked for; always printed. */
+    .sched-actions { display: flex; gap: 8px; }
+    .sched-table-wrap { display: none; overflow-x: auto; margin-bottom: 14px; }
+    .sched-table-wrap.on { display: block; }
+    .sched-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .sched-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase; color: var(--text3);
+      border-bottom: 1px solid var(--border2); white-space: nowrap; }
+    .sched-table td { padding: 7px 10px; border-bottom: 1px solid var(--border);
+      color: var(--text2); }
+    .sched-table tr.wk-start td { border-top: 1px solid var(--border2); }
+    .sched-table .wk { width: 34px; font-weight: 700; color: var(--text3);
+      font-variant-numeric: tabular-nums; }
+    .sched-table .dt { white-space: nowrap; color: var(--cream); font-weight: 600; }
+    .sched-table .tm { color: var(--cream); }
+    .sched-table .vs { width: 20px; text-align: center; color: var(--text3); font-size: 12px; }
+    .sched-table .bar { color: var(--text3); font-size: 13px; }
+    .sched-table tr.past td { opacity: .5; }
+    @media (max-width: 560px) {
+      .sched-table { font-size: 13px; }
+      .sched-table th, .sched-table td { padding: 6px 6px; }
+      .sched-table .bar { display: none; }
+      .sched-table thead th.bar { display: none; }
+    }
+
     /* ── Info photos ──
        Decoration, so they load lazily and keep a fixed shape to stop the page
        jumping about as they arrive. */
@@ -297,6 +324,17 @@
       .print-sub { display: block; font-size: 9pt; font-weight: 400; color: #555; margin-top: 2px; }
 
       /* Keep a week's matches together rather than split across a page. */
+      /* On paper the compact table beats the cards — the whole season fits. */
+      .sched-table-wrap { display: block !important; overflow: visible; }
+      .sched-table { font-size: 9pt; }
+      .sched-table th { color: #000; border-bottom: 1.5px solid #000; padding: 4px 6px; }
+      .sched-table td { color: #000; padding: 3px 6px; border-bottom: 1px solid #ddd; }
+      .sched-table tr.past td { opacity: 1; color: #666; }
+      .sched-table tr.wk-start td { border-top: 1px solid #999; }
+      .sched-table .dt, .sched-table .tm { color: #000; }
+      .sched-table tr { break-inside: avoid; page-break-inside: avoid; }
+      #sched-cards { display: none !important; }
+      .sched-actions { display: none !important; }
       .sched-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; border: 1px solid #999; }
       .sched-date-hdr { padding: 5px 9px; font-size: 9.5pt; border-bottom: 1px solid #999; }
       .match-grid { gap: 0; }
@@ -368,7 +406,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v2.02
+      &nbsp;·&nbsp; v2.04
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -747,6 +785,13 @@ function renderSchedule(data) {
     return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
   }
 
+  // The table has a whole season to fit across a page, so dates go short.
+  function fmtDateShort(str) {
+    const dt = parseDate(str);
+    if (!dt) return str;
+    return dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  }
+
   // Pre-collect ALL matchIds from anywhere in the document, in order
   const allMatchLinks = [...d.querySelectorAll('a[href*="matchId"], a[href*="MatchResult"]')]
     .map(a => {
@@ -806,14 +851,49 @@ function renderSchedule(data) {
     return d && d >= today;
   });
 
+  // Numbered by playing week, skipping any date with no matches on it.
+  const weeks = blocks.filter(b => b.matches.length);
+
   return `<div class="sched-toolbar">
     <div class="print-title">
       Kemmerer Pool League &mdash; ${DIVISIONS[league].label}
       <span class="print-sub">Printed ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
     </div>
-    <button class="print-btn" onclick="window.print()">Print Schedule</button>
+    <div class="sched-actions">
+      <button class="print-btn" onclick="toggleSchedLayout()" id="sched-layout-btn">Simple list</button>
+      <button class="print-btn" onclick="window.print()">Print Schedule</button>
+    </div>
   </div>
-  <div style="display:flex;flex-direction:column;gap:10px">
+
+  <!-- The whole season on one page: week, date, who plays whom, and where.
+       This is what prints; the cards below are for reading on screen. -->
+  <div class="sched-table-wrap" id="sched-table">
+    <table class="sched-table">
+      <thead><tr>
+        <th class="wk">Wk</th>
+        <th class="dt">Date</th>
+        <th>Home</th>
+        <th class="vs"></th>
+        <th>Away</th>
+        <th class="bar">Bar</th>
+      </tr></thead>
+      <tbody>
+        ${weeks.map((block, wi) => block.matches.map((m, mi) => {
+          const dt = parseDate(block.date);
+          const past = dt && dt <= today;
+          return `<tr class="${past ? 'past' : ''}${mi === 0 ? ' wk-start' : ''}">
+            <td class="wk">${mi === 0 ? wi + 1 : ''}</td>
+            <td class="dt">${mi === 0 ? fmtDateShort(block.date) : ''}</td>
+            <td class="tm">${m.home}</td>
+            <td class="vs">v</td>
+            <td class="tm">${m.away}</td>
+            <td class="bar">${m.venue || ''}</td>
+          </tr>`;
+        }).join('')).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div id="sched-cards" style="display:flex;flex-direction:column;gap:10px">
     ${blocks.map((block, bi) => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
@@ -1727,6 +1807,18 @@ function switchLeague(lg) {
   cache = {};
   loadView();
 }
+/* Screen toggle between the reading view and the one-page list. */
+function toggleSchedLayout() {
+  const t = document.getElementById('sched-table');
+  const c = document.getElementById('sched-cards');
+  const b = document.getElementById('sched-layout-btn');
+  if (!t || !c) return;
+  const showTable = !t.classList.contains('on');
+  t.classList.toggle('on', showTable);
+  c.style.display = showTable ? 'none' : 'flex';
+  b.textContent = showTable ? 'Match cards' : 'Simple list';
+}
+
 function switchView(vw) {
   view = vw;
   ['teams','players','byteam','list','schedule'].forEach(k => document.getElementById(`vt-${k}`).classList.toggle('active', k===vw));
