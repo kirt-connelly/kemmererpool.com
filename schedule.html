@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Schedule — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #141414;
+      --bg2:       #1e1e1e;
+      --bg3:       #262626;
+      --bg4:       #2e2e2e;
+      --border:    #363636;
+      --border2:   #464646;
+      --text:      #ffffff;
+      --text2:     #b0a898;
+      --text3:     #666058;
+      --accent:    #27855a;
+      --accent-dim:#1a5c3e;
+      --cream:     #e8ddd0;
+      --green:     #27855a;
+      --green2:    #32a870;
+      --felt:      repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px);
+      --loss:      #cc4444;
+      --on-accent: #ffffff;
+      --overlay:   rgba(0,0,0,.88);
+      --radius:    8px;
+      --radius-sm: 5px;
+    }
+    html[data-theme="light"] {
+      --bg:        #f5f3ef;
+      --bg2:       #ffffff;
+      --bg3:       #eae6df;
+      --bg4:       #ddd8ce;
+      --border:    #d6d0c5;
+      --border2:   #bcb4a6;
+      --text:      #1a1714;
+      --text2:     #5a5348;
+      --text3:     #8b8376;
+      --accent:    #1f6b48;
+      --accent-dim:#175038;
+      --cream:     #2b2419;
+      --green:     #1f6b48;
+      --green2:    #1a7a4e;
+      --loss:      #b23636;
+      --on-accent: #ffffff;
+      --overlay:   rgba(0,0,0,.72);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .felt-strip { height: 4px; background: var(--felt); }
+
+    /* ── Header ── */
+    header { background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px); opacity: .5; }
+    .header-inner { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0 0; gap: 12px; flex-wrap: nowrap; }
+    .logo-block { display: flex; align-items: center; gap: 0; min-width: 0; }
+    .league-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.02em; line-height: 1.2; }
+    .league-sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 3px; }
+    .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .live-pill.live { background: rgba(50,168,112,.12); border: 1px solid rgba(50,168,112,.3); color: var(--green2); }
+    .live-pill.demo { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
+    .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .live-pill.live .dot { background: var(--green2); }
+    .live-pill.demo .dot { background: var(--text3); }
+    .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: background .15s, color .15s; }
+    .theme-btn:hover { background: var(--bg4); color: var(--text); }
+    .refresh-note { font-size: 11px; color: var(--text3); }
+
+  /* ── The schedule ──
+     One row per match, the week's date carried on its first row only. Teams and
+     bar share the same weight so the eye reads straight across; a heavier rule
+     divides one week from the next. */
+  .page { max-width: 1000px; margin: 0 auto; padding: 0 20px 40px; }
+  .bar-top { display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap; padding: 18px 0 14px; }
+  .bar-top .who { font-size: 22px; font-weight: 700; color: var(--cream); }
+  .bar-top .who small { display: block; font-size: 12px; font-weight: 400;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin-top: 2px; }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .act { display: inline-flex; align-items: center; font-family: inherit; font-size: 14px;
+    font-weight: 600; padding: 9px 16px; border-radius: var(--radius-sm); cursor: pointer;
+    text-decoration: none; border: 1px solid var(--border); background: var(--bg3);
+    color: var(--text2); white-space: nowrap; }
+  .act:hover { background: var(--bg4); color: var(--text); }
+  .act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  .sched { width: 100%; border-collapse: collapse; font-size: 15px;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); }
+  .sched th { text-align: left; padding: 11px 14px; font-size: 11px; font-weight: 700;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--text3);
+    background: var(--bg3); border-bottom: 1px solid var(--border2); white-space: nowrap; }
+  .sched td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--cream); }
+  .sched tr:last-child td { border-bottom: none; }
+
+  /* A heavier line marks the start of each week. */
+  .sched tr.wk-start td { border-top: 2px solid var(--border2); }
+  .sched tbody tr:first-child td { border-top: none; }
+
+  .sched .wk { width: 40px; color: var(--text3); font-weight: 700;
+    font-variant-numeric: tabular-nums; }
+  .sched .dt { width: 130px; white-space: nowrap; font-weight: 600; }
+  .sched .tm { font-weight: 500; }
+  .sched .vs { width: 26px; text-align: center; color: var(--text3); font-size: 13px; }
+  .sched .bar { width: 150px; }
+  .sched tr.past td { color: var(--text3); font-weight: 400; }
+  .sched tr.next .dt { color: var(--green2); }
+  .pill { display: inline-block; margin-left: 8px; vertical-align: middle; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px;
+    background: var(--accent); color: var(--on-accent); }
+
+  .msg { padding: 40px 20px; text-align: center; color: var(--text3); font-size: 15px; }
+  footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
+    font-size: 11px; color: var(--text3); letter-spacing: .05em; margin-top: 30px; }
+  @media print { footer { display: none; } }
+
+  @media (max-width: 620px) {
+    .page { padding: 0 12px 30px; }
+    .sched { font-size: 14px; }
+    .sched th, .sched td { padding: 9px 8px; }
+    .sched .dt { width: auto; }
+    .sched .bar { width: auto; font-size: 13px; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .acts, .theme-btn { display: none !important; }
+    .page { max-width: none; padding: 0; }
+    .bar-top { padding: 0 0 10px; border-bottom: 2px solid #000; margin-bottom: 10px; }
+    .bar-top .who { font-size: 15pt; color: #000; }
+    .bar-top .who small { color: #444; }
+    .sched { font-size: 9.5pt; border: none; background: none; }
+    .sched th { background: none; color: #000; border-bottom: 1.5px solid #000; padding: 4px 6px; }
+    .sched td { color: #000; padding: 4px 6px; border-bottom: 1px solid #e0e0e0; }
+    .sched tr.wk-start td { border-top: 1.5px solid #888; }
+    .sched tr.past td { color: #000; }
+    .sched tr { break-inside: avoid; page-break-inside: avoid; }
+    .pill { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-felt"></div>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <h1>Schedule</h1>
+        <div class="sub">Kemmerer Pool League</div>
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">&#127769;</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="page">
+  <div class="bar-top">
+    <div class="who"><span id="lg-name">Schedule</span><small>Full season</small></div>
+    <div class="acts">
+      <a class="act" href="index.html">&larr; Back to the site</a>
+      <a class="act" id="other-link" href="#">Other schedule</a>
+      <button class="act primary" onclick="window.print()">Print</button>
+    </div>
+  </div>
+  <div id="board"><div class="msg">Loading the schedule&hellip;</div></div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Schedule &nbsp;&middot;&nbsp; v1.00</div>
+</footer>
+
+<script>
+function isLightTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light';
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
+  const b = document.getElementById('theme-btn');
+  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
+}
+function toggleTheme() {
+  applyTheme(isLightTheme() ? 'dark' : 'light');
+}
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
+  if (saved !== 'light' && saved !== 'dark') {
+    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', saved);
+  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
+})();
+
+const PROXY = '/proxy?url=';
+const BASE  = 'https://lms.fargorate.com/PublicReport';
+
+const DIVISIONS = {
+  '10ball': { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: '10-Ball 2026' },
+  '8ball':  { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: '8-Ball 25-26' },
+};
+
+const league = (new URLSearchParams(location.search).get('league') || '10ball');
+const div = DIVISIONS[league] || DIVISIONS['10ball'];
+
+document.getElementById('lg-name').textContent = div.label;
+document.title = div.label + ' Schedule — Kemmerer Pool League';
+document.getElementById('other-link').href =
+  'schedule.html?league=' + (league === '8ball' ? '10ball' : '8ball');
+document.getElementById('other-link').textContent =
+  (league === '8ball' ? '10-Ball 2026' : '8-Ball 25-26') + ' schedule';
+
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* FargoRate returns the schedule as an HTML fragment, grouped by date. Each
+   date is followed by one block per match, carrying both teams and the bar. */
+function parseSchedule(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  const container = d.querySelector('#schedule-list') || d;
+  const weeks = [];
+  let cur = null;
+
+  [...container.children].forEach(node => {
+    if (node.classList.contains('schedule-date')) {
+      cur = { date: node.textContent.trim(), matches: [] };
+      weeks.push(cur);
+    } else if (node.classList.contains('schedule-team-block') && cur) {
+      const teams = [...node.querySelectorAll('.schedule-team')]
+        .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
+      const loc = node.querySelector('.schedule-location');
+      const venue = loc ? loc.textContent.trim() : '';
+      if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue });
+    }
+  });
+  return weeks.filter(w => w.matches.length);
+}
+
+function parseDate(str) {
+  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+
+function fmtDate(str) {
+  const d = parseDate(str);
+  if (!d) return str;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function render(weeks) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const nextIdx = weeks.findIndex(w => {
+    const d = parseDate(w.date);
+    return d && d >= today;
+  });
+
+  document.getElementById('board').innerHTML = `
+    <table class="sched">
+      <thead><tr>
+        <th class="wk">Wk</th>
+        <th class="dt">Date</th>
+        <th class="tm">Home</th>
+        <th class="vs"></th>
+        <th class="tm">Away</th>
+        <th class="bar">Bar</th>
+      </tr></thead>
+      <tbody>
+        ${weeks.map((w, wi) => {
+          const d = parseDate(w.date);
+          const past = d && d < today;
+          const next = wi === nextIdx;
+          return w.matches.map((m, mi) => `
+            <tr class="${mi === 0 ? 'wk-start ' : ''}${past ? 'past' : ''}${next ? ' next' : ''}">
+              <td class="wk">${mi === 0 ? wi + 1 : ''}</td>
+              <td class="dt">${mi === 0 ? esc(fmtDate(w.date)) : ''}${
+                mi === 0 && next ? '<span class="pill">Next</span>' : ''}</td>
+              <td class="tm">${esc(m.home)}</td>
+              <td class="vs">v</td>
+              <td class="tm">${esc(m.away)}</td>
+              <td class="bar">${esc(m.venue)}</td>
+            </tr>`).join('');
+        }).join('')}
+      </tbody>
+    </table>`;
+
+  const el = document.querySelector('tr.next');
+  // Land on the next week to be played rather than the top of the season.
+  if (el && el.scrollIntoView) {
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+  }
+}
+
+function fail(msg) {
+  document.getElementById('board').innerHTML = `<div class="msg">${esc(msg)}</div>`;
+}
+
+(async function load() {
+  try {
+    const r = await fetch(PROXY + encodeURIComponent(`${BASE}/GenerateDivisionScheduleReport`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `divisionId=${div.id}`,
+    });
+    if (!r.ok) throw new Error(r.status);
+    const weeks = parseSchedule(await r.text());
+    if (!weeks.length) { fail('No schedule has been posted for this division yet.'); return; }
+    render(weeks);
+  } catch (e) {
+    fail('Could not load the schedule. Try again in a moment.');
+  }
+})();
+</script>
+</body>
+</html>

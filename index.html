@@ -205,37 +205,12 @@
     .sched-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px; padding: 16px 18px; }
     .sched-link { display: block; text-align: left; font-family: inherit; cursor: pointer;
+      text-decoration: none;
       background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
       padding: 14px 16px; transition: border-color .15s; }
     .sched-link:hover { border-color: var(--accent); }
     .sched-link .sl-name { display: block; font-size: 16px; font-weight: 700; color: var(--green2); }
     .sched-link .sl-sub { display: block; font-size: 12px; color: var(--text3); margin-top: 3px; }
-
-    /* ── Schedule, compact ──
-       Every week on one sheet: the format people actually ask for when they say
-       "can I get a schedule". Hidden on screen unless asked for; always printed. */
-    .sched-table-wrap { display: none; overflow-x: auto; margin-bottom: 14px; }
-    .sched-table-wrap.on { display: block; }
-    .sched-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .sched-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700;
-      letter-spacing: .06em; text-transform: uppercase; color: var(--text3);
-      border-bottom: 1px solid var(--border2); white-space: nowrap; }
-    .sched-table td { padding: 7px 10px; border-bottom: 1px solid var(--border);
-      color: var(--text2); }
-    .sched-table tr.wk-start td { border-top: 1px solid var(--border2); }
-    .sched-table .wk { width: 34px; font-weight: 700; color: var(--text3);
-      font-variant-numeric: tabular-nums; }
-    .sched-table .dt { white-space: nowrap; color: var(--cream); font-weight: 600; }
-    .sched-table .tm { color: var(--cream); }
-    .sched-table .vs { width: 20px; text-align: center; color: var(--text3); font-size: 12px; }
-    .sched-table .bar { color: var(--text3); font-size: 13px; }
-    .sched-table tr.past td { opacity: .5; }
-    @media (max-width: 560px) {
-      .sched-table { font-size: 13px; }
-      .sched-table th, .sched-table td { padding: 6px 6px; }
-      .sched-table .bar { display: none; }
-      .sched-table thead th.bar { display: none; }
-    }
 
     /* ── Info photos ──
        Decoration, so they load lazily and keep a fixed shape to stop the page
@@ -333,16 +308,6 @@
       .print-sub { display: block; font-size: 9pt; font-weight: 400; color: #555; margin-top: 2px; }
 
       /* Keep a week's matches together rather than split across a page. */
-      /* On paper the compact table beats the cards — the whole season fits. */
-      .sched-table-wrap { display: block !important; overflow: visible; }
-      .sched-table { font-size: 9pt; }
-      .sched-table th { color: #000; border-bottom: 1.5px solid #000; padding: 4px 6px; }
-      .sched-table td { color: #000; padding: 3px 6px; border-bottom: 1px solid #ddd; }
-      .sched-table tr.past td { opacity: 1; color: #666; }
-      .sched-table tr.wk-start td { border-top: 1px solid #999; }
-      .sched-table .dt, .sched-table .tm { color: #000; }
-      .sched-table tr { break-inside: avoid; page-break-inside: avoid; }
-      #sched-cards { display: none !important; }
       .sched-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; border: 1px solid #999; }
       .sched-date-hdr { padding: 5px 9px; font-size: 9.5pt; border-bottom: 1px solid #999; }
       .match-grid { gap: 0; }
@@ -414,7 +379,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v2.05
+      &nbsp;·&nbsp; v2.06
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -773,10 +738,6 @@ function renderList(data) {
 }
 
 /* ── Schedule ── */
-/* Set when arriving from the Info tab's Schedules card, so that link lands on
-   the plain list rather than the match cards. */
-let simpleSchedule = false;
-
 function renderSchedule(data) {
   if (!data.live || !data.html) return notice('Schedule will appear here once live data loads.');
   const d = document.createElement('div');
@@ -795,13 +756,6 @@ function renderSchedule(data) {
     const dt = parseDate(str);
     if (!dt) return str;
     return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-  }
-
-  // The table has a whole season to fit across a page, so dates go short.
-  function fmtDateShort(str) {
-    const dt = parseDate(str);
-    if (!dt) return str;
-    return dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
   }
 
   // Pre-collect ALL matchIds from anywhere in the document, in order
@@ -863,9 +817,6 @@ function renderSchedule(data) {
     return d && d >= today;
   });
 
-  // Numbered by playing week, skipping any date with no matches on it.
-  const weeks = blocks.filter(b => b.matches.length);
-
   return `<div class="sched-toolbar">
     <div class="print-title">
       Kemmerer Pool League &mdash; ${DIVISIONS[league].label}
@@ -874,36 +825,7 @@ function renderSchedule(data) {
     <button class="print-btn" onclick="window.print()">Print Schedule</button>
   </div>
 
-  <!-- The whole season on one page: week, date, who plays whom, and where.
-       Shown when someone follows the Schedules link on the Info tab, and always
-       what prints — the cards would run to a dozen pages. -->
-  <div class="sched-table-wrap${simpleSchedule ? ' on' : ''}" id="sched-table">
-    <table class="sched-table">
-      <thead><tr>
-        <th class="wk">Wk</th>
-        <th class="dt">Date</th>
-        <th>Home</th>
-        <th class="vs"></th>
-        <th>Away</th>
-        <th class="bar">Bar</th>
-      </tr></thead>
-      <tbody>
-        ${weeks.map((block, wi) => block.matches.map((m, mi) => {
-          const dt = parseDate(block.date);
-          const past = dt && dt <= today;
-          return `<tr class="${past ? 'past' : ''}${mi === 0 ? ' wk-start' : ''}">
-            <td class="wk">${mi === 0 ? wi + 1 : ''}</td>
-            <td class="dt">${mi === 0 ? fmtDateShort(block.date) : ''}</td>
-            <td class="tm">${m.home}</td>
-            <td class="vs">v</td>
-            <td class="tm">${m.away}</td>
-            <td class="bar">${m.venue || ''}</td>
-          </tr>`;
-        }).join('')).join('')}
-      </tbody>
-    </table>
-  </div>
-  <div id="sched-cards" style="display:${simpleSchedule ? 'none' : 'flex'};flex-direction:column;gap:10px">
+  <div style="display:flex;flex-direction:column;gap:10px">
     ${blocks.map((block, bi) => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
@@ -1575,14 +1497,14 @@ function renderInfo() {
         <span class="card-meta">Who plays who, and where</span>
       </div>
       <div class="sched-links">
-        <button class="sched-link" onclick="openSchedule('10ball')">
+        <a class="sched-link" href="schedule.html?league=10ball">
           <span class="sl-name">10-Ball 26</span>
           <span class="sl-sub">Full season schedule</span>
-        </button>
-        <button class="sched-link" onclick="openSchedule('8ball')">
+        </a>
+        <a class="sched-link" href="schedule.html?league=8ball">
           <span class="sl-name">8-Ball 26</span>
           <span class="sl-sub">Full season schedule</span>
-        </button>
+        </a>
       </div>
     </div>
 
@@ -1820,7 +1742,6 @@ const PAGE_TABS = ['info', 'events'];          // not leagues, so no standings v
 
 function switchLeague(lg) {
   league = lg;
-  if (PAGE_TABS.includes(lg)) simpleSchedule = false;
   ['info','10ball','8ball','events'].forEach(k => {
     const el = document.getElementById(`ltab-${k}`);
     el.classList.toggle('active', k === lg);
@@ -1835,18 +1756,9 @@ function switchLeague(lg) {
   cache = {};
   loadView();
 }
-/* The Info tab's shortcut: jump to a league's schedule as a plain list. */
-function openSchedule(lg) {
-  simpleSchedule = true;
-  switchLeague(lg);
-  switchView('schedule');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 function switchView(vw) {
   view = vw;
   ['teams','players','byteam','list','schedule'].forEach(k => document.getElementById(`vt-${k}`).classList.toggle('active', k===vw));
-  if (vw !== 'schedule') simpleSchedule = false;
   loadView();
 }
 
