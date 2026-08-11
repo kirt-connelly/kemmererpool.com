@@ -201,6 +201,18 @@
       .bar-track { width: 50px !important; }
     }
 
+    /* ── Info photos ──
+       Decoration, so they load lazily and keep a fixed shape to stop the page
+       jumping about as they arrive. */
+    .photo-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px; margin-bottom: 18px; }
+    .shot { margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--bg2);
+      border: 1px solid var(--border); aspect-ratio: 4 / 3; }
+    .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @media (max-width: 560px) { .photo-strip { grid-template-columns: 1fr 1fr; gap: 8px; } }
+    .pad-note { padding: 16px 18px; font-size: 14px; color: var(--text2); line-height: 1.7; }
+    @media print { .photo-strip { display: none; } }
+
     /* ── Officer contact ── */
     .officer-contact { padding: 14px 18px; border-top: 1px solid var(--border);
       font-size: 14px; color: var(--text2); }
@@ -325,9 +337,10 @@
       </div>
     </div>
     <div class="league-tabs">
+      <button class="ltab" id="ltab-info" onclick="switchLeague('info')">Info</button>
       <button class="ltab active" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 2026</button>
       <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 25-26</button>
-      <button class="ltab" id="ltab-events" onclick="switchLeague('events')">Info/Events</button>
+      <button class="ltab" id="ltab-events" onclick="switchLeague('events')">Events</button>
     </div>
   </div>
 </header>
@@ -355,7 +368,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v1.98
+      &nbsp;·&nbsp; v1.99
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -395,7 +408,8 @@ function toggleTheme() {
   applyTheme(isLightTheme() ? 'dark' : 'light');
   // Win% / Fargo bars are generated as inline HSL, so re-render to re-tint them.
   // Skipped while drilled into a match or team so the user isn't bounced out.
-  if (league === 'events') document.getElementById('content').innerHTML = renderEvents();
+  if (league === 'info') document.getElementById('content').innerHTML = renderInfo();
+  else if (league === 'events') document.getElementById('content').innerHTML = renderEvents();
   else if (!inDrillDown) loadView();
 }
 (function initTheme() {
@@ -1435,8 +1449,34 @@ const BARS = [
   { name: 'Stock Exchange', address: '712 JC Penny Dr, Kemmerer', phone: '307-877-3244' },
 ];
 
-function renderEvents() {
+/* The photos that dress the Info tab. Kept small — they are decoration, and the
+   page should still open quickly on bar wifi. */
+const PHOTOS = [
+  { src: 'images/play-1.jpg',       alt: 'League night at the table' },
+  { src: 'images/play-2.jpg',       alt: 'Lining up a shot' },
+  { src: 'images/play-3.jpg',       alt: 'Down on the cue' },
+  { src: 'images/sage-lanes.jpg',   alt: 'The tables at Sage Lanes' },
+];
+
+function renderInfo() {
   return `
+    <div class="photo-strip">
+      ${PHOTOS.map(p => `<figure class="shot">
+        <img src="${p.src}" alt="${p.alt}" loading="lazy">
+      </figure>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">League Rules</span>
+        <span class="card-meta">Coming soon</span>
+      </div>
+      <div class="pad-note">
+        The full rule set is being written up and will land here. Until then, ask an
+        officer or check the sheet behind the bar.
+      </div>
+    </div>
+
   <div style="display:flex;flex-direction:column;gap:20px">
 
     <div class="card">
@@ -1485,6 +1525,43 @@ function renderEvents() {
       </div>
     </div>
 
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Suggestions</span>
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+        <p style="color:var(--text2);font-size:14px;line-height:1.7;margin:0">
+          Got an idea for the league or spotted something wrong on the site? Send it to the officers.
+        </p>
+        <div class="field-row">
+          <div class="field">
+            <label for="sg-name">Name <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
+            <input id="sg-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="sg-email">Email <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
+            <input id="sg-email" type="email" maxlength="120" autocomplete="email" placeholder="So we can reply">
+          </div>
+        </div>
+        <div class="field">
+          <label for="sg-message">Suggestion</label>
+          <textarea id="sg-message" maxlength="2000" placeholder="What's on your mind?"></textarea>
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="sg-website">Leave this field empty</label>
+          <input id="sg-website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <button class="submit-btn" id="sg-submit" onclick="submitSuggestion()">Send Suggestion</button>
+          <span class="form-status" id="sg-status"></span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderEvents() {
+  return `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Upcoming Events</span>
@@ -1586,40 +1663,8 @@ function renderEvents() {
       </table></div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Suggestions</span>
-      </div>
-      <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
-        <p style="color:var(--text2);font-size:14px;line-height:1.7;margin:0">
-          Got an idea for the league or spotted something wrong on the site? Send it to the officers.
-        </p>
-        <div class="field-row">
-          <div class="field">
-            <label for="sg-name">Name <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
-            <input id="sg-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
-          </div>
-          <div class="field">
-            <label for="sg-email">Email <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
-            <input id="sg-email" type="email" maxlength="120" autocomplete="email" placeholder="So we can reply">
-          </div>
-        </div>
-        <div class="field">
-          <label for="sg-message">Suggestion</label>
-          <textarea id="sg-message" maxlength="2000" placeholder="What's on your mind?"></textarea>
-        </div>
-        <div class="hp" aria-hidden="true">
-          <label for="sg-website">Leave this field empty</label>
-          <input id="sg-website" type="text" tabindex="-1" autocomplete="off">
-        </div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-          <button class="submit-btn" id="sg-submit" onclick="submitSuggestion()">Send Suggestion</button>
-          <span class="form-status" id="sg-status"></span>
-        </div>
-      </div>
-    </div>
 
-  </div>`;
+  </div>  `;
 }
 
 async function submitSuggestion() {
@@ -1664,21 +1709,21 @@ async function submitSuggestion() {
   }
 }
 
+const PAGE_TABS = ['info', 'events'];          // not leagues, so no standings views
+
 function switchLeague(lg) {
   league = lg;
-  ['10ball','8ball','events'].forEach(k => {
+  ['info','10ball','8ball','events'].forEach(k => {
     const el = document.getElementById(`ltab-${k}`);
-    el.classList.toggle('active', k===lg);
-    if (k !== 'events') {
-      el.classList.toggle('inactive-league', k !== lg && lg !== 'events');
+    el.classList.toggle('active', k === lg);
+    if (!PAGE_TABS.includes(k)) {
+      el.classList.toggle('inactive-league', k !== lg && !PAGE_TABS.includes(lg));
     }
   });
-  // Hide view-bar tabs when on Events — they're league-specific
-  document.querySelector('.view-bar').style.display = lg === 'events' ? 'none' : '';
-  if (lg === 'events') {
-    document.getElementById('content').innerHTML = renderEvents();
-    return;
-  }
+  // The view bar picks standings, players and so on — meaningless on these tabs.
+  document.querySelector('.view-bar').style.display = PAGE_TABS.includes(lg) ? 'none' : '';
+  if (lg === 'info')   { document.getElementById('content').innerHTML = renderInfo();   return; }
+  if (lg === 'events') { document.getElementById('content').innerHTML = renderEvents(); return; }
   cache = {};
   loadView();
 }
