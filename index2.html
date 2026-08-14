@@ -107,8 +107,8 @@ h2.head {
   width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
   font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
 }
-.mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
-.mark i { font-style: normal; color: var(--dim); font-size: 15px; }
+.mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; white-space: nowrap; }
+.mark i { font-style: normal; color: var(--dim); font-size: 15px; white-space: nowrap; }
 
 .mast nav { margin-left: auto; display: flex; gap: 4px; }
 .mast nav a {
@@ -364,9 +364,9 @@ a:focus-visible, button:focus-visible {
   .date-row .w { grid-column: 1; grid-row: 3; }
   .date-row .s { grid-column: 2; grid-row: 1; }
   .rail-rule { gap: 26px; }
+  .mast-in { gap: 14px; }
   .mast nav { gap: 0; }
   .mast nav a { padding: 8px 7px; font-size: 10px; }
-  .mark i { display: none; }
 }
 @media (max-width: 560px) {
   body { font-size: 16px; }
@@ -375,12 +375,22 @@ a:focus-visible, button:focus-visible {
   .shell { padding: 0 16px; }
   .cloth { --ball: 24px; }
   .rack-wrap { margin-bottom: 20px; }
-  /* Four nav items plus the wordmark don't fit on a phone, and a
-     clipped "WHERE" looks broken. The eight ball keeps the home
-     link and the nav gets the width. */
-  .mast-in { gap: 12px; }
-  .mark b { display: none; }
-  .mast nav a { padding: 8px 6px; letter-spacing: .06em; }
+  /* The full name and the links won't sit on one line on a phone,
+     and a clipped "BARS" looks broken. So they stack and centre —
+     which matches the rest of the page now anyway. Nothing is
+     dropped and nothing is cut off, down to 320px. */
+  .mast-in {
+    flex-direction: column; justify-content: center;
+    gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px;
+  }
+  .mark { gap: 9px; }
+  .mark b, .mark i { font-size: 14px; }
+  .mast nav { margin-left: 0; }
+  .mast nav a { padding: 6px 9px; letter-spacing: .08em; }
+}
+@media (max-width: 360px) {
+  .mark b, .mark i { font-size: 13px; }
+  .mast nav a { padding: 6px 6px; font-size: 9.5px; letter-spacing: .05em; }
 }
 </style>
 </head>
@@ -397,10 +407,9 @@ a:focus-visible, button:focus-visible {
         <b>Kemmerer</b><i>Pool League</i>
       </a>
       <nav>
-        <a href="#standings">Standings</a>
-        <a href="#seasons">Seasons</a>
-        <a href="#dates">Dates</a>
-        <a href="#rooms">Where</a>
+        <a href="#seasons">Leagues</a>
+        <a href="#dates">Tournaments</a>
+        <a href="#rooms">Bars</a>
       </nav>
     </div>
   </header>
@@ -615,7 +624,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2 v0.30</span>
+        <span>Design study &middot; index2 v0.31</span>
       </div>
     </div>
   </footer>
