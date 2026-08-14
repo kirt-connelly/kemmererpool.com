@@ -281,10 +281,10 @@
       <b>Kemmerer Pool League</b>
     </a>
     <nav class="mast-nav">
-      <a href="league.html?lg=10ball">Standings</a>
-      <a href="schedule.html?league=10ball">Schedule</a>
+      <a href="index.html#leagues">Leagues</a>
       <a href="tournaments.html">Tournaments</a>
       <a href="index.html#rooms">Bars</a>
+      <a href="index.html#suggest">Contact</a>
     </nav>
   </div>
 </header>
@@ -299,9 +299,9 @@
     <div class="sub" id="lg-sub">Every week of the season, start to finish.</div>
   </div>
 
+  <!-- Only what you can't get from the masthead: the other league's
+       sheet, and the print button. -->
   <div class="acts">
-    <a class="act" href="index.html">&larr; Home</a>
-    <a class="act" id="detail-link" href="league.html?lg=10ball">Standings</a>
     <a class="act" id="other-link" href="#">Other schedule</a>
     <button class="act primary" onclick="window.print()">Print</button>
   </div>
@@ -311,7 +311,7 @@
 </main>
 
 <footer>
-  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.03</div>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.04</div>
 </footer>
 
 <script>
@@ -332,7 +332,6 @@ document.getElementById('lg-title').textContent = div.label + ' Schedule';
 document.getElementById('lg-sub').textContent =
   'Every week of the season, start to finish. Print it for the wall.';
 document.title = div.label + ' Schedule \u2014 Kemmerer Pool League';
-document.getElementById('detail-link').href = 'league.html?lg=' + league;
 document.getElementById('other-link').href = 'schedule.html?league=' + other;
 document.getElementById('other-link').textContent = DIVISIONS[other].label;
 
