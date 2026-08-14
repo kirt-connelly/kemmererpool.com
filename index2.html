@@ -107,8 +107,13 @@ h2.head {
   width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
   font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
 }
-.mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; white-space: nowrap; }
-.mark i { font-style: normal; color: var(--dim); font-size: 15px; white-space: nowrap; }
+/* One name, one treatment, one element. "Pool League" used to sit
+   dimmer and lighter than "Kemmerer" in a separate tag, which read
+   as two different things rather than the league's name. */
+.mark b {
+  font-weight: 700; font-size: 15px;
+  letter-spacing: -.01em; color: var(--bone); white-space: nowrap;
+}
 
 .mast nav { margin-left: auto; display: flex; gap: 4px; }
 .mast nav a {
@@ -380,12 +385,12 @@ a:focus-visible, button:focus-visible {
     gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px;
   }
   .mark { gap: 9px; }
-  .mark b, .mark i { font-size: 14px; }
+  .mark b { font-size: 14px; }
   .mast nav { margin-left: 0; }
   .mast nav a { padding: 6px 9px; letter-spacing: .08em; }
 }
 @media (max-width: 360px) {
-  .mark b, .mark i { font-size: 13px; }
+  .mark b { font-size: 13px; }
   .mast nav a { padding: 6px 6px; font-size: 9.5px; letter-spacing: .05em; }
 }
 </style>
@@ -400,7 +405,7 @@ a:focus-visible, button:focus-visible {
     <div class="shell mast-in">
       <a class="mark" href="#top">
         <span class="eight" aria-hidden="true"><span>8</span></span>
-        <b>Kemmerer</b><i>Pool League</i>
+        <b>Kemmerer Pool League</b>
       </a>
       <nav>
         <a href="#leagues">Leagues</a>
@@ -624,7 +629,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2 v0.50</span>
+        <span>Design study &middot; index2 v0.51</span>
       </div>
     </div>
   </footer>
