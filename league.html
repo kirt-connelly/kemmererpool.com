@@ -85,6 +85,7 @@
 
     /* ── Main ── */
     main { padding: 24px 0 80px; }
+    .view-bar + main { padding-top: 22px; }
 
     /* ── Card ── */
     .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -350,7 +351,16 @@
         radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
         radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
     }
-    header, .view-bar, main, footer, .page-hd { position: relative; z-index: 1; }
+    /* .view-bar is deliberately NOT in this list. It is sticky, and a
+       `position: relative` here would quietly override that — which is
+       exactly what happened once. `main` sits at z-index 0 so the card
+       can never paint over the bar it scrolls under. */
+    /* `header` is deliberately absent here too — it sets its own
+       position and z-index below, and a competing `position` declaration
+       for the same selector is what broke the view bar. Nothing that
+       needs to stick gets its position set in a shared rule. */
+    footer, .page-hd { position: relative; z-index: 1; }
+    main { position: relative; z-index: 0; }
 
     /* ── Masthead ───────────────────────────────────────────────── */
     header {
@@ -427,12 +437,13 @@
 
     /* ── View tabs ──────────────────────────────────────────────── */
     .view-bar {
-      background: rgba(29,23,18,.94);
+      background: rgba(29,23,18,.97);
       backdrop-filter: saturate(140%) blur(8px);
       -webkit-backdrop-filter: saturate(140%) blur(8px);
       border-top: 1px solid var(--border);
       border-bottom: 1px solid rgba(212,161,60,.15);
-      top: 62px; margin-top: 22px;
+      /* Sticks directly beneath the masthead, which is 62px and z-index 40. */
+      position: sticky; top: 62px; z-index: 30; margin-top: 22px;
     }
     .view-bar-inner { gap: 3px; padding: 7px 0; align-items: center; }
     .vtab {
@@ -492,9 +503,12 @@
       .mark b { font-size: 14px; }
       .mast-nav { margin-left: 0; }
       .mast-nav a { padding: 6px 9px; letter-spacing: .08em; }
-      /* Stacked masthead has no fixed height, so the view bar can't be
-         offset by one. Let it stick to the top on its own. */
-      .view-bar { top: 0; }
+      /* Two sticky bars eat half a phone screen, and the stacked masthead
+         has no fixed height to offset against anyway. So the masthead
+         scrolls away here and the view bar alone holds the top. */
+      header { position: static; }
+      .view-bar { top: 0; margin-top: 16px; }
+      .view-bar + main { padding-top: 18px; }
       .ltab { padding: 9px 12px; font-size: 10px; letter-spacing: .08em; }
       .vtab { padding: 8px 10px; font-size: 10px; letter-spacing: .06em; }
       .vtab.active { padding-left: 10px; }
@@ -563,7 +577,7 @@
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading&hellip;</span>
       <span id="refresh-note"></span>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.00</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.01</div>
   </div>
 </footer>
 

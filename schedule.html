@@ -49,7 +49,10 @@
         radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
         radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
     }
-    header, main, footer { position: relative; z-index: 1; }
+    /* `header` sets its own position and z-index below; it must not get
+       a competing `position` from a shared rule. */
+    footer { position: relative; z-index: 1; }
+    main { position: relative; z-index: 0; }
 
     /* ── Masthead ───────────────────────────────────────────────── */
     header {
@@ -303,7 +306,7 @@
 </main>
 
 <footer>
-  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.00</div>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.01</div>
 </footer>
 
 <script>
