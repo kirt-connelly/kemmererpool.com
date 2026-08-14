@@ -204,8 +204,8 @@
     .mast-in { height: auto; flex-direction: column; justify-content: center;
                gap: 2px; padding-top: 9px; padding-bottom: 7px; }
     .mark b { font-size: 14px; }
-    .mast-nav { margin-left: 0; }
-    .mast-nav a { padding: 6px 9px; letter-spacing: .08em; }
+    .mast-nav { margin-left: 0; flex-wrap: wrap; justify-content: center; }
+    .mast-nav a { padding: 6px 8px; letter-spacing: .06em; font-size: 10px; }
     .rail-rule { gap: 26px; }
     .wkdate { font-size: 15px; }
   }
@@ -264,6 +264,10 @@
     }
     .at { color: #000 !important; font-size: 8.5pt; letter-spacing: .06em; }
   }
+
+    @media (max-width: 360px) {
+      .mast-nav a { padding: 5px 6px; font-size: 9.5px; letter-spacing: .04em; }
+    }
 </style>
 </head>
 <body>
@@ -277,8 +281,9 @@
       <b>Kemmerer Pool League</b>
     </a>
     <nav class="mast-nav">
-      <a href="index.html">Home</a>
-      <a href="events.html">Events</a>
+      <a href="league.html?lg=10ball">Standings</a>
+      <a href="schedule.html?league=10ball">Schedule</a>
+      <a href="tournaments.html">Tournaments</a>
       <a href="index.html#rooms">Bars</a>
     </nav>
   </div>
@@ -306,7 +311,7 @@
 </main>
 
 <footer>
-  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.02</div>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.03</div>
 </footer>
 
 <script>

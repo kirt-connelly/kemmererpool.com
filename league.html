@@ -481,8 +481,8 @@
       .mast-in { height: auto; flex-direction: column; justify-content: center;
                  gap: 2px; padding-top: 9px; padding-bottom: 7px; }
       .mark b { font-size: 14px; }
-      .mast-nav { margin-left: 0; }
-      .mast-nav a { padding: 6px 9px; letter-spacing: .08em; }
+      .mast-nav { margin-left: 0; flex-wrap: wrap; justify-content: center; }
+      .mast-nav a { padding: 6px 8px; letter-spacing: .06em; font-size: 10px; }
       /* Two sticky bars eat half a phone screen, and the stacked masthead
          has no fixed height to offset against anyway. So the masthead
          scrolls away here and the view bar alone holds the top. */
@@ -499,7 +499,11 @@
     @media print {
       .lamp, .rail-rule, .page-hd, .mast-nav, .vtab-out { display: none !important; }
     }
-  </style>
+  
+      @media (max-width: 360px) {
+        .mast-nav a { padding: 5px 6px; font-size: 9.5px; letter-spacing: .04em; }
+      }
+</style>
 </head>
 <body>
 
@@ -512,8 +516,9 @@
       <b>Kemmerer Pool League</b>
     </a>
     <nav class="mast-nav">
-      <a href="index.html">Home</a>
-      <a href="events.html">Events</a>
+      <a href="league.html?lg=10ball">Standings</a>
+      <a href="schedule.html?league=10ball">Schedule</a>
+      <a href="tournaments.html">Tournaments</a>
       <a href="index.html#rooms">Bars</a>
     </nav>
   </div>
@@ -556,7 +561,7 @@
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading&hellip;</span>
       <span id="refresh-note"></span>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.03</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.04</div>
   </div>
 </footer>
 
@@ -1624,7 +1629,7 @@ const PHOTOS = [
 /* renderInfo lived here. The front page carries the officers, the bars,
    the league blocks and the suggestion form now. */
 
-/* renderEvents lived here. Events is events.html now — a list of
+/* renderEvents lived here. Events is tournaments.html now — a list of
    tournaments has no business sitting in a tab next to Ratings. */
 
 async function submitSuggestion() {
@@ -1746,7 +1751,7 @@ function scrollToNextMatch() {
 (function boot() {
   const want = new URLSearchParams(location.search).get('lg');
   /* ?lg=events used to be a tab here. It has its own page now. */
-  if (want === 'events') { location.replace('events.html'); return; }
+  if (want === 'events') { location.replace('tournaments.html'); return; }
   switchLeague(['10ball', '8ball'].includes(want) ? want : '10ball');
 })();
 
