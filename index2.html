@@ -201,19 +201,14 @@ h2.head {
   }
 }
 
-/* ── Next up ───────────────────────────────────────────────── */
-.nextup {
-  margin: 30px auto 0; border: 1px solid rgba(244,239,228,.2);
-  background: rgba(9,26,21,.66); border-radius: 5px; overflow: hidden;
-  max-width: 480px; text-align: left;
-  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-}
-.nextup-hd {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 9px 15px; background: rgba(0,0,0,.26);
-  border-bottom: 1px solid rgba(244,239,228,.12);
-}
+/* ── Next up ─────────────────────────────────────────────────
+   Lives inside the running league now, next to that league's
+   standings, instead of floating in the hero. ──────────────── */
 .nextup-when { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; }
+.panel-note {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .06em;
+  color: var(--dim); text-align: right;
+}
 .nextup-body { padding: 6px 0; }
 .fixture {
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
@@ -233,9 +228,67 @@ h2.head {
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
 .band { padding: 62px 0; }
 .band-hd { margin-bottom: 30px; }
+[id] { scroll-margin-top: 76px; }   /* the masthead is sticky */
+
+/* ═══ LEAGUES ════════════════════════════════════════════════
+   One block per league. The one that's running carries its own
+   standings and its own next match; the ones that aren't just
+   say so and link out. Add a block when a league starts, mark it
+   .live, and drop .live when it finishes. ──────────────────── */
+.league {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 6px;
+  background: linear-gradient(180deg, rgba(244,239,228,.035), transparent);
+  padding: 24px;
+}
+.league.live { border-color: rgba(212,161,60,.45); }
+.league + .league, .league + .league-pair { margin-top: 16px; }
+.league-hd {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 22px; flex-wrap: wrap;
+}
+.league.live .league-hd { margin-bottom: 22px; }
+.league h3 { font-size: 23px; font-weight: 700; letter-spacing: -.015em; margin: 11px 0 7px; }
+.league p { color: var(--dim); font-size: 15px; max-width: 48ch; }
+.league p a { color: var(--chalk); text-decoration: none; font-weight: 600; }
+.league p a:hover { text-decoration: underline; }
+.flag {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.league.live .flag { color: var(--brass); }
+.flag::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .55;
+}
+.league.live .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
+
+.league-go { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.league-hd .league-go { margin-top: 4px; }
+.league-go a {
+  display: inline-flex; align-items: center; gap: 9px;
+  text-decoration: none; color: var(--bone); font-size: 14px; font-weight: 600;
+  padding: 9px 14px; border: 1px solid rgba(244,239,228,.15); border-radius: 4px;
+  transition: border-color .15s, background .15s;
+}
+.league-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
+.league-go a::after { content: '\2192'; color: var(--brass); }
+
+.league-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; align-items: start; }
+.league-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.league-pair .league { margin-top: 0; }
+
+/* ── Panels (standings, next up) ───────────────────────────── */
+.panel {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 5px;
+  overflow: hidden; background: rgba(0,0,0,.18);
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 15px; background: rgba(0,0,0,.28);
+  border-bottom: 1px solid rgba(244,239,228,.12); min-height: 40px;
+}
 
 /* ═══ STANDINGS ══════════════════════════════════════════════ */
-.table-frame { border: 1px solid rgba(244,239,228,.13); border-radius: 5px; overflow: hidden; }
 .stand { width: 100%; border-collapse: collapse; }
 .stand thead th {
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
@@ -256,38 +309,6 @@ h2.head {
 .stand tr.lead .wbar i { background: var(--brass); filter: none; }
 .quiet-note { color: var(--dim); font-size: 15px; padding: 22px 16px; }
 .quiet-note a { color: var(--chalk); }
-
-/* ═══ SEASONS ════════════════════════════════════════════════ */
-.seasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.season {
-  border: 1px solid rgba(244,239,228,.13); border-radius: 5px;
-  background: linear-gradient(180deg, rgba(244,239,228,.035), transparent);
-  padding: 22px; display: flex; flex-direction: column;
-}
-.season.live { border-color: rgba(212,161,60,.5); }
-.season .flag {
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.season.live .flag { color: var(--brass); }
-.season .flag::before {
-  content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .55;
-}
-.season.live .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
-.season h3 { font-size: 21px; font-weight: 700; letter-spacing: -.015em; margin: 12px 0 8px; }
-.season p { color: var(--dim); font-size: 15px; flex: 1; }
-.season p a { color: var(--chalk); text-decoration: none; font-weight: 600; }
-.season p a:hover { text-decoration: underline; }
-.season-go { display: flex; flex-direction: column; gap: 7px; margin-top: 18px; }
-.season-go a {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  text-decoration: none; color: var(--bone); font-size: 14px; font-weight: 600;
-  padding: 10px 13px; border: 1px solid rgba(244,239,228,.15); border-radius: 4px;
-  transition: border-color .15s, background .15s;
-}
-.season-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
-.season-go a::after { content: '\2192'; color: var(--brass); }
 
 /* ═══ DATES ══════════════════════════════════════════════════ */
 .dates { border-top: 1px solid rgba(244,239,228,.1); }
@@ -356,7 +377,8 @@ a:focus-visible, button:focus-visible {
 /* ═══ NARROW ═════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .cloth-in { padding: 40px 0 46px; }
-  .seasons, .rooms { grid-template-columns: 1fr; }
+  .league-body, .league-pair, .rooms { grid-template-columns: 1fr; }
+  .league { padding: 20px; }
   .foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
   .date-row .d { grid-column: 1; grid-row: 1; }
@@ -375,6 +397,16 @@ a:focus-visible, button:focus-visible {
   .shell { padding: 0 16px; }
   .cloth { --ball: 24px; }
   .rack-wrap { margin-bottom: 20px; }
+  /* The standings table won't fit five columns on a phone. Win %
+     is the one to lose — the bar under each team name already
+     says the same thing. */
+  .stand th:nth-child(5), .stand td:nth-child(5) { display: none; }
+  .stand thead th { padding: 10px; }
+  .stand tbody td { padding: 10px; }
+  .stand .pos { width: 30px; }
+  .stand .team { font-size: 15px; }
+  .panel-note { display: none; }
+  .league-go a { font-size: 13px; padding: 9px 12px; }
   /* The full name and the links won't sit on one line on a phone,
      and a clipped "BARS" looks broken. So they stack and centre —
      which matches the rest of the page now anyway. Nothing is
@@ -407,8 +439,8 @@ a:focus-visible, button:focus-visible {
         <b>Kemmerer</b><i>Pool League</i>
       </a>
       <nav>
-        <a href="#seasons">Leagues</a>
-        <a href="#dates">Tournaments</a>
+        <a href="#leagues">Leagues</a>
+        <a href="#tournaments">Tournaments</a>
         <a href="#rooms">Bars</a>
       </nav>
     </div>
@@ -432,71 +464,82 @@ a:focus-visible, button:focus-visible {
           <a class="btn btn-solid" href="schedule.html?league=10ball">This season's schedule</a>
           <a class="btn btn-ghost" href="#standings">Standings</a>
         </div>
-
-        <div class="nextup">
-          <div class="nextup-hd">
-            <span class="eyebrow">Next on the sheet</span>
-            <span class="nextup-when" id="next-when"></span>
-          </div>
-          <div class="nextup-body" id="next-body">
-            <div class="nextup-wait">Checking the schedule&hellip;</div>
-          </div>
-        </div>
       </div>
     </div>
 
     <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </section>
 
-  <section class="band" id="standings">
+  <section class="band" id="leagues">
     <div class="shell">
       <div class="band-hd">
-        <div class="eyebrow">10-Ball Summer 2026</div>
-        <h2 class="head">Standings</h2>
-        <p class="lede">Updated as the sheets come in.</p>
-      </div>
-      <div class="table-frame" id="standings-frame">
-        <div class="quiet-note">Loading the standings&hellip;</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-
-  <section class="band" id="seasons">
-    <div class="shell">
-      <div class="band-hd">
-        <div class="eyebrow">Three seasons</div>
+        <div class="eyebrow">Wednesday nights</div>
         <h2 class="head">Leagues</h2>
       </div>
 
-      <div class="seasons">
-        <article class="season">
-          <span class="flag">Coming soon</span>
-          <h3>8-Ball Fall 2026&ndash;27</h3>
-          <p>
-            Signups start this fall. Want in? Watch
-            <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">the Facebook group</a>
-            or grab an officer &mdash; teams and the schedule show up here once
-            they're set.
-          </p>
-        </article>
-
-        <article class="season live">
-          <span class="flag">Playing now</span>
-          <h3>10-Ball Summer 2026</h3>
-          <p>Wednesday nights all summer. Come watch, come play.</p>
-          <div class="season-go">
-            <a href="index.html">Standings and players</a>
+      <!-- Running now: carries its own standings and its own next match. -->
+      <article class="league live">
+        <div class="league-hd">
+          <div>
+            <span class="flag">Playing now</span>
+            <h3>10-Ball Summer 2026</h3>
+            <p>Wednesday nights all summer. Come watch, come play.</p>
+          </div>
+          <div class="league-go">
+            <a href="index.html">Players</a>
             <a href="schedule.html?league=10ball">Full schedule</a>
+          </div>
+        </div>
+
+        <div class="league-body">
+          <div class="panel" id="standings">
+            <div class="panel-hd">
+              <span class="eyebrow">Standings</span>
+              <span class="panel-note">Updated as the sheets come in</span>
+            </div>
+            <div id="standings-frame">
+              <div class="quiet-note">Loading the standings&hellip;</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-hd">
+              <span class="eyebrow">Next up</span>
+              <span class="nextup-when" id="next-when"></span>
+            </div>
+            <div class="nextup-body" id="next-body">
+              <div class="nextup-wait">Checking the schedule&hellip;</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Eight ball: the one coming, and the one just finished. -->
+      <div class="league-pair">
+        <article class="league">
+          <div class="league-hd">
+            <div>
+              <span class="flag">Coming soon</span>
+              <h3>8-Ball Fall 2026&ndash;27</h3>
+              <p>
+                Signups start this fall. Want in? Watch
+                <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">the Facebook group</a>
+                or grab an officer &mdash; teams and the schedule show up here
+                once they're set.
+              </p>
+            </div>
           </div>
         </article>
 
-        <article class="season">
-          <span class="flag">Wrapped</span>
-          <h3>8-Ball Fall 2025&ndash;26</h3>
-          <p>Last winter's league. Still here if you want to argue about it.</p>
-          <div class="season-go">
+        <article class="league">
+          <div class="league-hd">
+            <div>
+              <span class="flag">Wrapped</span>
+              <h3>8-Ball Fall 2025&ndash;26</h3>
+              <p>Last winter's league. Still here if you want to argue about it.</p>
+            </div>
+          </div>
+          <div class="league-go">
             <a href="index.html">Final standings</a>
             <a href="schedule.html?league=8ball">Schedule</a>
           </div>
@@ -507,11 +550,11 @@ a:focus-visible, button:focus-visible {
 
   <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 
-  <section class="band" id="dates">
+  <section class="band" id="tournaments">
     <div class="shell">
       <div class="band-hd">
         <div class="eyebrow">Road trips</div>
-        <h2 class="head">On the calendar</h2>
+        <h2 class="head">Tournaments</h2>
         <p class="lede">Jenkins tournaments and state. If it doesn't say confirmed, don't book the motel yet.</p>
       </div>
 
@@ -585,7 +628,7 @@ a:focus-visible, button:focus-visible {
           </div>
         </article>
         <article class="room">
-          <figure><img src="images/play-2.jpg" alt="Lining up a shot" loading="lazy"></figure>
+          <figure><img src="images/stock-exchange.jpg" alt="The table at the Stock Exchange" loading="lazy"></figure>
           <div class="room-in">
             <h3>Stock Exchange</h3>
             <div class="addr">712 JC Penny Dr, Kemmerer</div>
@@ -624,7 +667,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2 v0.31</span>
+        <span>Design study &middot; index2 v0.40</span>
       </div>
     </div>
   </footer>
