@@ -120,9 +120,8 @@ h2.head {
 
 /* ═══ HERO ═══════════════════════════════════════════════════
    The page opens on the cloth, because that's where the league
-   happens. The rack breaks once on load, then sits still. ────── */
+   happens. Type and nothing else — no ornament. ─────────────── */
 .cloth {
-  --ball: clamp(22px, 2.9vw, 31px);
   position: relative; overflow: hidden;
   background:
     radial-gradient(90% 120% at 50% -10%, rgba(255,255,255,.09), transparent 55%),
@@ -138,7 +137,7 @@ h2.head {
 }
 .cloth-in {
   position: relative; z-index: 2;
-  padding: 46px 0 56px; text-align: center;
+  padding: 84px 0 88px; text-align: center;
 }
 
 .hero-h1 {
@@ -151,54 +150,6 @@ h2.head {
 .hero-sub {
   margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
   max-width: 40ch; text-wrap: balance;
-}
-
-.hero-cta { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; justify-content: center; }
-.btn {
-  display: inline-flex; align-items: center; text-decoration: none;
-  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase;
-  padding: 13px 20px; border-radius: 3px; border: 1px solid transparent;
-  transition: transform .12s ease, background .15s ease, border-color .15s ease;
-}
-.btn-solid { background: var(--brass); color: #1a1206; }
-.btn-solid:hover { transform: translateY(-1px); background: #e3b350; }
-.btn-ghost { border-color: rgba(244,239,228,.34); color: var(--bone); background: rgba(0,0,0,.14); }
-.btn-ghost:hover { border-color: var(--bone); transform: translateY(-1px); }
-
-/* ── The rack ──────────────────────────────────────────────────
-   It used to sit in a right-hand column, which pushed the words
-   off-centre and stacked badly on a phone. Now it's a small crest
-   racked up dead centre above the headline — same idea, a tenth
-   of the room, and it behaves at every width. ────────────────── */
-.rack-wrap { display: flex; justify-content: center; margin-bottom: 22px; }
-.rack { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.rack-row { display: flex; gap: 3px; }
-.ball {
-  --c: #b8342c;
-  width: var(--ball, 46px); height: var(--ball, 46px); border-radius: 50%; flex: none;
-  display: grid; place-items: center; position: relative;
-  box-shadow: inset -5px -7px 13px rgba(0,0,0,.5), 0 7px 14px rgba(0,0,0,.42);
-}
-.ball.solid  { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.62), rgba(255,255,255,0) 42%), var(--c); }
-.ball.stripe { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.62), rgba(255,255,255,0) 42%),
-                 linear-gradient(180deg, var(--bone) 0 25%, var(--c) 25% 75%, var(--bone) 75% 100%); }
-.ball.eight  { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #141010; }
-/* Circle and number both scale off --ball, so a two-digit number
-   never crowds its circle at any size. */
-.ball span {
-  width: 44%; height: 44%; border-radius: 50%; background: var(--bone);
-  font-family: 'Space Mono', monospace; font-weight: 700;
-  font-size: calc(var(--ball, 31px) * .26);
-  color: #17120d; display: grid; place-items: center; line-height: 1;
-  box-shadow: inset 0 -1px 2px rgba(0,0,0,.2);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .ball { animation: settle .72s cubic-bezier(.19,1,.22,1) backwards; }
-  @keyframes settle {
-    from { opacity: 0; transform: translate(var(--dx, 0), var(--dy, -30px)) scale(.82); }
-    to   { opacity: 1; transform: none; }
-  }
 }
 
 /* ── Next up ─────────────────────────────────────────────────
@@ -224,6 +175,17 @@ h2.head {
   letter-spacing: .1em; text-transform: uppercase; color: var(--brass); opacity: .85;
 }
 .nextup-wait { padding: 16px 15px; color: rgba(244,239,228,.6); font-size: 15px; }
+/* Full width, so the fixtures pair up rather than running down a
+   long thin column. Exactly two columns, not auto-fill, so the
+   "no border on the first row" rule stays true whatever the
+   fixture count. */
+@media (min-width: 901px) {
+  .nextup-body { display: grid; grid-template-columns: 1fr 1fr; padding: 0; }
+  .fixture { padding: 13px 18px; }
+  .fixture + .fixture { border-top: none; }
+  .fixture:nth-child(n+3) { border-top: 1px solid rgba(244,239,228,.08); }
+  .fixture:nth-child(odd) { border-right: 1px solid rgba(244,239,228,.08); }
+}
 
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
 .band { padding: 62px 0; }
@@ -273,7 +235,11 @@ h2.head {
 .league-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
 .league-go a::after { content: '\2192'; color: var(--brass); }
 
-.league-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; align-items: start; }
+/* Standings gets the full width of the block. The report can send
+   seven columns and they have to be readable — side by side with
+   Next up, team names wrapped to three lines and the last column
+   scrolled off. Next up is a short list; it sits underneath. */
+.league-body { display: grid; grid-template-columns: 1fr; gap: 16px; }
 .league-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .league-pair .league { margin-top: 0; }
 
@@ -290,12 +256,14 @@ h2.head {
 
 /* ═══ STANDINGS ══════════════════════════════════════════════ */
 .stand { width: 100%; border-collapse: collapse; }
+#standings-frame { overflow-x: auto; }
 .stand thead th {
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
   text-align: left; padding: 11px 14px; background: var(--night-2);
   border-bottom: 1px solid rgba(244,239,228,.13); white-space: nowrap;
 }
+.stand thead th.r { text-align: right; }
 .stand tbody td { padding: 12px 14px; border-bottom: 1px solid rgba(244,239,228,.07); }
 .stand tbody tr:last-child td { border-bottom: none; }
 .stand tbody tr:hover td { background: rgba(244,239,228,.03); }
@@ -376,8 +344,8 @@ a:focus-visible, button:focus-visible {
 
 /* ═══ NARROW ═════════════════════════════════════════════════ */
 @media (max-width: 900px) {
-  .cloth-in { padding: 40px 0 46px; }
-  .league-body, .league-pair, .rooms { grid-template-columns: 1fr; }
+  .cloth-in { padding: 62px 0 66px; }
+  .league-pair, .rooms { grid-template-columns: 1fr; }
   .league { padding: 20px; }
   .foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
@@ -395,12 +363,8 @@ a:focus-visible, button:focus-visible {
   .hero-sub { font-size: 17px; }
   .nextup { max-width: none; }
   .shell { padding: 0 16px; }
-  .cloth { --ball: 24px; }
-  .rack-wrap { margin-bottom: 20px; }
-  /* The standings table won't fit five columns on a phone. Win %
-     is the one to lose — the bar under each team name already
-     says the same thing. */
-  .stand th:nth-child(5), .stand td:nth-child(5) { display: none; }
+  /* However many columns the report sends, they scroll inside the
+     panel rather than getting clipped. */
   .stand thead th { padding: 10px; }
   .stand tbody td { padding: 10px; }
   .stand .pos { width: 30px; }
@@ -451,19 +415,12 @@ a:focus-visible, button:focus-visible {
 
     <div class="cloth">
       <div class="shell cloth-in">
-        <div class="rack-wrap" aria-hidden="true">
-          <div class="rack" id="rack"></div>
-        </div>
         <div class="eyebrow">Kemmerer, Wyoming</div>
         <h1 class="hero-h1">Rack 'em <em>up.</em></h1>
         <p class="hero-sub">
           Wednesday nights. Grab a beer, shoot some pool. Eight ball all
           winter, ten ball all summer.
         </p>
-        <div class="hero-cta">
-          <a class="btn btn-solid" href="schedule.html?league=10ball">This season's schedule</a>
-          <a class="btn btn-ghost" href="#standings">Standings</a>
-        </div>
       </div>
     </div>
 
@@ -667,7 +624,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2 v0.40</span>
+        <span>Design study &middot; index2 v0.50</span>
       </div>
     </div>
   </footer>
@@ -688,38 +645,6 @@ const DIVISION = 'c97cf1bf-ff08-44a0-b916-b4520124b3e6';   // 10-Ball Summer 202
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/* ── The rack ────────────────────────────────────────────────
-   Standard colours, apex at the top, eight in the middle where it
-   belongs. Each ball comes in from a slightly different direction
-   so the settle reads as a break rather than a fade. ─────────── */
-const BALL_COLOR = {
-  1: '#e0a51c', 2: '#1f4f9c', 3: '#b8342c', 4: '#5b3b8c', 5: '#d97120',
-  6: '#1d7a4c', 7: '#7d2f26', 8: '#141010', 9: '#e0a51c', 10: '#1f4f9c',
-  11: '#b8342c', 12: '#5b3b8c', 13: '#d97120', 14: '#1d7a4c', 15: '#7d2f26'
-};
-const RACK_ROWS = [[1], [9, 2], [10, 8, 3], [11, 4, 12, 5], [13, 6, 14, 7, 15]];
-
-(function buildRack() {
-  const rack = document.getElementById('rack');
-  let n = 0;
-  RACK_ROWS.forEach(row => {
-    const line = document.createElement('div');
-    line.className = 'rack-row';
-    row.forEach(num => {
-      const b = document.createElement('div');
-      b.className = 'ball ' + (num === 8 ? 'eight' : num > 8 ? 'stripe' : 'solid');
-      b.style.setProperty('--c', BALL_COLOR[num]);
-      b.style.setProperty('--dx', (Math.random() * 60 - 30).toFixed(0) + 'px');
-      b.style.setProperty('--dy', (Math.random() * -50 - 10).toFixed(0) + 'px');
-      b.style.animationDelay = (n * 26) + 'ms';
-      b.innerHTML = '<span>' + num + '</span>';
-      line.appendChild(b);
-      n++;
-    });
-    rack.appendChild(line);
-  });
-})();
-
 /* ── Standings ───────────────────────────────────────────────── */
 function parseTable(html) {
   const d = document.createElement('div');
@@ -738,13 +663,17 @@ function parseTable(html) {
   return { headers, body };
 }
 
-function col(headers, ...names) {
-  for (const n of names) {
-    const i = headers.findIndex(h => h.toLowerCase() === n);
-    if (i >= 0) return i;
-  }
-  for (const n of names) {
-    const i = headers.findIndex(h => h.toLowerCase().indexOf(n) >= 0);
+/* The report decides its own columns, and they are not always the
+   ones you'd guess — "Won" can be matches while the percentage is
+   games. So render exactly what FargoRate sends, with its own
+   headers, the way the main site does. Guessing at column meanings
+   is what put wrong numbers on this page once already. Only three
+   cells get special treatment: the rank, the team name, and
+   whichever column is the win percentage. */
+function findPctIdx(headers) {
+  const patterns = [/win\s*pct/i, /win\s*%/i, /pct/i, /%/i];
+  for (const p of patterns) {
+    const i = headers.findIndex(h => p.test(h));
     if (i >= 0) return i;
   }
   return -1;
@@ -758,39 +687,38 @@ async function loadStandings() {
     const t = parseTable(await r.text());
     if (!t || !t.body.length) throw new Error('empty');
 
-    const iTeam = col(t.headers, 'team', 'name');
-    const iWon  = col(t.headers, 'won', 'wins', 'w');
-    const iLost = col(t.headers, 'lost', 'losses', 'l');
-    const iPct  = col(t.headers, 'win %', 'pct', '%');
+    const pct = findPctIdx(t.headers);
 
-    const rows = t.body.map(r => {
-      const won = parseFloat(r[iWon]) || 0;
-      const lost = parseFloat(r[iLost]) || 0;
-      const played = won + lost;
-      let pct = iPct >= 0 && r[iPct] ? parseFloat(String(r[iPct]).replace('%', '')) : NaN;
-      if (isNaN(pct)) pct = played ? (won / played) * 100 : 0;
-      return { team: r[iTeam] || '', won: won, lost: lost, pct: pct };
-    }).filter(r => r.team);
-
-    if (!rows.length) throw new Error('no rows');
+    /* The report leads with a rank column today, so column 1 is the
+       team. Don't bet the team name on that: if column 0 isn't a
+       rank, treat it as the team instead. Getting this wrong drops
+       the names entirely and shows a column of numbers. */
+    const hasRank = /rank|pos|place|^#$/i.test((t.headers[0] || '').trim()) ||
+      t.body.every(r => /^\d+\.?$/.test((r[0] || '').trim()));
+    const teamIdx = hasRank ? 1 : 0;
 
     frame.innerHTML =
       '<table class="stand"><thead><tr>' +
-        '<th>Pos</th><th>Team</th>' +
-        '<th style="text-align:right">Won</th>' +
-        '<th style="text-align:right">Lost</th>' +
-        '<th style="text-align:right">Win %</th>' +
+      t.headers.map((h, i) =>
+        '<th' + (i > teamIdx ? ' class="r"' : '') + '>' + esc(h) + '</th>'
+      ).join('') +
       '</tr></thead><tbody>' +
-      rows.map((r, i) =>
+      t.body.map((row, i) =>
         '<tr class="' + (i === 0 ? 'lead' : '') + '">' +
-          '<td class="pos">' + String(i + 1).padStart(2, '0') + '</td>' +
-          '<td class="team">' + esc(r.team) +
-            '<span class="wbar"><i style="width:' +
-              Math.max(2, Math.min(100, r.pct)).toFixed(1) + '%"></i></span></td>' +
-          '<td class="num">' + r.won + '</td>' +
-          '<td class="num">' + r.lost + '</td>' +
-          '<td class="num pct">' + r.pct.toFixed(1) + '%</td>' +
-        '</tr>').join('') +
+        row.map((cell, ci) => {
+          if (hasRank && ci === 0) return '<td class="pos">' + String(i + 1).padStart(2, '0') + '</td>';
+          if (ci === teamIdx) {
+            let bar = '';
+            if (pct >= 0) {
+              const v = Math.max(0, Math.min(100, parseFloat(row[pct]) || 0));
+              bar = '<span class="wbar"><i style="width:' + Math.max(2, v).toFixed(1) + '%"></i></span>';
+            }
+            return '<td class="team">' + esc(cell) + bar + '</td>';
+          }
+          return '<td class="num' + (ci === pct ? ' pct' : '') + '">' + esc(cell) + '</td>';
+        }).join('') +
+        '</tr>'
+      ).join('') +
       '</tbody></table>';
   } catch (e) {
     frame.innerHTML = '<div class="quiet-note">Standings aren\u2019t loading right now. ' +
