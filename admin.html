@@ -543,7 +543,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.22</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.23</div>
 </footer>
 
 <script>
@@ -1114,7 +1114,7 @@ function renderTables() {
   document.getElementById('table-rows').innerHTML = tables.map((t, i) => `
     <div class="trow2${i === 0 ? ' best' : ''}">
       <span class="pri">${i === 0 ? 'Best table' : 'Priority ' + (i + 1)}</span>
-      <span class="lbl2">labelled</span>
+      <span class="lbl2">labeled</span>
       <input class="inp tin" type="text" maxlength="6" value="${esc(t.label)}"
         data-i="${i}" oninput="onTableEdit(this)">
       <button class="mv" title="Higher priority" ${i === 0 ? 'disabled' : ''}
