@@ -140,9 +140,14 @@ h2.head {
     repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
 }
+/* Longhand on purpose. This element carries .shell too, and
+   .shell's `padding: 0 24px` shorthand is redefined inside the
+   560px media query — a `padding:` shorthand here gets wiped by it
+   and the hero loses all its vertical room on a phone. That is
+   exactly what happened once. Keep these longhand. */
 .cloth-in {
   position: relative; z-index: 2;
-  padding: 84px 0 88px; text-align: center;
+  padding-top: 84px; padding-bottom: 88px; text-align: center;
 }
 
 .hero-h1 {
@@ -349,7 +354,7 @@ a:focus-visible, button:focus-visible {
 
 /* ═══ NARROW ═════════════════════════════════════════════════ */
 @media (max-width: 900px) {
-  .cloth-in { padding: 62px 0 66px; }
+  .cloth-in { padding-top: 62px; padding-bottom: 66px; }
   .league-pair, .rooms { grid-template-columns: 1fr; }
   .league { padding: 20px; }
   .foot-grid { grid-template-columns: 1fr; gap: 26px; }
@@ -367,12 +372,30 @@ a:focus-visible, button:focus-visible {
   body { font-size: 16px; }
   .hero-sub { font-size: 17px; }
   .nextup { max-width: none; }
-  .shell { padding: 0 16px; }
+  .shell { padding-left: 16px; padding-right: 16px; }
+  .cloth-in { padding-top: 66px; padding-bottom: 70px; }
   /* However many columns the report sends, they scroll inside the
-     panel rather than getting clipped. */
+     panel rather than getting clipped. Since it scrolls anyway, let
+     team names run on one line — wrapped to three lines they made
+     every row a paragraph tall. */
   .stand thead th { padding: 10px; }
+  .stand .team { white-space: nowrap; }
+  /* Rank and team stay put while the numbers scroll under them, so
+     you can always see whose row you're reading. `left: 0` when the
+     team is the first cell (a report with no rank column), 30px
+     when it sits after the rank. */
+  .stand .pos { width: 40px; }
+  .stand thead th { letter-spacing: .08em; }
+  .stand .hteam, .stand td.team { padding-right: 16px; }
+  .stand .hpos, .stand td.pos,
+  .stand .hteam, .stand td.team { position: sticky; left: 40px; z-index: 2; }
+  .stand .hpos, .stand td.pos { left: 0; }
+  .stand tr > .hteam:first-child,
+  .stand tr > td.team:first-child { left: 0; }
+  .stand thead th.hpos, .stand thead th.hteam { background: var(--night-2); }
+  .stand td.pos, .stand td.team { background: #16120e; }
+  .stand .hteam, .stand td.team { border-right: 1px solid rgba(244,239,228,.10); }
   .stand tbody td { padding: 10px; }
-  .stand .pos { width: 30px; }
   .stand .team { font-size: 15px; }
   .panel-note { display: none; }
   .league-go a { font-size: 13px; padding: 9px 12px; }
@@ -629,7 +652,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2 v0.51</span>
+        <span>Design study &middot; index2 v0.52</span>
       </div>
     </div>
   </footer>
@@ -704,9 +727,10 @@ async function loadStandings() {
 
     frame.innerHTML =
       '<table class="stand"><thead><tr>' +
-      t.headers.map((h, i) =>
-        '<th' + (i > teamIdx ? ' class="r"' : '') + '>' + esc(h) + '</th>'
-      ).join('') +
+      t.headers.map((h, i) => {
+        const cls = (hasRank && i === 0) ? 'hpos' : (i === teamIdx ? 'hteam' : 'r');
+        return '<th class="' + cls + '">' + esc(h) + '</th>';
+      }).join('') +
       '</tr></thead><tbody>' +
       t.body.map((row, i) =>
         '<tr class="' + (i === 0 ? 'lead' : '') + '">' +
