@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Kemmerer Pool League — design study
+
+   The palette is a bar room at nine at night: tungsten pooling on
+   green cloth, mahogany rails, and everything the lamp doesn't
+   reach falling into a warm brown dark. Chalk blue is the only
+   cool thing in the room, so it's the only cool colour here.
+
+   Rail diamonds are how you measure a bank shot off a real table.
+   Here they divide the sections — the page is measured the way the
+   table is.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --night:   #14100c;
+  --night-2: #1d1712;
+  --felt:    #1c5142;
+  --felt-lo: #102e26;
+  --rail:    #3a2318;
+  --brass:   #d4a13c;
+  --chalk:   #5b8fc7;
+  --bone:    #f4efe4;
+  --dim:     #9d9282;
+  --shell:   1080px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--bone);
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 17px; line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell { width: 100%; max-width: var(--shell); margin: 0 auto; padding: 0 24px; }
+
+/* Alfa Slab is the saloon-poster voice and appears twice on the
+   whole page. Space Mono handles every number and label, the way a
+   printed scoresheet would. */
+.display { font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400; }
+
+.eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+}
+h2.head {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.1; margin: 10px 0 0;
+}
+.lede { color: var(--dim); max-width: 56ch; margin-top: 12px; }
+
+/* ── Rail diamonds ─────────────────────────────────────────── */
+.rail-rule {
+  display: flex; align-items: center; justify-content: center; gap: 46px;
+  height: 26px; position: relative;
+}
+.rail-rule::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,161,60,.22) 12%,
+              rgba(212,161,60,.22) 88%, transparent);
+}
+.rail-rule i {
+  width: 7px; height: 7px; background: var(--brass); opacity: .5;
+  transform: rotate(45deg); position: relative; flex: none;
+}
+
+/* ── The lamp ──────────────────────────────────────────────── */
+.lamp {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
+    radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
+}
+.page { position: relative; z-index: 1; }
+
+/* ═══ MASTHEAD ═══════════════════════════════════════════════ */
+.mast {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(20,16,12,.84);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(212,161,60,.15);
+}
+.mast-in { display: flex; align-items: center; gap: 24px; height: 62px; }
+.mark { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+.mark .eight {
+  width: 27px; height: 27px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+  box-shadow: inset -3px -4px 7px rgba(0,0,0,.6);
+}
+.mark .eight span {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
+  font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
+}
+.mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+.mark i { font-style: normal; color: var(--dim); font-size: 15px; }
+
+.mast nav { margin-left: auto; display: flex; gap: 4px; }
+.mast nav a {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  text-decoration: none; padding: 8px 12px; border-radius: 4px;
+}
+.mast nav a:hover { color: var(--bone); background: rgba(244,239,228,.06); }
+
+/* ═══ HERO ═══════════════════════════════════════════════════
+   The page opens on the cloth, because that's where the league
+   happens. The rack breaks once on load, then sits still. ────── */
+.cloth {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 50% -10%, rgba(255,255,255,.09), transparent 55%),
+    linear-gradient(180deg, var(--felt) 0%, var(--felt-lo) 100%);
+  border-top: 3px solid var(--rail);
+  border-bottom: 3px solid var(--rail);
+}
+.cloth::after {                     /* the nap of the cloth */
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+.cloth-in {
+  position: relative; z-index: 2;
+  display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center;
+  padding: 66px 0 62px;
+}
+
+.hero-h1 {
+  font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400;
+  font-size: clamp(46px, 8.2vw, 96px); line-height: .92;
+  letter-spacing: -.025em; margin: 14px 0 0;
+  text-shadow: 0 3px 0 rgba(0,0,0,.28), 0 22px 44px rgba(0,0,0,.4);
+}
+.hero-h1 em { font-style: normal; display: block; color: var(--brass); }
+.hero-sub { margin-top: 20px; font-size: 19px; color: rgba(244,239,228,.84); max-width: 34ch; }
+
+.hero-cta { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; text-decoration: none;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 13px 20px; border-radius: 3px; border: 1px solid transparent;
+  transition: transform .12s ease, background .15s ease, border-color .15s ease;
+}
+.btn-solid { background: var(--brass); color: #1a1206; }
+.btn-solid:hover { transform: translateY(-1px); background: #e3b350; }
+.btn-ghost { border-color: rgba(244,239,228,.34); color: var(--bone); background: rgba(0,0,0,.14); }
+.btn-ghost:hover { border-color: var(--bone); transform: translateY(-1px); }
+
+/* ── The rack ──────────────────────────────────────────────── */
+.rack-wrap { display: flex; justify-content: center; }
+.rack { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.rack-row { display: flex; gap: 3px; }
+.ball {
+  --c: #b8342c;
+  width: 46px; height: 46px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; position: relative;
+  box-shadow: inset -5px -7px 13px rgba(0,0,0,.5), 0 7px 14px rgba(0,0,0,.42);
+}
+.ball.solid  { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.62), rgba(255,255,255,0) 42%), var(--c); }
+.ball.stripe { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.62), rgba(255,255,255,0) 42%),
+                 linear-gradient(180deg, var(--bone) 0 25%, var(--c) 25% 75%, var(--bone) 75% 100%); }
+.ball.eight  { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #141010; }
+.ball span {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--bone);
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  color: #17120d; display: grid; place-items: center; line-height: 1;
+  box-shadow: inset 0 -1px 2px rgba(0,0,0,.2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ball { animation: settle .72s cubic-bezier(.19,1,.22,1) backwards; }
+  @keyframes settle {
+    from { opacity: 0; transform: translate(var(--dx, 0), var(--dy, -30px)) scale(.82); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* ── Next up ───────────────────────────────────────────────── */
+.nextup {
+  margin-top: 30px; border: 1px solid rgba(244,239,228,.2);
+  background: rgba(9,26,21,.5); border-radius: 5px; overflow: hidden; max-width: 460px;
+}
+.nextup-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 9px 15px; background: rgba(0,0,0,.26);
+  border-bottom: 1px solid rgba(244,239,228,.12);
+}
+.nextup-when { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; }
+.nextup-body { padding: 6px 0; }
+.fixture {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: 4px 10px; padding: 9px 15px; font-size: 15px;
+}
+.fixture + .fixture { border-top: 1px solid rgba(244,239,228,.08); }
+.fixture .h { text-align: right; font-weight: 600; }
+.fixture .a { text-align: left; font-weight: 600; }
+.fixture .v { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--dim); }
+.fixture .rm {
+  grid-column: 1 / -1; font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--brass); opacity: .85;
+}
+.nextup-wait { padding: 16px 15px; color: rgba(244,239,228,.6); font-size: 15px; }
+
+/* ═══ SECTION FRAME ══════════════════════════════════════════ */
+.band { padding: 62px 0; }
+.band-hd { margin-bottom: 30px; }
+
+/* ═══ STANDINGS ══════════════════════════════════════════════ */
+.table-frame { border: 1px solid rgba(244,239,228,.13); border-radius: 5px; overflow: hidden; }
+.stand { width: 100%; border-collapse: collapse; }
+.stand thead th {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  text-align: left; padding: 11px 14px; background: var(--night-2);
+  border-bottom: 1px solid rgba(244,239,228,.13); white-space: nowrap;
+}
+.stand tbody td { padding: 12px 14px; border-bottom: 1px solid rgba(244,239,228,.07); }
+.stand tbody tr:last-child td { border-bottom: none; }
+.stand tbody tr:hover td { background: rgba(244,239,228,.03); }
+.stand .pos { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--dim); width: 46px; }
+.stand tr.lead .pos { color: var(--brass); font-weight: 700; }
+.stand .team { font-weight: 600; font-size: 16px; }
+.stand .num { font-family: 'Space Mono', monospace; font-size: 14px; text-align: right; white-space: nowrap; }
+.stand .pct { color: var(--dim); }
+.wbar { display: block; height: 5px; border-radius: 3px; background: rgba(244,239,228,.09); margin-top: 6px; }
+.wbar i { display: block; height: 100%; border-radius: 3px; background: var(--felt); filter: brightness(1.5); }
+.stand tr.lead .wbar i { background: var(--brass); filter: none; }
+.quiet-note { color: var(--dim); font-size: 15px; padding: 22px 16px; }
+.quiet-note a { color: var(--chalk); }
+
+/* ═══ SEASONS ════════════════════════════════════════════════ */
+.seasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.season {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 5px;
+  background: linear-gradient(180deg, rgba(244,239,228,.035), transparent);
+  padding: 22px; display: flex; flex-direction: column;
+}
+.season.live { border-color: rgba(212,161,60,.5); }
+.season .flag {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.season.live .flag { color: var(--brass); }
+.season .flag::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .55;
+}
+.season.live .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
+.season h3 { font-size: 21px; font-weight: 700; letter-spacing: -.015em; margin: 12px 0 8px; }
+.season p { color: var(--dim); font-size: 15px; flex: 1; }
+.season p a { color: var(--chalk); text-decoration: none; font-weight: 600; }
+.season p a:hover { text-decoration: underline; }
+.season-go { display: flex; flex-direction: column; gap: 7px; margin-top: 18px; }
+.season-go a {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  text-decoration: none; color: var(--bone); font-size: 14px; font-weight: 600;
+  padding: 10px 13px; border: 1px solid rgba(244,239,228,.15); border-radius: 4px;
+  transition: border-color .15s, background .15s;
+}
+.season-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
+.season-go a::after { content: '\2192'; color: var(--brass); }
+
+/* ═══ DATES ══════════════════════════════════════════════════ */
+.dates { border-top: 1px solid rgba(244,239,228,.1); }
+.date-row {
+  display: grid; grid-template-columns: 172px 1fr 180px 112px;
+  gap: 16px; align-items: baseline; padding: 15px 4px;
+  border-bottom: 1px solid rgba(244,239,228,.08);
+}
+.date-row .d { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--brass); white-space: nowrap; }
+.date-row .n { font-weight: 600; font-size: 17px; }
+.date-row .w { color: var(--dim); font-size: 15px; }
+.date-row .s {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim); text-align: right;
+}
+.date-row .s.set { color: #4fae86; }
+.date-row.soft .d { color: var(--dim); }
+
+/* ═══ ROOMS ══════════════════════════════════════════════════ */
+.rooms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.room {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 5px; overflow: hidden;
+  background: var(--night-2);
+}
+.room figure { margin: 0; aspect-ratio: 3 / 2; overflow: hidden; background: var(--felt-lo); }
+.room img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: saturate(.85) contrast(1.04); transition: transform .5s ease;
+}
+.room:hover img { transform: scale(1.04); }
+.room-in { padding: 17px 18px 19px; }
+.room h3 { font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+.room .addr { color: var(--dim); font-size: 14px; margin-top: 5px; }
+.room .tel {
+  display: inline-block; margin-top: 11px; font-family: 'Space Mono', monospace;
+  font-size: 14px; color: var(--chalk); text-decoration: none; font-weight: 700;
+}
+.room .tel:hover { text-decoration: underline; }
+
+/* ═══ FOOTER ═════════════════════════════════════════════════ */
+.foot { background: var(--night-2); border-top: 1px solid rgba(244,239,228,.1); padding: 46px 0 34px; }
+.foot-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 32px; }
+.foot h4 {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: 14px;
+}
+.foot-off {
+  display: flex; justify-content: space-between; gap: 14px; padding: 6px 0;
+  border-bottom: 1px solid rgba(244,239,228,.07); font-size: 15px;
+}
+.foot-off b { font-weight: 600; }
+.foot-off span { color: var(--dim); }
+.foot a { color: var(--chalk); text-decoration: none; }
+.foot a:hover { text-decoration: underline; }
+.foot-sign { font-size: 15px; color: var(--dim); }
+.colophon {
+  margin-top: 34px; padding-top: 20px; border-top: 1px solid rgba(244,239,228,.08);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-family: 'Space Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: .06em;
+}
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 3px;
+}
+
+/* ═══ NARROW ═════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .cloth-in { grid-template-columns: 1fr; gap: 34px; padding: 44px 0 46px; }
+  .rack-wrap { order: -1; }
+  .ball { width: 38px; height: 38px; }
+  .ball span { width: 15px; height: 15px; font-size: 9px; }
+  .seasons, .rooms { grid-template-columns: 1fr; }
+  .foot-grid { grid-template-columns: 1fr; gap: 26px; }
+  .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
+  .date-row .d { grid-column: 1; grid-row: 1; }
+  .date-row .n { grid-column: 1; grid-row: 2; }
+  .date-row .w { grid-column: 1; grid-row: 3; }
+  .date-row .s { grid-column: 2; grid-row: 1; }
+  .rail-rule { gap: 26px; }
+  .mast nav { gap: 0; }
+  .mast nav a { padding: 8px 7px; font-size: 10px; }
+  .mark i { display: none; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .hero-sub { font-size: 17px; }
+  .nextup { max-width: none; }
+  .shell { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="lamp" aria-hidden="true"></div>
+
+<div class="page">
+
+  <header class="mast">
+    <div class="shell mast-in">
+      <a class="mark" href="#top">
+        <span class="eight" aria-hidden="true"><span>8</span></span>
+        <b>Kemmerer</b><i>Pool League</i>
+      </a>
+      <nav>
+        <a href="#standings">Standings</a>
+        <a href="#seasons">Seasons</a>
+        <a href="#dates">Dates</a>
+        <a href="#rooms">Where</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="top">
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <div class="cloth">
+      <div class="shell cloth-in">
+        <div>
+          <div class="eyebrow">Kemmerer, Wyoming</div>
+          <h1 class="hero-h1">Rack<br>'em<em>up.</em></h1>
+          <p class="hero-sub">
+            Wednesday nights on three tables in town. Eight ball through the
+            winter, ten ball all summer.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-solid" href="schedule.html?league=10ball">This season's schedule</a>
+            <a class="btn btn-ghost" href="#standings">Where we stand</a>
+          </div>
+
+          <div class="nextup">
+            <div class="nextup-hd">
+              <span class="eyebrow">Next on the sheet</span>
+              <span class="nextup-when" id="next-when"></span>
+            </div>
+            <div class="nextup-body" id="next-body">
+              <div class="nextup-wait">Checking the schedule&hellip;</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rack-wrap">
+          <div class="rack" id="rack" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <section class="band" id="standings">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">10-Ball Summer 2026</div>
+        <h2 class="head">Where we stand</h2>
+        <p class="lede">Straight off FargoRate, updated as scoresheets come in.</p>
+      </div>
+      <div class="table-frame" id="standings-frame">
+        <div class="quiet-note">Loading the standings&hellip;</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <section class="band" id="seasons">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Three seasons</div>
+        <h2 class="head">Leagues</h2>
+      </div>
+
+      <div class="seasons">
+        <article class="season">
+          <span class="flag">Coming soon</span>
+          <h3>8-Ball Fall 2026&ndash;27</h3>
+          <p>
+            Meetings are being set now. Watch
+            <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">the Facebook group</a>
+            for dates &mdash; teams and schedules land here once they're settled.
+          </p>
+        </article>
+
+        <article class="season live">
+          <span class="flag">Playing now</span>
+          <h3>10-Ball Summer 2026</h3>
+          <p>Wednesday nights, running through the summer.</p>
+          <div class="season-go">
+            <a href="index.html">Standings and players</a>
+            <a href="schedule.html?league=10ball">Full schedule</a>
+          </div>
+        </article>
+
+        <article class="season">
+          <span class="flag">Wrapped</span>
+          <h3>8-Ball Fall 2025&ndash;26</h3>
+          <p>Last winter's league, kept here for the record.</p>
+          <div class="season-go">
+            <a href="index.html">Final standings</a>
+            <a href="schedule.html?league=8ball">Schedule</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <section class="band" id="dates">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Road trips</div>
+        <h2 class="head">On the calendar</h2>
+        <p class="lede">Jenkins tournaments and state. Anything not marked confirmed isn't official yet.</p>
+      </div>
+
+      <div class="dates">
+        <div class="date-row">
+          <span class="d">Nov 6&ndash;8, 2026</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Rock Springs</span>
+          <span class="s set">Confirmed</span>
+        </div>
+        <div class="date-row soft">
+          <span class="d">Early Dec 2026</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Venue to come</span>
+          <span class="s">Awaiting date</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Jan 8&ndash;10, 2027</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Pinedale</span>
+          <span class="s">Expected</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Mar 15&ndash;21, 2027</span>
+          <span class="n">AMOW Wyoming State 8-Ball</span>
+          <span class="w">Casper</span>
+          <span class="s">Estimated</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Apr 8&ndash;11, 2027</span>
+          <span class="n">Jenkins End of Year</span>
+          <span class="w">Rock Springs</span>
+          <span class="s set">Confirmed</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Apr 30 &ndash; May 2, 2027</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Dubois</span>
+          <span class="s set">Confirmed</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <section class="band" id="rooms">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Three bars, one town</div>
+        <h2 class="head">Where we play</h2>
+        <p class="lede">They keep the tables level and the lights on. Spend your money with them.</p>
+      </div>
+
+      <div class="rooms">
+        <article class="room">
+          <figure><img src="images/grumpies-team.jpg" alt="League night at Grumpies" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Grumpies</h3>
+            <div class="addr">815 S Main St., Kemmerer</div>
+            <a class="tel" href="tel:3078775661">307-877-5661</a>
+          </div>
+        </article>
+        <article class="room">
+          <figure><img src="images/sage-lanes.jpg" alt="The tables at Sage Lanes" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Sage Lanes</h3>
+            <div class="addr">918 Sage Ave, Kemmerer</div>
+            <a class="tel" href="tel:3078772973">307-877-2973</a>
+          </div>
+        </article>
+        <article class="room">
+          <figure><img src="images/play-2.jpg" alt="Lining up a shot" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Stock Exchange</h3>
+            <div class="addr">712 JC Penny Dr, Kemmerer</div>
+            <a class="tel" href="tel:3078773244">307-877-3244</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="shell">
+      <div class="foot-grid">
+        <div>
+          <h4>The league</h4>
+          <p class="foot-sign">
+            A bar league in Kemmerer, Wyoming, run through Jenkins Music &amp; Vending
+            and rated by FargoRate. New players are welcome &mdash; find an officer or
+            turn up on a Wednesday.
+          </p>
+        </div>
+        <div>
+          <h4>Officers</h4>
+          <div class="foot-off"><b>Trevor Connelly</b><span>President</span></div>
+          <div class="foot-off"><b>Cody Baker</b><span>Vice President</span></div>
+          <div class="foot-off"><b>Andy Cass</b><span>Secretary</span></div>
+        </div>
+        <div>
+          <h4>Get in touch</h4>
+          <p class="foot-sign">
+            <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a><br>
+            <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">Facebook group</a><br>
+            <a href="index.html">The full site</a>
+          </p>
+        </div>
+      </div>
+      <div class="colophon">
+        <span>Kemmerer Pool League</span>
+        <span>Design study &middot; index2</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Live data comes through the same Cloudflare proxy the main site
+   uses. Everything degrades quietly: if FargoRate is slow or down,
+   each section says so plainly rather than sitting empty.
+   ═══════════════════════════════════════════════════════════════ */
+
+const PROXY = '/proxy?url=';
+const BASE  = 'https://lms.fargorate.com/PublicReport';
+const DIVISION = 'c97cf1bf-ff08-44a0-b916-b4520124b3e6';   // 10-Ball Summer 2026
+
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* ── The rack ────────────────────────────────────────────────
+   Standard colours, apex at the top, eight in the middle where it
+   belongs. Each ball comes in from a slightly different direction
+   so the settle reads as a break rather than a fade. ─────────── */
+const BALL_COLOR = {
+  1: '#e0a51c', 2: '#1f4f9c', 3: '#b8342c', 4: '#5b3b8c', 5: '#d97120',
+  6: '#1d7a4c', 7: '#7d2f26', 8: '#141010', 9: '#e0a51c', 10: '#1f4f9c',
+  11: '#b8342c', 12: '#5b3b8c', 13: '#d97120', 14: '#1d7a4c', 15: '#7d2f26'
+};
+const RACK_ROWS = [[1], [9, 2], [10, 8, 3], [11, 4, 12, 5], [13, 6, 14, 7, 15]];
+
+(function buildRack() {
+  const rack = document.getElementById('rack');
+  let n = 0;
+  RACK_ROWS.forEach(row => {
+    const line = document.createElement('div');
+    line.className = 'rack-row';
+    row.forEach(num => {
+      const b = document.createElement('div');
+      b.className = 'ball ' + (num === 8 ? 'eight' : num > 8 ? 'stripe' : 'solid');
+      b.style.setProperty('--c', BALL_COLOR[num]);
+      b.style.setProperty('--dx', (Math.random() * 60 - 30).toFixed(0) + 'px');
+      b.style.setProperty('--dy', (Math.random() * -50 - 10).toFixed(0) + 'px');
+      b.style.animationDelay = (n * 26) + 'ms';
+      b.innerHTML = '<span>' + num + '</span>';
+      line.appendChild(b);
+      n++;
+    });
+    rack.appendChild(line);
+  });
+})();
+
+/* ── Standings ───────────────────────────────────────────────── */
+function parseTable(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  const table = d.querySelector('table');
+  if (!table) return null;
+  const rows = [...table.querySelectorAll('tr')];
+  if (!rows.length) return null;
+
+  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
+  if (!headers.length) headers = [...rows[0].querySelectorAll('td')].map(td => td.textContent.trim());
+
+  const body = rows.slice(1)
+    .map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim()))
+    .filter(r => r.length && r.some(Boolean));
+  return { headers, body };
+}
+
+function col(headers, ...names) {
+  for (const n of names) {
+    const i = headers.findIndex(h => h.toLowerCase() === n);
+    if (i >= 0) return i;
+  }
+  for (const n of names) {
+    const i = headers.findIndex(h => h.toLowerCase().indexOf(n) >= 0);
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+
+async function loadStandings() {
+  const frame = document.getElementById('standings-frame');
+  try {
+    const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateTeamStandingsReport/' + DIVISION));
+    if (!r.ok) throw new Error(r.status);
+    const t = parseTable(await r.text());
+    if (!t || !t.body.length) throw new Error('empty');
+
+    const iTeam = col(t.headers, 'team', 'name');
+    const iWon  = col(t.headers, 'won', 'wins', 'w');
+    const iLost = col(t.headers, 'lost', 'losses', 'l');
+    const iPct  = col(t.headers, 'win %', 'pct', '%');
+
+    const rows = t.body.map(r => {
+      const won = parseFloat(r[iWon]) || 0;
+      const lost = parseFloat(r[iLost]) || 0;
+      const played = won + lost;
+      let pct = iPct >= 0 && r[iPct] ? parseFloat(String(r[iPct]).replace('%', '')) : NaN;
+      if (isNaN(pct)) pct = played ? (won / played) * 100 : 0;
+      return { team: r[iTeam] || '', won: won, lost: lost, pct: pct };
+    }).filter(r => r.team);
+
+    if (!rows.length) throw new Error('no rows');
+
+    frame.innerHTML =
+      '<table class="stand"><thead><tr>' +
+        '<th>Pos</th><th>Team</th>' +
+        '<th style="text-align:right">Won</th>' +
+        '<th style="text-align:right">Lost</th>' +
+        '<th style="text-align:right">Win %</th>' +
+      '</tr></thead><tbody>' +
+      rows.map((r, i) =>
+        '<tr class="' + (i === 0 ? 'lead' : '') + '">' +
+          '<td class="pos">' + String(i + 1).padStart(2, '0') + '</td>' +
+          '<td class="team">' + esc(r.team) +
+            '<span class="wbar"><i style="width:' +
+              Math.max(2, Math.min(100, r.pct)).toFixed(1) + '%"></i></span></td>' +
+          '<td class="num">' + r.won + '</td>' +
+          '<td class="num">' + r.lost + '</td>' +
+          '<td class="num pct">' + r.pct.toFixed(1) + '%</td>' +
+        '</tr>').join('') +
+      '</tbody></table>';
+  } catch (e) {
+    frame.innerHTML = '<div class="quiet-note">Standings live on FargoRate and it isn\u2019t ' +
+      'answering right now. Try <a href="index.html">the full site</a>.</div>';
+  }
+}
+
+/* ── Next match ──────────────────────────────────────────────
+   The schedule comes back grouped by date; we want the first date
+   that hasn't happened yet. ─────────────────────────────────── */
+function parseDate(str) {
+  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+
+async function loadNext() {
+  const when = document.getElementById('next-when');
+  const body = document.getElementById('next-body');
+  try {
+    const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateDivisionScheduleReport'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'divisionId=' + DIVISION
+    });
+    if (!r.ok) throw new Error(r.status);
+
+    const d = document.createElement('div');
+    d.innerHTML = await r.text();
+    const list = d.querySelector('#schedule-list') || d;
+
+    const weeks = [];
+    let cur = null;
+    [...list.children].forEach(node => {
+      if (node.classList.contains('schedule-date')) {
+        cur = { date: node.textContent.trim(), matches: [] };
+        weeks.push(cur);
+      } else if (node.classList.contains('schedule-team-block') && cur) {
+        const teams = [...node.querySelectorAll('.schedule-team')]
+          .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
+        const loc = node.querySelector('.schedule-location');
+        if (teams.length >= 2) {
+          cur.matches.push({ home: teams[0], away: teams[1], room: loc ? loc.textContent.trim() : '' });
+        }
+      }
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const next = weeks.filter(w => w.matches.length)
+      .find(w => { const dt = parseDate(w.date); return dt && dt >= today; });
+
+    if (!next) {
+      body.innerHTML = '<div class="nextup-wait">Season\u2019s done. The next one goes up once it\u2019s set.</div>';
+      return;
+    }
+
+    const dt = parseDate(next.date);
+    when.textContent = dt
+      ? dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
+      : next.date;
+
+    body.innerHTML = next.matches.map(m =>
+      '<div class="fixture">' +
+        '<span class="h">' + esc(m.home) + '</span>' +
+        '<span class="v">VS</span>' +
+        '<span class="a">' + esc(m.away) + '</span>' +
+        (m.room ? '<span class="rm">' + esc(m.room) + '</span>' : '') +
+      '</div>').join('');
+  } catch (e) {
+    body.innerHTML = '<div class="nextup-wait">Couldn\u2019t reach the schedule just now.</div>';
+  }
+}
+
+loadStandings();
+loadNext();
+</script>
+</body>
+</html>
