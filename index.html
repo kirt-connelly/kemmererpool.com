@@ -201,11 +201,18 @@
       .bar-track { width: 50px !important; }
     }
 
-    /* ── Schedule links on Info ── */
-    .sched-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px; padding: 16px 18px; }
+    /* ── Leagues on Info ── */
+    .lg-block { border-top: 1px solid var(--border); }
+    .lg-block:first-of-type { border-top: none; }
+    .lg-head { display: flex; align-items: center; gap: 10px; padding: 12px 18px 0; }
+    .lg-name { font-size: 16px; font-weight: 700; color: var(--cream); }
+    .lg-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3); }
+    .lg-tag.on { border-color: var(--accent); color: var(--green2); }
+    .lg-body { padding: 10px 18px 16px; }
+    .lg-note { font-size: 14px; color: var(--text2); line-height: 1.6; margin: 0 0 12px; }
     .sched-link { display: block; text-align: left; font-family: inherit; cursor: pointer;
-      text-decoration: none;
+      text-decoration: none; max-width: 360px;
       background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
       padding: 14px 16px; transition: border-color .15s; }
     .sched-link:hover { border-color: var(--accent); }
@@ -380,7 +387,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v2.07
+      &nbsp;·&nbsp; v2.08
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -1494,18 +1501,37 @@ function renderInfo() {
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title">Schedules</span>
-        <span class="card-meta">Who plays who, and where</span>
+        <span class="card-title">Leagues</span>
       </div>
-      <div class="sched-links">
-        <a class="sched-link" href="schedule.html?league=10ball">
-          <span class="sl-name">10-Ball 26</span>
-          <span class="sl-sub">Full season schedule</span>
-        </a>
-        <a class="sched-link" href="schedule.html?league=8ball">
-          <span class="sl-name">8-Ball 26</span>
-          <span class="sl-sub">Full season schedule</span>
-        </a>
+
+      <div class="lg-block">
+        <div class="lg-head">
+          <span class="lg-name">10-Ball 2026</span>
+          <span class="lg-tag on">Running now</span>
+        </div>
+        <div class="lg-body">
+          <a class="sched-link" href="schedule.html?league=10ball">
+            <span class="sl-name">Full season schedule</span>
+            <span class="sl-sub">Every week, who plays who, and where</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="lg-block">
+        <div class="lg-head">
+          <span class="lg-name">8-Ball 25-26</span>
+          <span class="lg-tag">Last season</span>
+        </div>
+        <div class="lg-body">
+          <p class="lg-note">
+            This is last year's league information. The 2026&ndash;27 information will be
+            posted soon after league meetings conclude.
+          </p>
+          <a class="sched-link" href="schedule.html?league=8ball">
+            <span class="sl-name">2025&ndash;26 schedule</span>
+            <span class="sl-sub">Last season, for reference</span>
+          </a>
+        </div>
       </div>
     </div>
 
