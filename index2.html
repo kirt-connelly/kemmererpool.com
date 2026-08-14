@@ -165,7 +165,10 @@ h2.head {
 /* ── Next up ─────────────────────────────────────────────────
    Lives inside the running league now, next to that league's
    standings, instead of floating in the hero. ──────────────── */
-.nextup-when { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; }
+.nextup-when {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  color: var(--brass); letter-spacing: .1em;
+}
 .panel-note {
   font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .06em;
   color: var(--dim); text-align: right;
@@ -173,18 +176,41 @@ h2.head {
 .nextup-body { padding: 6px 0; }
 .fixture {
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-  gap: 4px 10px; padding: 9px 15px; font-size: 15px;
+  gap: 6px 12px; padding: 13px 16px; font-size: 16px;
+  transition: background .15s;
 }
-.fixture + .fixture { border-top: 1px solid rgba(244,239,228,.08); }
+.fixture:hover { background: rgba(244,239,228,.04); }
+.fixture + .fixture { border-top: 1px solid rgba(244,239,228,.10); }
 .fixture .h { text-align: right; font-weight: 600; }
 .fixture .a { text-align: left; font-weight: 600; }
-.fixture .v { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--dim); }
-.fixture .rm {
-  grid-column: 1 / -1; text-align: center;
-  font-family: 'Space Mono', monospace; font-size: 10px;
-  letter-spacing: .1em; text-transform: uppercase; color: var(--brass); opacity: .85;
+/* The separator is a ball, not the word "vs" in grey — it's the one
+   place on the page the masthead's eight-ball motif comes back, and
+   it gives each matchup a centre of gravity. */
+.fixture .v {
+  width: 27px; height: 27px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.30), rgba(255,255,255,0) 45%), #100d0a;
+  box-shadow: inset -2px -3px 6px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
+  font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700;
+  letter-spacing: .02em; color: var(--brass);
 }
-.nextup-wait { padding: 16px 15px; color: rgba(244,239,228,.6); font-size: 15px; }
+.fixture .rm {
+  grid-column: 1 / -1; text-align: center; margin-top: 2px;
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--brass); opacity: .8;
+}
+.nextup-wait { padding: 18px 16px; color: rgba(244,239,228,.66); font-size: 15px; }
+
+/* A panel that just stops feels unfinished. This is its last line
+   and its way out to the rest of the schedule. */
+.panel-more {
+  display: block; padding: 12px 15px; text-align: center; text-decoration: none;
+  border-top: 1px solid rgba(244,239,228,.10); background: rgba(0,0,0,.24);
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
+  transition: background .15s, color .15s;
+}
+.panel-more:hover { background: rgba(212,161,60,.12); color: var(--bone); }
 /* Full width, so the fixtures pair up rather than running down a
    long thin column. Exactly two columns, not auto-fill, so the
    "no border on the first row" rule stays true whatever the
@@ -212,7 +238,13 @@ h2.head {
   background: linear-gradient(180deg, rgba(244,239,228,.035), transparent);
   padding: 24px;
 }
-.league.live { border-color: rgba(212,161,60,.45); }
+/* A trace of felt in the block that's actually running, so the
+   green Next up panel inside it belongs to something rather than
+   sitting there on its own. */
+.league.live {
+  border-color: rgba(212,161,60,.45);
+  background: linear-gradient(180deg, rgba(28,81,66,.20), rgba(244,239,228,.02) 55%, transparent);
+}
 .league + .league, .league + .league-pair { margin-top: 16px; }
 .league-hd {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -262,6 +294,30 @@ h2.head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 15px; background: rgba(0,0,0,.28);
   border-bottom: 1px solid rgba(244,239,228,.12); min-height: 40px;
+}
+
+/* ── The cloth panel ───────────────────────────────────────────
+   Standings is a document — a printed report, dark paper, straight
+   columns. Next up is the table itself, so it sits on cloth, with
+   the same nap as the hero turned right down. The green was only
+   ever at the top of the page; this brings it back where the
+   fixtures are, and stops the panel below standings reading as an
+   afterthought. ─────────────────────────────────────────────── */
+.panel.cloth-panel {
+  position: relative;
+  border-color: rgba(212,161,60,.26);
+  background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.58));
+}
+.panel.cloth-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+.panel.cloth-panel > * { position: relative; z-index: 1; }
+.panel.cloth-panel .panel-hd {
+  background: rgba(11,33,27,.72);
+  border-bottom-color: rgba(212,161,60,.28);
 }
 
 /* ═══ STANDINGS ══════════════════════════════════════════════ */
@@ -339,9 +395,24 @@ h2.head {
 }
 .foot-off b { font-weight: 600; }
 .foot-off span { color: var(--dim); }
-.foot a { color: var(--chalk); text-decoration: none; }
-.foot a:hover { text-decoration: underline; }
+.foot a { color: var(--bone); text-decoration: none; }
 .foot-sign { font-size: 15px; color: var(--dim); }
+
+/* Three links in a row of default-looking blue read as an
+   afterthought. They're the only way anyone gets hold of the
+   league, so they're buttons: bone type, brass mark, brass edge on
+   hover — the same treatment the league links already get. */
+.foot-links { list-style: none; display: grid; gap: 8px; }
+.foot-links a {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 13px; border: 1px solid rgba(244,239,228,.14); border-radius: 4px;
+  background: rgba(244,239,228,.025);
+  color: var(--bone); font-size: 15px; font-weight: 600; line-height: 1.35;
+  transition: border-color .15s, background .15s;
+}
+.foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.10); }
+.foot-links svg { width: 18px; height: 18px; flex: none; fill: var(--brass); }
+.foot-links span { min-width: 0; overflow-wrap: anywhere; }
 .colophon {
   margin-top: 34px; padding-top: 20px; border-top: 1px solid rgba(244,239,228,.08);
   display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
@@ -399,6 +470,11 @@ a:focus-visible, button:focus-visible {
   .stand .team { font-size: 15px; }
   .panel-note { display: none; }
   .league-go a { font-size: 13px; padding: 9px 12px; }
+  /* Two team names either side of the ball on a 375px screen —
+     pull the padding and the ball in so the names get the room. */
+  .fixture { padding: 11px 12px; gap: 5px 9px; font-size: 15px; }
+  .fixture .v { width: 24px; height: 24px; font-size: 8.5px; }
+  .foot-links a { font-size: 14px; }
   /* The full name and the links won't sit on one line on a phone,
      and a clipped "BARS" looks broken. So they stack and centre —
      which matches the rest of the page now anyway. Nothing is
@@ -487,7 +563,7 @@ a:focus-visible, button:focus-visible {
             </div>
           </div>
 
-          <div class="panel">
+          <div class="panel cloth-panel">
             <div class="panel-hd">
               <span class="eyebrow">Next up</span>
               <span class="nextup-when" id="next-when"></span>
@@ -495,6 +571,7 @@ a:focus-visible, button:focus-visible {
             <div class="nextup-body" id="next-body">
               <div class="nextup-wait">Checking the schedule&hellip;</div>
             </div>
+            <a class="panel-more" href="schedule.html?league=10ball">The whole schedule &rarr;</a>
           </div>
         </div>
       </article>
@@ -643,16 +720,31 @@ a:focus-visible, button:focus-visible {
         </div>
         <div>
           <h4>Get in touch</h4>
-          <p class="foot-sign">
-            <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a><br>
-            <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">Facebook group</a><br>
-            <a href="index.html">The full site</a>
-          </p>
+          <ul class="foot-links">
+            <li>
+              <a href="mailto:officers@kemmererpool.com">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6.5A2.5 2.5 0 0 1 4.5 4h15A2.5 2.5 0 0 1 22 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5v-11Zm2.9-.5L12 11.6 19.1 6H4.9ZM20 8.4l-7.4 5.8a1 1 0 0 1-1.2 0L4 8.4v9.1c0 .28.22.5.5.5h15a.5.5 0 0 0 .5-.5V8.4Z"/></svg>
+                <span>officers@kemmererpool.com</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.5-3.9 3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.45 2.89h-2.33v6.99A10 10 0 0 0 22 12Z"/></svg>
+                <span>Facebook group</span>
+              </a>
+            </li>
+            <li>
+              <a href="index.html">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3h8v8h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H13V3Z"/><path d="M5 5h6v2H6v11h11v-5h2v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>
+                <span>The full site</span>
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2 v0.52</span>
+        <span>Design study &middot; index2 v0.53</span>
       </div>
     </div>
   </footer>
