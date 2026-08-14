@@ -97,7 +97,10 @@ header {
 }
 
 /* ═══ PAGE HEAD ══════════════════════════════════════════════ */
-.page-hd { padding: 26px 0 0; }
+/* Longhand. This page head carries .wrap on league.html, and a
+   `padding:` shorthand here wipes .wrap's `0 24px` — which put the
+   whole head flush against the edge of the phone. */
+.page-hd { padding-top: 26px; }
 .eyebrow {
   font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
   letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
@@ -410,7 +413,7 @@ a:focus-visible, button:focus-visible {
 </main>
 
 <footer>
-  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.02</div>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.03</div>
 </footer>
 
 <div class="lb" id="lb" onclick="closeFlyer()">
