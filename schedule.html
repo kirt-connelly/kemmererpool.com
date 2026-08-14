@@ -5,210 +5,308 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Schedule — Kemmerer Pool League</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 <style>
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:        #141414;
-      --bg2:       #1e1e1e;
-      --bg3:       #262626;
-      --bg4:       #2e2e2e;
-      --border:    #363636;
-      --border2:   #464646;
-      --text:      #ffffff;
-      --text2:     #b0a898;
-      --text3:     #666058;
-      --accent:    #27855a;
-      --accent-dim:#1a5c3e;
-      --cream:     #e8ddd0;
-      --green:     #27855a;
-      --green2:    #32a870;
-      --felt:      repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px);
-      --loss:      #cc4444;
-      --on-accent: #ffffff;
-      --overlay:   rgba(0,0,0,.88);
-      --radius:    8px;
-      --radius-sm: 5px;
-    }
-    html[data-theme="light"] {
-      --bg:        #f5f3ef;
-      --bg2:       #ffffff;
-      --bg3:       #eae6df;
-      --bg4:       #ddd8ce;
-      --border:    #d6d0c5;
-      --border2:   #bcb4a6;
-      --text:      #1a1714;
-      --text2:     #5a5348;
-      --text3:     #8b8376;
-      --accent:    #1f6b48;
-      --accent-dim:#175038;
-      --cream:     #2b2419;
-      --green:     #1f6b48;
-      --green2:    #1a7a4e;
-      --loss:      #b23636;
-      --on-accent: #ffffff;
-      --overlay:   rgba(0,0,0,.72);
+      --brass:     #d4a13c;
+      --bone:      #f4efe4;
+      --bg:        #14100c;
+      --bg2:       #1d1712;
+      --bg3:       #251d15;
+      --bg4:       #31261b;
+      --border:    #33291f;
+      --border2:   #473829;
+      --text:      #f4efe4;
+      --text2:     #b7ab99;
+      --text3:     #8d8172;
+      --accent:    #d4a13c;
+      --cream:     #f4efe4;
+      --green:     #2f8a63;
+      --green2:    #4fae86;
+      --on-accent: #201910;
+      --radius:    6px;
+      --radius-sm: 4px;
     }
 
     html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
+    body {
+      font-family: 'Barlow', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); min-height: 100vh; line-height: 1.55; font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-    .felt-strip { height: 4px; background: var(--felt); }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
 
-    /* ── Header ── */
-    header { background: var(--bg2); border-bottom: 1px solid var(--border); }
-    .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px); opacity: .5; }
-    .header-inner { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0 0; gap: 12px; flex-wrap: nowrap; }
-    .logo-block { display: flex; align-items: center; gap: 0; min-width: 0; }
-    .league-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.02em; line-height: 1.2; }
-    .league-sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 3px; }
-    .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
-    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-    .live-pill.live { background: rgba(50,168,112,.12); border: 1px solid rgba(50,168,112,.3); color: var(--green2); }
-    .live-pill.demo { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
-    .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .live-pill.live .dot { background: var(--green2); }
-    .live-pill.demo .dot { background: var(--text3); }
-    .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: background .15s, color .15s; }
-    .theme-btn:hover { background: var(--bg4); color: var(--text); }
-    .refresh-note { font-size: 11px; color: var(--text3); }
+    .lamp {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
+        radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
+    }
+    header, main, footer { position: relative; z-index: 1; }
+
+    /* ── Masthead ───────────────────────────────────────────────── */
+    header {
+      background: rgba(20,16,12,.86);
+      backdrop-filter: saturate(140%) blur(10px);
+      -webkit-backdrop-filter: saturate(140%) blur(10px);
+      border-bottom: 1px solid rgba(212,161,60,.15);
+      position: sticky; top: 0; z-index: 40;
+    }
+    .mast-in { display: flex; align-items: center; gap: 24px; height: 62px; }
+    .mark { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+    .mark .eight {
+      width: 27px; height: 27px; border-radius: 50%; flex: none; display: grid; place-items: center;
+      background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+      box-shadow: inset -3px -4px 7px rgba(0,0,0,.6);
+    }
+    .mark .eight span {
+      width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
+      font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
+    }
+    .mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; color: var(--bone); white-space: nowrap; }
+    .mast-nav { margin-left: auto; display: flex; gap: 4px; }
+    .mast-nav a {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--text3);
+      text-decoration: none; padding: 8px 12px; border-radius: 4px;
+    }
+    .mast-nav a:hover { color: var(--bone); background: rgba(244,239,228,.06); }
+
+    /* ── Rail diamonds ──────────────────────────────────────────── */
+    .rail-rule {
+      display: flex; align-items: center; justify-content: center; gap: 46px;
+      height: 26px; position: relative;
+    }
+    .rail-rule::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,161,60,.22) 12%,
+                  rgba(212,161,60,.22) 88%, transparent);
+    }
+    .rail-rule i {
+      width: 7px; height: 7px; background: var(--brass); opacity: .5;
+      transform: rotate(45deg); position: relative; flex: none;
+    }
+
+    /* ── Page head ──────────────────────────────────────────────── */
+    .page-hd { padding: 26px 0 0; }
+    .eyebrow {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+    }
+    .page-hd h1 {
+      font-size: clamp(26px, 4vw, 38px); font-weight: 700;
+      letter-spacing: -.02em; line-height: 1.1; margin: 9px 0 0; color: var(--bone);
+    }
+    .page-hd .sub { color: var(--text3); font-size: 15px; margin-top: 7px; }
 
   /* ── The schedule ──
      Each week is a block with its date as a header, so the date never eats a
      column of width — which is what made this unreadable on a phone. Matches
      line up in a grid on a wide screen and fold onto two lines on a narrow one. */
-  .page { max-width: 900px; margin: 0 auto; padding: 0 20px 40px; }
-  .bar-top { display: flex; justify-content: flex-end; padding: 16px 0 14px; }
-  .acts { display: flex; gap: 8px; flex-wrap: wrap; }
-  .act { display: inline-flex; align-items: center; font-family: inherit; font-size: 14px;
-    font-weight: 600; padding: 9px 16px; border-radius: var(--radius-sm); cursor: pointer;
-    text-decoration: none; border: 1px solid var(--border); background: var(--bg3);
-    color: var(--text2); white-space: nowrap; }
-  .act:hover { background: var(--bg4); color: var(--text); }
-  .act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .page { max-width: 900px; margin: 0 auto; padding: 0 24px 50px; }
 
-  .week { border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--bg2); overflow: hidden; margin-bottom: 14px; }
-  .week-hdr { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px;
-    background: var(--bg3); border-bottom: 1px solid var(--border2); }
-  .wkno { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--text3); }
-  .wkdate { font-size: 15px; font-weight: 700; color: var(--cream); }
-  .week.next .wkdate { color: var(--green2); }
-  .pill { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; padding: 3px 9px; border-radius: 99px;
-    background: var(--accent); color: var(--on-accent); }
+  .acts { display: flex; gap: 8px; flex-wrap: wrap; padding: 22px 0 18px; }
+  .act {
+    display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    padding: 10px 15px; border-radius: 4px; cursor: pointer; text-decoration: none;
+    border: 1px solid var(--border); background: transparent; color: var(--text3);
+    white-space: nowrap; transition: color .15s, border-color .15s, background .15s;
+  }
+  .act:hover { background: rgba(244,239,228,.05); color: var(--bone); border-color: var(--border2); }
+  .act.primary { border-color: rgba(212,161,60,.55); background: rgba(212,161,60,.12); color: var(--brass); }
+  .act.primary:hover { background: rgba(212,161,60,.2); color: var(--bone); }
 
-  .match { display: grid; grid-template-columns: 1fr 34px 1fr 160px; align-items: center;
-    gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 15px; }
+  /* Weeks sit on cloth, the way the fixtures do on the front page. */
+  .week {
+    position: relative; border: 1px solid rgba(244,239,228,.12); border-radius: 5px;
+    background: rgba(0,0,0,.18); overflow: hidden; margin-bottom: 12px;
+  }
+  .week-hdr {
+    display: flex; align-items: baseline; gap: 12px; padding: 11px 16px;
+    background: rgba(0,0,0,.28); border-bottom: 1px solid rgba(244,239,228,.1);
+  }
+  .wkno {
+    font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--text3);
+  }
+  .wkdate { font-size: 16px; font-weight: 700; color: var(--cream); letter-spacing: -.01em; }
+  .pill {
+    margin-left: auto; font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px;
+    background: rgba(212,161,60,.16); border: 1px solid rgba(212,161,60,.5); color: var(--brass);
+  }
+
+  /* The next week to be played is the one you came for, so it gets the
+     cloth and a brass edge. Everything else stays quiet. */
+  .week.next {
+    border-color: rgba(212,161,60,.42);
+    background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.55));
+  }
+  .week.next::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .45;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+  }
+  .week.next .week-hdr { background: rgba(11,33,27,.72); border-bottom-color: rgba(212,161,60,.28); }
+  .week.next .wkdate { color: var(--bone); }
+  .week.next .match { position: relative; z-index: 1; }
+
+  .match {
+    display: grid; grid-template-columns: 1fr 40px 1fr 170px; align-items: center;
+    gap: 8px 12px; padding: 12px 16px; border-bottom: 1px solid rgba(244,239,228,.08);
+    font-size: 16px;
+  }
   .match:last-child { border-bottom: none; }
-  .side { color: var(--cream); font-weight: 500; min-width: 0;
-    overflow: hidden; text-overflow: ellipsis; }
-  /* The two teams meet in the middle, with vs sitting between them. */
+  .side { color: var(--cream); font-weight: 600; min-width: 0; }
   .home { text-align: right; }
   .away { text-align: left; }
-  .vs { text-align: center; color: var(--text3); font-size: 12px; font-weight: 600;
-    letter-spacing: .03em; }
-  .at { color: var(--text2); text-align: right; }
+  /* Same ball that separates the fixtures on the front page. */
+  .vs {
+    justify-self: center; width: 27px; height: 27px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.30), rgba(255,255,255,0) 45%), #100d0a;
+    box-shadow: inset -2px -3px 6px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
+    font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700; color: var(--brass);
+  }
+  .at {
+    font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text3); text-align: right;
+  }
 
   /* Weeks already played stay readable but recede. */
   .week.past .wkdate { color: var(--text2); }
-  .week.past .side, .week.past .at { color: var(--text3); font-weight: 400; }
+  .week.past .side { color: var(--text2); font-weight: 500; }
+  .week.past .vs { opacity: .5; }
 
   @media (max-width: 620px) {
-    .page { padding: 0 12px 30px; }
-    .bar-top { padding: 12px 0; }
-    .acts { width: 100%; }
-    .act { font-size: 13px; padding: 8px 12px; flex: 1; justify-content: center; }
+    .wrap { padding-left: 16px; padding-right: 16px; }
+    .page { padding: 0 16px 36px; }
+    .page-hd { padding-top: 20px; }
+    .acts { padding: 16px 0 14px; }
+    .act { flex: 1; justify-content: center; padding: 10px 8px; font-size: 10px; letter-spacing: .08em; }
     /* Teams on one line, the bar beneath — nothing gets squeezed. */
-    .match { grid-template-columns: 1fr 30px 1fr; gap: 6px; padding: 10px 14px; font-size: 15px; }
+    .match { grid-template-columns: 1fr 32px 1fr; gap: 5px 8px; padding: 11px 13px; font-size: 15px; }
+    .vs { width: 24px; height: 24px; font-size: 8.5px; }
     /* The bar sits under the pairing, centred on it rather than adrift on the left. */
-    .at { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--text3);
-      margin-top: 2px; }
+    .at { grid-column: 1 / -1; text-align: center; margin-top: 1px; }
+    .mast-in { height: auto; flex-direction: column; justify-content: center;
+               gap: 2px; padding-top: 9px; padding-bottom: 7px; }
+    .mark b { font-size: 14px; }
+    .mast-nav { margin-left: 0; }
+    .mast-nav a { padding: 6px 9px; letter-spacing: .08em; }
+    .rail-rule { gap: 26px; }
+    .wkdate { font-size: 15px; }
   }
 
-  .msg { padding: 40px 20px; text-align: center; color: var(--text3); font-size: 15px; }
-  footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
-    font-size: 11px; color: var(--text3); letter-spacing: .05em; margin-top: 30px; }
+  .msg { padding: 44px 20px; text-align: center; color: var(--text3); font-size: 15px; }
+  footer {
+    border-top: 1px solid rgba(244,239,228,.1); background: var(--bg2);
+    padding: 24px 0; text-align: center; font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--text3); letter-spacing: .06em; margin-top: 30px;
+  }
+  footer a { color: var(--text2); text-decoration: none; }
+  footer a:hover { color: var(--brass); }
+
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 3px;
+  }
+
+  /* ── Print ──
+     This is the sheet that goes on the wall at the bar, so it prints
+     black on white with no screen furniture, and a week never splits
+     across a page. */
   @media print {
-    body { background: #fff; color: #000; }
-    .acts, .theme-btn, .pill, .bar-top { display: none !important; }
-    .page { max-width: none; padding: 0; }
-    .header-felt { display: none; }
-    header { padding: 0 0 8px; border-bottom: 2px solid #000; margin-bottom: 10px; background: none; }
-    header h1 { font-size: 15pt; color: #000; }
-    header .sub { font-size: 9pt; color: #444; }
-    .week { border: none; border-top: 1.5px solid #888; border-radius: 0; background: none;
-      margin-bottom: 0; break-inside: avoid; page-break-inside: avoid; }
-    .week-hdr { background: none; border-bottom: 1px solid #ccc; padding: 5px 0 3px; }
-    .wkno, .wkdate { color: #000; font-size: 10pt; }
-    .match { padding: 3px 0; border-bottom: none; font-size: 9.5pt;
-      grid-template-columns: 1fr 28px 1fr 150px; }
-    .side, .at { color: #000 !important; font-weight: 400; }
-    .week.past .side, .week.past .at { color: #444 !important; }
-    footer { display: none; }
+    html, body { background: #fff; color: #000; font-size: 10.5pt; }
+    .lamp, .acts, .rail-rule, .mast-nav, .pill, footer { display: none !important; }
+    header {
+      position: static; background: none; backdrop-filter: none;
+      border-bottom: 2px solid #000; padding: 0;
+    }
+    .mast-in { height: auto; padding: 0 0 6px; }
+    .mark .eight { display: none; }
+    .mark b { color: #000; font-size: 11pt; }
+    .wrap, .page { max-width: none; padding: 0; }
+    .page-hd { padding: 10px 0 12px; }
+    .page-hd h1 { font-size: 16pt; color: #000; margin: 2px 0 0; }
+    .eyebrow { color: #444; font-size: 8pt; letter-spacing: .14em; }
+    .page-hd .sub { color: #444; font-size: 9pt; }
+
+    .week {
+      border: none; border-top: 1.5px solid #888; border-radius: 0; background: none !important;
+      margin-bottom: 0; break-inside: avoid; page-break-inside: avoid;
+    }
+    .week.next::after { display: none; }
+    .week-hdr { background: none !important; border-bottom: 1px solid #ccc; padding: 5px 0 3px; }
+    .wkno, .wkdate { color: #000 !important; font-size: 10pt; }
+    .match {
+      padding: 3px 0; border-bottom: none; font-size: 9.5pt;
+      grid-template-columns: 1fr 34px 1fr 160px; gap: 4px 10px;
+    }
+    .side { color: #000 !important; font-weight: 500; }
+    .week.past .side { color: #444 !important; }
+    /* The ball is a background gradient, and browsers drop those when
+       printing — so it prints as the word instead. */
+    .vs {
+      background: none !important; box-shadow: none !important; color: #000 !important;
+      width: auto; height: auto; font-size: 8pt;
+    }
+    .at { color: #000 !important; font-size: 8.5pt; letter-spacing: .06em; }
   }
 </style>
 </head>
 <body>
 
+<div class="lamp" aria-hidden="true"></div>
+
 <header>
-  <div class="header-felt"></div>
-  <div class="wrap">
-    <div class="header-inner">
-      <div>
-        <h1 id="lg-title">Schedule</h1>
-        <div class="sub">Kemmerer Pool League</div>
-      </div>
-      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">&#127769;</button>
-    </div>
+  <div class="wrap mast-in">
+    <a class="mark" href="index.html">
+      <span class="eight" aria-hidden="true"><span>8</span></span>
+      <b>Kemmerer Pool League</b>
+    </a>
+    <nav class="mast-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#tournaments">Tournaments</a>
+      <a href="index.html#rooms">Bars</a>
+    </nav>
   </div>
 </header>
 
+<div class="wrap"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
 <main>
 <div class="page">
-  <div class="bar-top">
-    <div class="acts">
-      <a class="act" href="index.html">&larr; Back to the site</a>
-      <a class="act" id="other-link" href="#">Other schedule</a>
-      <button class="act primary" onclick="window.print()">Print</button>
-    </div>
+  <div class="page-hd">
+    <div class="eyebrow">Wednesday nights</div>
+    <h1 id="lg-title">Schedule</h1>
+    <div class="sub" id="lg-sub">Every week of the season, start to finish.</div>
   </div>
+
+  <div class="acts">
+    <a class="act" href="index.html">&larr; Home</a>
+    <a class="act" id="detail-link" href="league.html?lg=10ball">Standings</a>
+    <a class="act" id="other-link" href="#">Other schedule</a>
+    <button class="act primary" onclick="window.print()">Print</button>
+  </div>
+
   <div id="board"><div class="msg">Loading the schedule&hellip;</div></div>
 </div>
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;&middot;&nbsp; Schedule &nbsp;&middot;&nbsp; v1.04</div>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.00</div>
 </footer>
 
 <script>
-function isLightTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'light';
-}
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
-  const b = document.getElementById('theme-btn');
-  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
-}
-function toggleTheme() {
-  applyTheme(isLightTheme() ? 'dark' : 'light');
-}
-(function initTheme() {
-  let saved = null;
-  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
-  if (saved !== 'light' && saved !== 'dark') {
-    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  }
-  document.documentElement.setAttribute('data-theme', saved);
-  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
-})();
-
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
 
@@ -220,12 +318,15 @@ const DIVISIONS = {
 const league = (new URLSearchParams(location.search).get('league') || '10ball');
 const div = DIVISIONS[league] || DIVISIONS['10ball'];
 
+const other = league === '8ball' ? '10ball' : '8ball';
+
 document.getElementById('lg-title').textContent = div.label + ' Schedule';
-document.title = div.label + ' Schedule — Kemmerer Pool League';
-document.getElementById('other-link').href =
-  'schedule.html?league=' + (league === '8ball' ? '10ball' : '8ball');
-document.getElementById('other-link').textContent =
-  (league === '8ball' ? '10-Ball 2026' : '8-Ball 25-26') + ' schedule';
+document.getElementById('lg-sub').textContent =
+  'Every week of the season, start to finish. Print it for the wall.';
+document.title = div.label + ' Schedule \u2014 Kemmerer Pool League';
+document.getElementById('detail-link').href = 'league.html?lg=' + league;
+document.getElementById('other-link').href = 'schedule.html?league=' + other;
+document.getElementById('other-link').textContent = DIVISIONS[other].label;
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -287,7 +388,7 @@ function render(weeks) {
       </header>
       ${w.matches.map(m => `<div class="match">
         <span class="side home">${esc(m.home)}</span>
-        <span class="vs">vs</span>
+        <span class="vs" aria-hidden="true">VS</span>
         <span class="side away">${esc(m.away)}</span>
         <span class="at">${esc(m.venue)}</span>
       </div>`).join('')}

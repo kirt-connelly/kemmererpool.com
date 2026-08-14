@@ -1,1814 +1,1022 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kemmerer Pool League</title>
-  <meta name="description" content="Official standings, player stats, and schedule for the Kemmerer Pool League." />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:        #141414;
-      --bg2:       #1e1e1e;
-      --bg3:       #262626;
-      --bg4:       #2e2e2e;
-      --border:    #363636;
-      --border2:   #464646;
-      --text:      #ffffff;
-      --text2:     #b0a898;
-      --text3:     #666058;
-      --accent:    #27855a;
-      --accent-dim:#1a5c3e;
-      --cream:     #e8ddd0;
-      --green:     #27855a;
-      --green2:    #32a870;
-      --felt:      repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px);
-      --loss:      #cc4444;
-      --on-accent: #ffffff;
-      --overlay:   rgba(0,0,0,.88);
-      --radius:    8px;
-      --radius-sm: 5px;
-    }
-    html[data-theme="light"] {
-      --bg:        #f5f3ef;
-      --bg2:       #ffffff;
-      --bg3:       #eae6df;
-      --bg4:       #ddd8ce;
-      --border:    #d6d0c5;
-      --border2:   #bcb4a6;
-      --text:      #1a1714;
-      --text2:     #5a5348;
-      --text3:     #8b8376;
-      --accent:    #1f6b48;
-      --accent-dim:#175038;
-      --cream:     #2b2419;
-      --green:     #1f6b48;
-      --green2:    #1a7a4e;
-      --loss:      #b23636;
-      --on-accent: #ffffff;
-      --overlay:   rgba(0,0,0,.72);
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kemmerer Pool League</title>
+<meta name="description" content="Standings, schedules and league nights for the Kemmerer Pool League — Kemmerer, Wyoming." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Kemmerer Pool League — design study
 
-    html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-    .felt-strip { height: 4px; background: var(--felt); }
+   The palette is a bar room at nine at night: tungsten pooling on
+   green cloth, mahogany rails, and everything the lamp doesn't
+   reach falling into a warm brown dark. Chalk blue is the only
+   cool thing in the room, so it's the only cool colour here.
 
-    /* ── Header ── */
-    header { background: var(--bg2); border-bottom: 1px solid var(--border); }
-    .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0px,#154d28 4px,#1a5c32 8px); opacity: .5; }
-    .header-inner { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0 0; gap: 12px; flex-wrap: nowrap; }
-    .logo-block { display: flex; align-items: center; gap: 0; min-width: 0; }
-    .league-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.02em; line-height: 1.2; }
-    .league-sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 3px; }
-    .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
-    .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-    .live-pill.live { background: rgba(50,168,112,.12); border: 1px solid rgba(50,168,112,.3); color: var(--green2); }
-    .live-pill.demo { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
-    .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .live-pill.live .dot { background: var(--green2); }
-    .live-pill.demo .dot { background: var(--text3); }
-    .theme-btn { width: 27px; height: 27px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; transition: background .15s, color .15s; }
-    .theme-btn:hover { background: var(--bg4); color: var(--text); }
-    .refresh-note { font-size: 11px; color: var(--text3); }
+   Rail diamonds are how you measure a bank shot off a real table.
+   Here they divide the sections — the page is measured the way the
+   table is.
+   ═══════════════════════════════════════════════════════════════ */
 
-    /* ── League tabs ── */
-    .league-tabs { display: flex; gap: 3px; padding-top: 14px; }
-    .ltab { padding: 8px 18px; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0; border: 1px solid var(--border); border-bottom: none; background: var(--bg3); color: var(--text2); transition: all .15s; white-space: nowrap; }
-    .ltab:hover:not(.active) { color: var(--text); background: var(--bg4); }
-    .ltab.inactive-league { color: var(--text2); background: var(--bg3); }
-    .ltab.inactive-league:hover { color: var(--text); background: var(--bg4); }
-    .ltab.active { background: var(--bg); color: var(--text); border-color: var(--border); border-bottom-color: var(--bg); position: relative; bottom: -1px; font-weight: 600; }
-    .ltab .badge { font-size: 9px; background: var(--green); color: var(--on-accent); border-radius: 99px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
+:root {
+  --night:   #14100c;
+  --night-2: #1d1712;
+  --felt:    #1c5142;
+  --felt-lo: #102e26;
+  --rail:    #3a2318;
+  --brass:   #d4a13c;
+  --chalk:   #5b8fc7;
+  --bone:    #f4efe4;
+  --dim:     #9d9282;
+  --shell:   1080px;
+}
 
-    /* ── View tabs ── */
-    .view-bar { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; overflow-x: auto; }
-    .view-bar::-webkit-scrollbar { display: none; }
-    .view-bar-inner { display: flex; gap: 2px; padding: 8px 0; white-space: nowrap; min-width: min-content; }
-    .vtab { padding: 7px 14px; cursor: pointer; font-size: 13px; font-weight: 400; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text2); transition: all .12s; white-space: nowrap; flex-shrink: 0; }
-    .vtab:hover:not(.active) { color: var(--text); background: var(--bg3); }
-    .vtab.active { background: var(--bg3); color: var(--text); font-weight: 600; border-left: 2px solid var(--accent); padding-left: 12px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 
-    /* ── Main ── */
-    main { padding: 24px 0 80px; }
+body {
+  background: var(--night);
+  color: var(--bone);
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 17px; line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-    /* ── Card ── */
-    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--bg3); }
-    .card-title { font-size: 15px; font-weight: 600; color: var(--text); }
-    .card-meta { font-size: 12px; color: var(--text3); }
+.shell { width: 100%; max-width: var(--shell); margin: 0 auto; padding: 0 24px; }
 
-    /* ── Table ── */
-    .tbl { width: 100%; border-collapse: collapse; }
-    .tbl th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
-    .tbl td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; color: var(--text2); }
-    .tbl tbody tr:last-child td { border-bottom: none; }
-    .tbl tbody tr:hover td { background: var(--bg3); }
-    .num { font-variant-numeric: tabular-nums; }
-    .rank-num { font-size: 12px; font-weight: 500; color: var(--text3); width: 24px; display: inline-block; text-align: right; }
+/* Alfa Slab is the saloon-poster voice and appears twice on the
+   whole page. Space Mono handles every number and label, the way a
+   printed scoresheet would. */
+.display { font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400; }
 
-    /* ── Bar ── */
-    .bar-wrap { display: flex; align-items: center; gap: 10px; }
-    .bar-track { height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; flex-shrink: 0; }
-    .bar-fill { height: 100%; border-radius: 3px; }
+.eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+}
+h2.head {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.1; margin: 10px 0 0;
+}
+.lede { color: var(--dim); max-width: 56ch; margin-top: 12px; }
 
-    /* ── Fargo bar ── */
-    .fargo-wrap { display: flex; align-items: center; gap: 10px; }
-    .fargo-track { width: 90px; height: 7px; border-radius: 4px; background: var(--bg); overflow: hidden; flex-shrink: 0; }
-    .fargo-fill { height: 100%; border-radius: 4px; }
-    .fargo-num { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* ── Rail diamonds ─────────────────────────────────────────── */
+.rail-rule {
+  display: flex; align-items: center; justify-content: center; gap: 46px;
+  height: 26px; position: relative;
+}
+.rail-rule::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,161,60,.22) 12%,
+              rgba(212,161,60,.22) 88%, transparent);
+}
+.rail-rule i {
+  width: 7px; height: 7px; background: var(--brass); opacity: .5;
+  transform: rotate(45deg); position: relative; flex: none;
+}
 
-    /* ── Team section (Players/Team) ── */
-    .team-section-hdr { padding: 9px 16px; background: var(--bg3); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--cream); letter-spacing: .05em; text-transform: uppercase; border-left: 3px solid var(--accent); }
+/* ── The lamp ──────────────────────────────────────────────── */
+.lamp {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
+    radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
+}
+.page { position: relative; z-index: 1; }
 
-    /* ── Schedule ── */
-    .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
-    .sched-block.sched-next { border-color: var(--accent); }
-    .next-pill { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 10px; font-weight: 700; letter-spacing: .06em; vertical-align: middle; }
-    .sched-count { font-weight: 400; color: var(--text3); font-size: 11px; }
-    .match-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); }
-    @media (max-width: 700px) { .match-grid { grid-template-columns: 1fr; } }
-    .match-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px 16px; background: var(--bg2); min-height: 110px; }
-    .match-card:hover { background: var(--bg3); }
-    .match-teams-row { display: flex; align-items: center; justify-content: center; width: 100%; }
-    .match-home { width: 160px; text-align: right; padding-right: 14px; display: flex; flex-direction: column; align-items: flex-end; }
-    .match-away { width: 160px; text-align: left; padding-left: 14px; display: flex; flex-direction: column; align-items: flex-start; }
-    .match-name { font-size: 14px; font-weight: 700; color: var(--cream); line-height: 1.2; }
-    .match-label { font-size: 10px; color: var(--text3); margin-top: 3px; letter-spacing: .06em; text-transform: uppercase; }
-    .vs-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-    .vs-chip { background: var(--accent); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 800; color: var(--on-accent); letter-spacing: .08em; }
-    .result-btn {
-      background: var(--bg3);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 4px;
-      white-space: nowrap;
-      transition: background 0.15s, color 0.15s;
-      letter-spacing: 0.03em;
-    }
-    .result-btn:hover {
-      background: var(--accent);
-      color: var(--on-accent);
-    }
-    .venue-label { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500; }
+/* ═══ MASTHEAD ═══════════════════════════════════════════════ */
+.mast {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(20,16,12,.84);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(212,161,60,.15);
+}
+.mast-in { display: flex; align-items: center; gap: 24px; height: 62px; }
+.mark { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+.mark .eight {
+  width: 27px; height: 27px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+  box-shadow: inset -3px -4px 7px rgba(0,0,0,.6);
+}
+.mark .eight span {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
+  font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
+}
+/* One name, one treatment, one element. "Pool League" used to sit
+   dimmer and lighter than "Kemmerer" in a separate tag, which read
+   as two different things rather than the league's name. */
+.mark b {
+  font-weight: 700; font-size: 15px;
+  letter-spacing: -.01em; color: var(--bone); white-space: nowrap;
+}
 
-    /* ── Print toolbar ── */
-    .sched-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
-    .print-title { display: none; }
-    .print-btn {
-      background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
-      padding: 6px 14px; border-radius: var(--radius-sm); font-family: inherit;
-      font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s;
-    }
-    .print-btn:hover { background: var(--bg4); color: var(--text); }
+.mast nav { margin-left: auto; display: flex; gap: 4px; }
+.mast nav a {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  text-decoration: none; padding: 8px 12px; border-radius: 4px;
+}
+.mast nav a:hover { color: var(--bone); background: rgba(244,239,228,.06); }
 
-    /* ── Spinner ── */
-    .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 80px 0; }
-    .spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner-label { color: var(--text3); font-size: 13px; }
+/* ═══ HERO ═══════════════════════════════════════════════════
+   The page opens on the cloth, because that's where the league
+   happens. Type and nothing else — no ornament. ─────────────── */
+.cloth {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 50% -10%, rgba(255,255,255,.09), transparent 55%),
+    linear-gradient(180deg, var(--felt) 0%, var(--felt-lo) 100%);
+  border-top: 3px solid var(--rail);
+  border-bottom: 3px solid var(--rail);
+}
+.cloth::after {                     /* the nap of the cloth */
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+/* Longhand on purpose. This element carries .shell too, and
+   .shell's `padding: 0 24px` shorthand is redefined inside the
+   560px media query — a `padding:` shorthand here gets wiped by it
+   and the hero loses all its vertical room on a phone. That is
+   exactly what happened once. Keep these longhand. */
+.cloth-in {
+  position: relative; z-index: 2;
+  padding-top: 84px; padding-bottom: 88px; text-align: center;
+}
 
-    /* ── Notice ── */
-    .notice { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; color: var(--text2); font-size: 14px; line-height: 1.8; }
+.hero-h1 {
+  font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400;
+  font-size: clamp(50px, 9.4vw, 100px); line-height: .94;
+  letter-spacing: -.025em; margin: 14px 0 0;
+  text-shadow: 0 3px 0 rgba(0,0,0,.3), 0 22px 44px rgba(0,0,0,.45);
+}
+.hero-h1 em { font-style: normal; color: var(--brass); }
+.hero-sub {
+  margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
+  max-width: 40ch; text-wrap: balance;
+}
 
-    /* ── Responsive ── */
-    @media (max-width: 640px) {
-      .header-inner { padding: 12px 0 0; gap: 8px; }
-      .league-name { font-size: 20px; }
-      .league-sub { display: none; }
-      .live-pill { font-size: 10px; padding: 3px 9px; }
-      .refresh-note { font-size: 10px; }
-      .league-tabs { padding-top: 12px; }
-      .ltab { padding: 7px 14px; font-size: 13px; }
-      .vtab { padding: 6px 10px; font-size: 12px; }
-      .vtab.active { padding-left: 9px; }
-      .tbl th { padding: 8px 8px; font-size: 10px; }
-      .tbl td { padding: 10px 8px; font-size: 13px; }
-      .match-card { grid-template-columns: 1fr 50px 1fr; gap: 4px; padding: 10px 10px; }
-      .match-name { font-size: 12px; }
-      .fargo-track { width: 50px; }
-      .bar-track { width: 50px !important; }
-    }
+/* ── Next up ─────────────────────────────────────────────────
+   Lives inside the running league now, next to that league's
+   standings, instead of floating in the hero. ──────────────── */
+.nextup-when {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  color: var(--brass); letter-spacing: .1em;
+}
+.panel-note {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .06em;
+  color: var(--dim); text-align: right;
+}
+.nextup-body { padding: 6px 0; }
+.fixture {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: 6px 12px; padding: 13px 16px; font-size: 16px;
+  transition: background .15s;
+}
+.fixture:hover { background: rgba(244,239,228,.04); }
+.fixture + .fixture { border-top: 1px solid rgba(244,239,228,.10); }
+.fixture .h { text-align: right; font-weight: 600; }
+.fixture .a { text-align: left; font-weight: 600; }
+/* The separator is a ball, not the word "vs" in grey — it's the one
+   place on the page the masthead's eight-ball motif comes back, and
+   it gives each matchup a centre of gravity. */
+.fixture .v {
+  width: 27px; height: 27px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.30), rgba(255,255,255,0) 45%), #100d0a;
+  box-shadow: inset -2px -3px 6px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
+  font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700;
+  letter-spacing: .02em; color: var(--brass);
+}
+.fixture .rm {
+  grid-column: 1 / -1; text-align: center; margin-top: 2px;
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--brass); opacity: .8;
+}
+.nextup-wait { padding: 18px 16px; color: rgba(244,239,228,.66); font-size: 15px; }
 
-    /* ── Leagues on Info ──
-       One block per season, newest first: what it is, whether it's running, and
-       the two things people come for — the standings and the schedule. */
-    .lg-block { border-top: 1px solid var(--border); }
-    .lg-block:first-of-type { border-top: none; }
-    .lg-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 0; }
-    .lg-name { font-size: 17px; font-weight: 700; color: var(--cream); }
-    .lg-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3);
-      white-space: nowrap; }
-    .lg-tag.on { border-color: var(--accent); color: var(--green2); }
-    .lg-tag.soon { border-color: var(--border2); color: var(--text2); }
-    .lg-body { padding: 10px 18px 16px; }
-    .lg-note { font-size: 14px; color: var(--text2); line-height: 1.7; margin: 0; }
-    .lg-note a { color: var(--green2); font-weight: 600; text-decoration: none; }
-    .lg-note a:hover { text-decoration: underline; }
+/* A panel that just stops feels unfinished. This is its last line
+   and its way out to the rest of the schedule. */
+.panel-more {
+  display: block; padding: 12px 15px; text-align: center; text-decoration: none;
+  border-top: 1px solid rgba(244,239,228,.10); background: rgba(0,0,0,.24);
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
+  transition: background .15s, color .15s;
+}
+.panel-more:hover { background: rgba(212,161,60,.12); color: var(--bone); }
+/* Full width, so the fixtures pair up rather than running down a
+   long thin column. Exactly two columns, not auto-fill, so the
+   "no border on the first row" rule stays true whatever the
+   fixture count. */
+@media (min-width: 901px) {
+  .nextup-body { display: grid; grid-template-columns: 1fr 1fr; padding: 0; }
+  .fixture { padding: 13px 18px; }
+  .fixture + .fixture { border-top: none; }
+  .fixture:nth-child(n+3) { border-top: 1px solid rgba(244,239,228,.08); }
+  .fixture:nth-child(odd) { border-right: 1px solid rgba(244,239,228,.08); }
+}
 
-    .lg-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .lg-link { display: block; text-align: left; font-family: inherit; cursor: pointer;
-      text-decoration: none; background: var(--bg); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 13px 15px; transition: border-color .15s; }
-    .lg-link:hover { border-color: var(--accent); }
-    .ll-name { display: block; font-size: 15px; font-weight: 600; color: var(--green2); }
-    .ll-sub { display: block; font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
-    @media (max-width: 560px) { .lg-links { grid-template-columns: 1fr; } }
+/* ═══ SECTION FRAME ══════════════════════════════════════════ */
+.band { padding: 62px 0; }
+.band-hd { margin-bottom: 30px; }
+[id] { scroll-margin-top: 76px; }   /* the masthead is sticky */
 
-    /* ── Info photos ──
-       Decoration, so they load lazily and keep a fixed shape to stop the page
-       jumping about as they arrive. */
-    .photo-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 10px; margin-bottom: 18px; }
-    .shot { margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--bg2);
-      border: 1px solid var(--border); aspect-ratio: 4 / 3; }
-    .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    /* On a phone they crowd out the information people came for. */
-    @media (max-width: 700px) { .photo-strip { display: none; } }
-    .pad-note { padding: 16px 18px; font-size: 14px; color: var(--text2); line-height: 1.7; }
-    @media print { .photo-strip { display: none; } }
+/* ═══ LEAGUES ════════════════════════════════════════════════
+   One block per league. The one that's running carries its own
+   standings and its own next match; the ones that aren't just
+   say so and link out. Add a block when a league starts, mark it
+   .live, and drop .live when it finishes. ──────────────────── */
+.league {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 6px;
+  background: linear-gradient(180deg, rgba(244,239,228,.035), transparent);
+  padding: 24px;
+}
+/* A trace of felt in the block that's actually running, so the
+   green Next up panel inside it belongs to something rather than
+   sitting there on its own. */
+.league.live {
+  border-color: rgba(212,161,60,.45);
+  background: linear-gradient(180deg, rgba(28,81,66,.20), rgba(244,239,228,.02) 55%, transparent);
+}
+.league + .league, .league + .league-pair { margin-top: 16px; }
+.league-hd {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 22px; flex-wrap: wrap;
+}
+.league.live .league-hd { margin-bottom: 22px; }
+.league h3 { font-size: 23px; font-weight: 700; letter-spacing: -.015em; margin: 11px 0 7px; }
+.league p { color: var(--dim); font-size: 15px; max-width: 48ch; }
+.league p a { color: var(--chalk); text-decoration: none; font-weight: 600; }
+.league p a:hover { text-decoration: underline; }
+.flag {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.league.live .flag { color: var(--brass); }
+.flag::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .55;
+}
+.league.live .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
 
-    /* ── Officer contact ── */
-    .officer-contact { padding: 14px 18px; border-top: 1px solid var(--border);
-      font-size: 14px; color: var(--text2); }
-    .officer-contact a { color: var(--green2); font-weight: 600; text-decoration: none;
-      word-break: break-all; }
-    .officer-contact a:hover { text-decoration: underline; }
-    @media print { .officer-contact a { color: #000; } }
+.league-go { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.league-hd .league-go { margin-top: 4px; }
+.league-go a {
+  display: inline-flex; align-items: center; gap: 9px;
+  text-decoration: none; color: var(--bone); font-size: 14px; font-weight: 600;
+  padding: 9px 14px; border: 1px solid rgba(244,239,228,.15); border-radius: 4px;
+  transition: border-color .15s, background .15s;
+}
+.league-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
+.league-go a::after { content: '\2192'; color: var(--brass); }
 
-    /* ── Local bars ── */
-    .thanks-note { padding: 14px 18px 0; font-size: 14px; color: var(--text2); line-height: 1.6; }
-    .bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 12px; padding: 14px 18px 18px; }
-    .bar { border: 1px solid var(--border); border-radius: var(--radius-sm);
-      background: var(--bg); padding: 14px 16px; }
-    .bar .bn { font-size: 16px; font-weight: 700; color: var(--green2); }
-    .bar .ba { font-size: 13px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
-    .bar .bp { display: inline-block; margin-top: 8px; font-size: 15px; font-weight: 600;
-      color: var(--cream); text-decoration: none; font-variant-numeric: tabular-nums; }
-    .bar .bp:hover { color: var(--green2); }
-    @media print {
-      .bar { break-inside: avoid; }
-      .bar .bp { color: #000; }
-    }
+/* Standings gets the full width of the block. The report can send
+   seven columns and they have to be readable — side by side with
+   Next up, team names wrapped to three lines and the last column
+   scrolled off. Next up is a short list; it sits underneath. */
+.league-body { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.league-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.league-pair .league { margin-top: 0; }
 
-    /* ── Suggestion form ── */
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
-    .field input, .field textarea {
-      font-family: inherit; font-size: 14px; color: var(--text);
-      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 9px 12px; width: 100%; transition: border-color .15s;
-    }
-    .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
-    .field textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
-    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-    .submit-btn {
-      background: var(--accent); color: var(--on-accent); border: none;
-      padding: 10px 22px; border-radius: var(--radius-sm); font-family: inherit;
-      font-size: 13px; font-weight: 600; letter-spacing: .03em; cursor: pointer; transition: opacity .15s;
-    }
-    .submit-btn:hover:not(:disabled) { opacity: .85; }
-    .submit-btn:disabled { opacity: .5; cursor: default; }
-    .form-status { font-size: 13px; font-weight: 500; }
+/* ── Panels (standings, next up) ───────────────────────────── */
+.panel {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 5px;
+  overflow: hidden; background: rgba(0,0,0,.18);
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 15px; background: rgba(0,0,0,.28);
+  border-bottom: 1px solid rgba(244,239,228,.12); min-height: 40px;
+}
 
-    /* ── Lightbox ── */
-    .lightbox-overlay {
-      display: none; position: fixed; inset: 0; z-index: 1000;
-      background: var(--overlay); align-items: center; justify-content: center;
-      cursor: pointer;
-    }
-    .lightbox-overlay.open { display: flex; }
-    .lightbox-overlay img {
-      max-width: 92vw; max-height: 92vh; border-radius: var(--radius);
-      box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
-    }
-    .lightbox-close {
-      position: fixed; top: 18px; right: 22px; font-size: 28px; color: var(--on-accent);
-      cursor: pointer; line-height: 1; opacity: .8; z-index: 1001;
-    }
-    .lightbox-close:hover { opacity: 1; }
+/* ── The cloth panel ───────────────────────────────────────────
+   Standings is a document — a printed report, dark paper, straight
+   columns. Next up is the table itself, so it sits on cloth, with
+   the same nap as the hero turned right down. The green was only
+   ever at the top of the page; this brings it back where the
+   fixtures are, and stops the panel below standings reading as an
+   afterthought. ─────────────────────────────────────────────── */
+.panel.cloth-panel {
+  position: relative;
+  border-color: rgba(212,161,60,.26);
+  background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.58));
+}
+.panel.cloth-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+.panel.cloth-panel > * { position: relative; z-index: 1; }
+.panel.cloth-panel .panel-hd {
+  background: rgba(11,33,27,.72);
+  border-bottom-color: rgba(212,161,60,.28);
+}
 
-    /* ── Print ── */
-    @media print {
-      /* Repoint the palette instead of overriding every rule individually. */
-      :root, html[data-theme="light"], html[data-theme="dark"] {
-        --bg: #fff; --bg2: #fff; --bg3: #f2f2f2; --bg4: #e8e8e8;
-        --border: #999; --border2: #777;
-        --text: #000; --text2: #222; --text3: #555;
-        --cream: #000; --accent: #000; --accent-dim: #000;
-        --green: #000; --green2: #000; --loss: #000; --on-accent: #000;
-      }
-      html, body { background: #fff; font-size: 10.5pt; }
-      header, .view-bar, footer, .felt-strip, .theme-btn,
-      .lightbox-overlay, .result-btn, .print-btn, .next-pill { display: none !important; }
-      main { padding: 0; }
-      .wrap { max-width: none; padding: 0; }
+/* ═══ STANDINGS ══════════════════════════════════════════════ */
+.stand { width: 100%; border-collapse: collapse; }
+#standings-frame { overflow-x: auto; }
+.stand thead th {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  text-align: left; padding: 11px 14px; background: var(--night-2);
+  border-bottom: 1px solid rgba(244,239,228,.13); white-space: nowrap;
+}
+.stand thead th.r { text-align: right; }
+.stand tbody td { padding: 12px 14px; border-bottom: 1px solid rgba(244,239,228,.07); }
+.stand tbody tr:last-child td { border-bottom: none; }
+.stand tbody tr:hover td { background: rgba(244,239,228,.03); }
+.stand .pos { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--dim); width: 46px; }
+.stand tr.lead .pos { color: var(--brass); font-weight: 700; }
+.stand .team { font-weight: 600; font-size: 16px; }
+.stand .num { font-family: 'Space Mono', monospace; font-size: 14px; text-align: right; white-space: nowrap; }
+.stand .pct { color: var(--dim); }
+.wbar { display: block; height: 5px; border-radius: 3px; background: rgba(244,239,228,.09); margin-top: 6px; }
+.wbar i { display: block; height: 100%; border-radius: 3px; background: var(--felt); filter: brightness(1.5); }
+.stand tr.lead .wbar i { background: var(--brass); filter: none; }
+.quiet-note { color: var(--dim); font-size: 15px; padding: 22px 16px; }
+.quiet-note a { color: var(--chalk); }
 
-      .sched-toolbar { display: block; margin-bottom: 14px; }
-      .print-title { display: block; font-size: 14pt; font-weight: 700; color: #000; }
-      .print-sub { display: block; font-size: 9pt; font-weight: 400; color: #555; margin-top: 2px; }
+/* ═══ DATES ══════════════════════════════════════════════════ */
+.dates { border-top: 1px solid rgba(244,239,228,.1); }
+.date-row {
+  display: grid; grid-template-columns: 172px 1fr 180px 112px;
+  gap: 16px; align-items: baseline; padding: 15px 4px;
+  border-bottom: 1px solid rgba(244,239,228,.08);
+}
+.date-row .d { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--brass); white-space: nowrap; }
+.date-row .n { font-weight: 600; font-size: 17px; }
+.date-row .w { color: var(--dim); font-size: 15px; }
+.date-row .s {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim); text-align: right;
+}
+.date-row .s.set { color: #4fae86; }
+.date-row.soft .d { color: var(--dim); }
 
-      /* Keep a week's matches together rather than split across a page. */
-      .sched-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; border: 1px solid #999; }
-      .sched-date-hdr { padding: 5px 9px; font-size: 9.5pt; border-bottom: 1px solid #999; }
-      .match-grid { gap: 0; }
-      .match-card { padding: 7px 9px; min-height: 0; gap: 4px; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; }
-      .match-name { font-size: 10pt; }
-      .match-label { font-size: 7.5pt; }
-      /* These use --accent as a *background*; forcing it black would hide the
-         text, and most browsers drop backgrounds when printing anyway. */
-      .vs-chip, .next-pill, .submit-btn, .live-pill, a[style*="var(--accent)"] {
-        background: transparent !important; color: #000 !important; border: 1px solid #999 !important;
-      }
-      .vs-chip { padding: 1px 8px; font-size: 8pt; }
-      .venue-label { font-size: 9pt; font-weight: 600; }
-    }
+/* ═══ ROOMS ══════════════════════════════════════════════════ */
+.rooms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.room {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 5px; overflow: hidden;
+  background: var(--night-2);
+}
+.room figure { margin: 0; aspect-ratio: 3 / 2; overflow: hidden; background: var(--felt-lo); }
+.room img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: saturate(.85) contrast(1.04); transition: transform .5s ease;
+}
+.room:hover img { transform: scale(1.04); }
+.room-in { padding: 17px 18px 19px; }
+.room h3 { font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+.room .addr { color: var(--dim); font-size: 14px; margin-top: 5px; }
+.room .tel {
+  display: inline-block; margin-top: 11px; font-family: 'Space Mono', monospace;
+  font-size: 14px; color: var(--chalk); text-decoration: none; font-weight: 700;
+}
+.room .tel:hover { text-decoration: underline; }
 
-    /* ── Footer ── */
-    footer { border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .05em; }
-    .footer-inner { display: flex; flex-direction: column; align-items: center; gap: 9px; }
-    .footer-status { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    footer a { color: var(--text2); text-decoration: none; }
-    footer a:hover { color: var(--text); }
-  </style>
+/* ═══ FOOTER ═════════════════════════════════════════════════ */
+.foot { background: var(--night-2); border-top: 1px solid rgba(244,239,228,.1); padding: 46px 0 34px; }
+.foot-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 32px; }
+.foot h4 {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: 14px;
+}
+.foot-off {
+  display: flex; justify-content: space-between; gap: 14px; padding: 6px 0;
+  border-bottom: 1px solid rgba(244,239,228,.07); font-size: 15px;
+}
+.foot-off b { font-weight: 600; }
+.foot-off span { color: var(--dim); }
+.foot a { color: var(--bone); text-decoration: none; }
+.foot-sign { font-size: 15px; color: var(--dim); }
+
+/* Three links in a row of default-looking blue read as an
+   afterthought. They're the only way anyone gets hold of the
+   league, so they're buttons: bone type, brass mark, brass edge on
+   hover — the same treatment the league links already get. */
+.foot-links { list-style: none; display: grid; gap: 8px; }
+.foot-links a {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 13px; border: 1px solid rgba(244,239,228,.14); border-radius: 4px;
+  background: rgba(244,239,228,.025);
+  color: var(--bone); font-size: 15px; font-weight: 600; line-height: 1.35;
+  transition: border-color .15s, background .15s;
+}
+.foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.10); }
+.foot-links svg { width: 18px; height: 18px; flex: none; fill: var(--brass); }
+.foot-links span { min-width: 0; overflow-wrap: anywhere; }
+.colophon {
+  margin-top: 34px; padding-top: 20px; border-top: 1px solid rgba(244,239,228,.08);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-family: 'Space Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: .06em;
+}
+
+
+/* ═══ SUGGESTIONS ════════════════════════════════════════════
+   The one place on the page anyone types. It sits in the same
+   panel the standings do, so it reads as part of the league
+   rather than a contact form bolted on the end. ─────────────── */
+.suggest { max-width: 640px; }
+.suggest-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.field label i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 400; }
+.field input, .field textarea {
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; color: var(--bone);
+  background: rgba(0,0,0,.3); border: 1px solid rgba(244,239,228,.15);
+  border-radius: 4px; padding: 10px 12px; width: 100%; transition: border-color .15s;
+}
+.field input::placeholder, .field textarea::placeholder { color: #6e6558; }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--brass); }
+.field textarea { resize: vertical; min-height: 118px; line-height: 1.6; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.send-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.send-btn {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  padding: 11px 20px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.55); background: rgba(212,161,60,.12); color: var(--brass);
+  transition: background .15s, color .15s;
+}
+.send-btn:hover:not(:disabled) { background: rgba(212,161,60,.22); color: var(--bone); }
+.send-btn:disabled { opacity: .5; cursor: default; }
+.form-status { font-size: 14px; font-weight: 500; }
+.suggest-note { color: var(--dim); font-size: 15px; margin: 0; }
+@media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 3px;
+}
+
+/* ═══ NARROW ═════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .cloth-in { padding-top: 62px; padding-bottom: 66px; }
+  .league-pair, .rooms { grid-template-columns: 1fr; }
+  .league { padding: 20px; }
+  .foot-grid { grid-template-columns: 1fr; gap: 26px; }
+  .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
+  .date-row .d { grid-column: 1; grid-row: 1; }
+  .date-row .n { grid-column: 1; grid-row: 2; }
+  .date-row .w { grid-column: 1; grid-row: 3; }
+  .date-row .s { grid-column: 2; grid-row: 1; }
+  .rail-rule { gap: 26px; }
+  .mast-in { gap: 14px; }
+  .mast nav { gap: 0; }
+  .mast nav a { padding: 8px 7px; font-size: 10px; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .hero-sub { font-size: 17px; }
+  .nextup { max-width: none; }
+  .shell { padding-left: 16px; padding-right: 16px; }
+  .cloth-in { padding-top: 66px; padding-bottom: 70px; }
+  /* However many columns the report sends, they scroll inside the
+     panel rather than getting clipped. Since it scrolls anyway, let
+     team names run on one line — wrapped to three lines they made
+     every row a paragraph tall. */
+  .stand thead th { padding: 10px; }
+  .stand .team { white-space: nowrap; }
+  /* Rank and team stay put while the numbers scroll under them, so
+     you can always see whose row you're reading. `left: 0` when the
+     team is the first cell (a report with no rank column), 30px
+     when it sits after the rank. */
+  .stand .pos { width: 40px; }
+  .stand thead th { letter-spacing: .08em; }
+  .stand .hteam, .stand td.team { padding-right: 16px; }
+  .stand .hpos, .stand td.pos,
+  .stand .hteam, .stand td.team { position: sticky; left: 40px; z-index: 2; }
+  .stand .hpos, .stand td.pos { left: 0; }
+  .stand tr > .hteam:first-child,
+  .stand tr > td.team:first-child { left: 0; }
+  .stand thead th.hpos, .stand thead th.hteam { background: var(--night-2); }
+  .stand td.pos, .stand td.team { background: #16120e; }
+  .stand .hteam, .stand td.team { border-right: 1px solid rgba(244,239,228,.10); }
+  .stand tbody td { padding: 10px; }
+  .stand .team { font-size: 15px; }
+  .panel-note { display: none; }
+  .league-go a { font-size: 13px; padding: 9px 12px; }
+  /* Two team names either side of the ball on a 375px screen —
+     pull the padding and the ball in so the names get the room. */
+  .fixture { padding: 11px 12px; gap: 5px 9px; font-size: 15px; }
+  .fixture .v { width: 24px; height: 24px; font-size: 8.5px; }
+  .foot-links a { font-size: 14px; }
+  /* The full name and the links won't sit on one line on a phone,
+     and a clipped "BARS" looks broken. So they stack and centre —
+     which matches the rest of the page now anyway. Nothing is
+     dropped and nothing is cut off, down to 320px. */
+  .mast-in {
+    flex-direction: column; justify-content: center;
+    gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px;
+  }
+  .mark { gap: 9px; }
+  .mark b { font-size: 14px; }
+  .mast nav { margin-left: 0; }
+  .mast nav a { padding: 6px 9px; letter-spacing: .08em; }
+}
+@media (max-width: 360px) {
+  .mark b { font-size: 13px; }
+  .mast nav a { padding: 6px 6px; font-size: 9.5px; letter-spacing: .05em; }
+}
+</style>
 </head>
 <body>
 
-<header>
-  <div class="header-felt"></div>
-  <div class="wrap">
-    <div class="header-inner">
-      <div class="logo-block">
-        <div>
-          <div class="league-name">Kemmerer Pool League</div>
-          <div class="league-sub">Jenkins Music &amp; Vending</div>
+<div class="lamp" aria-hidden="true"></div>
+
+<div class="page">
+
+  <header class="mast">
+    <div class="shell mast-in">
+      <a class="mark" href="#top">
+        <span class="eight" aria-hidden="true"><span>8</span></span>
+        <b>Kemmerer Pool League</b>
+      </a>
+      <nav>
+        <a href="#leagues">Leagues</a>
+        <a href="#tournaments">Tournaments</a>
+        <a href="#rooms">Bars</a>
+        <a href="#suggest">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="top">
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <div class="cloth">
+      <div class="shell cloth-in">
+        <div class="eyebrow">Kemmerer, Wyoming</div>
+        <h1 class="hero-h1">Rack 'em <em>up.</em></h1>
+        <p class="hero-sub">
+          Wednesday nights. Grab a beer, shoot some pool. Eight ball all
+          winter, ten ball all summer.
+        </p>
+      </div>
+    </div>
+
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <section class="band" id="leagues">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Wednesday nights</div>
+        <h2 class="head">Leagues</h2>
+      </div>
+
+      <!-- Running now: carries its own standings and its own next match. -->
+      <article class="league live">
+        <div class="league-hd">
+          <div>
+            <span class="flag">Playing now</span>
+            <h3>10-Ball Summer 2026</h3>
+            <p>Wednesday nights through the summer.</p>
+          </div>
+          <div class="league-go">
+            <a href="league.html?lg=10ball">Standings &amp; players</a>
+            <a href="schedule.html?league=10ball">Full schedule</a>
+          </div>
+        </div>
+
+        <div class="league-body">
+          <div class="panel" id="standings">
+            <div class="panel-hd">
+              <span class="eyebrow">Standings</span>
+              <span class="panel-note">Updated weekly</span>
+            </div>
+            <div id="standings-frame">
+              <div class="quiet-note">Loading the standings&hellip;</div>
+            </div>
+          </div>
+
+          <div class="panel cloth-panel">
+            <div class="panel-hd">
+              <span class="eyebrow">Next up</span>
+              <span class="nextup-when" id="next-when"></span>
+            </div>
+            <div class="nextup-body" id="next-body">
+              <div class="nextup-wait">Checking the schedule&hellip;</div>
+            </div>
+            <a class="panel-more" href="schedule.html?league=10ball">Full schedule &rarr;</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Eight ball: the one coming, and the one just finished. -->
+      <div class="league-pair">
+        <article class="league">
+          <div class="league-hd">
+            <div>
+              <span class="flag">Coming soon</span>
+              <h3>8-Ball Fall 2026&ndash;27</h3>
+              <p>
+                Signups start this fall. Watch
+                <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">the Facebook group</a>
+                or talk to an officer. Teams and the schedule go up here once
+                they're set.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="league">
+          <div class="league-hd">
+            <div>
+              <span class="flag">Wrapped</span>
+              <h3>8-Ball Fall 2025&ndash;26</h3>
+              <p>Last winter's league.</p>
+            </div>
+          </div>
+          <div class="league-go">
+            <a href="league.html?lg=8ball">Final standings</a>
+            <a href="schedule.html?league=8ball">Schedule</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <section class="band" id="tournaments">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">2026&ndash;27</div>
+        <h2 class="head">Tournaments</h2>
+        <p class="lede">Jenkins tournaments and the state event. Dates not marked confirmed can still change.</p>
+      </div>
+
+      <div class="dates">
+        <div class="date-row">
+          <span class="d">Nov 6&ndash;8, 2026</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Rock Springs</span>
+          <span class="s set">Confirmed</span>
+        </div>
+        <div class="date-row soft">
+          <span class="d">Early Dec 2026</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Venue to come</span>
+          <span class="s">Awaiting date</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Jan 8&ndash;10, 2027</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Pinedale</span>
+          <span class="s">Expected</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Mar 15&ndash;21, 2027</span>
+          <span class="n">AMOW Wyoming State 8-Ball</span>
+          <span class="w">Casper</span>
+          <span class="s">Estimated</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Apr 8&ndash;11, 2027</span>
+          <span class="n">Jenkins End of Year</span>
+          <span class="w">Rock Springs</span>
+          <span class="s set">Confirmed</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Apr 30 &ndash; May 2, 2027</span>
+          <span class="n">Jenkins Tournament</span>
+          <span class="w">Dubois</span>
+          <span class="s set">Confirmed</span>
         </div>
       </div>
-      <div class="header-right">
-        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark" aria-label="Toggle light or dark theme">🌙</button>
+
+      <div class="league-go" style="margin-top:18px">
+        <a href="league.html?lg=events">Past events and flyers</a>
       </div>
     </div>
-    <div class="league-tabs">
-      <button class="ltab active" id="ltab-info" onclick="switchLeague('info')">Info</button>
-      <button class="ltab" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
-      <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 25-26</button>
-      <button class="ltab" id="ltab-events" onclick="switchLeague('events')">Events</button>
-    </div>
-  </div>
-</header>
+  </section>
 
-<div class="view-bar">
-  <div class="wrap">
-    <div class="view-bar-inner">
-      <button class="vtab active" id="vt-teams"    onclick="switchView('teams')">Teams</button>
-      <button class="vtab"        id="vt-players"  onclick="switchView('players')">Players</button>
-      <button class="vtab"        id="vt-byteam"   onclick="switchView('byteam')">By Team</button>
-      <button class="vtab"        id="vt-list"     onclick="switchView('list')">Ratings</button>
-      <button class="vtab"        id="vt-schedule" onclick="switchView('schedule')">Schedule</button>
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <section class="band" id="rooms">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Kemmerer</div>
+        <h2 class="head">Where we play</h2>
+        <p class="lede">League nights are played at these three bars.</p>
+
+      </div>
+
+      <div class="rooms">
+        <article class="room">
+          <figure><img src="images/grumpies-team.jpg" alt="League night at Grumpies" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Grumpies</h3>
+            <div class="addr">815 S Main St., Kemmerer</div>
+            <a class="tel" href="tel:3078775661">307-877-5661</a>
+          </div>
+        </article>
+        <article class="room">
+          <figure><img src="images/sage-lanes.jpg" alt="The tables at Sage Lanes" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Sage Lanes</h3>
+            <div class="addr">918 Sage Ave, Kemmerer</div>
+            <a class="tel" href="tel:3078772973">307-877-2973</a>
+          </div>
+        </article>
+        <article class="room">
+          <figure><img src="images/stock-exchange.jpg" alt="The table at the Stock Exchange" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Stock Exchange</h3>
+            <div class="addr">712 JC Penny Dr, Kemmerer</div>
+            <a class="tel" href="tel:3078773244">307-877-3244</a>
+          </div>
+        </article>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <section class="band" id="suggest">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Say something</div>
+        <h2 class="head">Suggestions</h2>
+      </div>
+
+      <div class="panel suggest">
+        <div class="panel-hd"><span class="eyebrow">To the officers</span></div>
+        <div class="suggest-body">
+          <p class="suggest-note">
+            An idea for the league, or something wrong on the site? Send it over.
+          </p>
+          <div class="field-row">
+            <div class="field">
+              <label for="sg-name">Name <i>(optional)</i></label>
+              <input id="sg-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+            </div>
+            <div class="field">
+              <label for="sg-email">Email <i>(optional)</i></label>
+              <input id="sg-email" type="email" maxlength="120" autocomplete="email" placeholder="So we can reply">
+            </div>
+          </div>
+          <div class="field">
+            <label for="sg-message">Suggestion</label>
+            <textarea id="sg-message" maxlength="2000" placeholder="What's on your mind?"></textarea>
+          </div>
+          <div class="hp" aria-hidden="true">
+            <label for="sg-website">Leave this field empty</label>
+            <input id="sg-website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="send-row">
+            <button class="send-btn" id="sg-submit" onclick="submitSuggestion()">Send it</button>
+            <span class="form-status" id="sg-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="shell">
+      <div class="foot-grid">
+        <div>
+          <h4>The league</h4>
+          <p class="foot-sign">
+            A bar pool league in Kemmerer, Wyoming, run through Jenkins Music &amp;
+            Vending. New players are welcome &mdash; talk to an officer or show up
+            on a Wednesday.
+          </p>
+        </div>
+        <div>
+          <h4>Officers</h4>
+          <div class="foot-off"><b>Trevor Connelly</b><span>President</span></div>
+          <div class="foot-off"><b>Cody Baker</b><span>Vice President</span></div>
+          <div class="foot-off"><b>Andy Cass</b><span>Secretary</span></div>
+        </div>
+        <div>
+          <h4>Get in touch</h4>
+          <ul class="foot-links">
+            <li>
+              <a href="mailto:officers@kemmererpool.com">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6.5A2.5 2.5 0 0 1 4.5 4h15A2.5 2.5 0 0 1 22 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5v-11Zm2.9-.5L12 11.6 19.1 6H4.9ZM20 8.4l-7.4 5.8a1 1 0 0 1-1.2 0L4 8.4v9.1c0 .28.22.5.5.5h15a.5.5 0 0 0 .5-.5V8.4Z"/></svg>
+                <span>officers@kemmererpool.com</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.5-3.9 3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.45 2.89h-2.33v6.99A10 10 0 0 0 22 12Z"/></svg>
+                <span>Facebook group</span>
+              </a>
+            </li>
+            <li>
+              <a href="league.html?lg=10ball">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3h8v8h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H13V3Z"/><path d="M5 5h6v2H6v11h11v-5h2v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/></svg>
+                <span>Standings &amp; players</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="colophon">
+        <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
+        <span>v1.00</span>
+      </div>
+    </div>
+  </footer>
+
 </div>
 
-<main>
-  <div class="wrap">
-    <div id="content"></div>
-  </div>
-</main>
-
-<footer>
-  <div class="felt-strip" style="margin-bottom:16px;opacity:.4"></div>
-  <div class="footer-inner">
-    <div>
-      Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v2.15
-    </div>
-    <div class="footer-status">
-      <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
-      <span id="refresh-note"></span>
-    </div>
-  </div>
-</footer>
-
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   Live data comes through the same Cloudflare proxy the main site
+   uses. Everything degrades quietly: if the league data is slow or down,
+   each section says so plainly rather than sitting empty.
+   ═══════════════════════════════════════════════════════════════ */
+
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
-const DIVISIONS = {
-  '10ball': { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: 'Kemmerer Summer 10 Ball 2026' },
-  '8ball':  { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: 'Kemmerer 8 Ball League 25-26' },
-};
-const VIEWS = {
-  teams:    { url: id => `${BASE}/GenerateTeamStandingsReport/${id}`,         method: 'GET' },
-  players:  { url: id => `${BASE}/GeneratePlayerStandingsReport/${id}`,       method: 'GET' },
-  byteam:   { url: id => `${BASE}/GeneratePlayerStandingsByTeamReport/${id}`, method: 'GET' },
-  list:     { url: id => `${BASE}/GeneratePlayerListReport/${id}`,            method: 'GET' },
-  schedule: { url: ()  => `${BASE}/GenerateDivisionScheduleReport`,           method: 'POST', body: id => `divisionId=${id}` },
-};
+const DIVISION = 'c97cf1bf-ff08-44a0-b916-b4520124b3e6';   // 10-Ball Summer 2026
 
-let league = 'info', view = 'teams', cache = {}, isLive = null, inDrillDown = false;
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/* ── Theme ── */
-function isLightTheme() {
-  return document.documentElement.getAttribute('data-theme') === 'light';
-}
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  try { localStorage.setItem('kpl-theme', t); } catch(e) {}
-  const b = document.getElementById('theme-btn');
-  if (b) b.textContent = t === 'light' ? '☀' : '🌙';
-}
-function toggleTheme() {
-  applyTheme(isLightTheme() ? 'dark' : 'light');
-  // Win% / Fargo bars are generated as inline HSL, so re-render to re-tint them.
-  // Skipped while drilled into a match or team so the user isn't bounced out.
-  if (league === 'info') document.getElementById('content').innerHTML = renderInfo();
-  else if (league === 'events') document.getElementById('content').innerHTML = renderEvents();
-  else if (!inDrillDown) loadView();
-}
-(function initTheme() {
-  let saved = null;
-  try { saved = localStorage.getItem('kpl-theme'); } catch(e) {}
-  if (saved !== 'light' && saved !== 'dark') {
-    saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  }
-  document.documentElement.setAttribute('data-theme', saved);
-  document.addEventListener('DOMContentLoaded', () => applyTheme(saved));
-})();
-
-function setStatus(live) {
-  if (isLive === live) return;
-  isLive = live;
-  const el = document.getElementById('live-status');
-  el.className = `live-pill ${live?'live':'demo'}`;
-  el.innerHTML = `<span class="dot"></span> ${live?'Live data':'Demo data'}`;
-  document.getElementById('refresh-note').textContent =
-    `Ratings as of ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
-}
-
-async function fetchSection(lg, vw) {
-  const key = `${lg}__${vw}`;
-  if (cache[key]) return cache[key];
-  const divId = DIVISIONS[lg].id;
-  const v = VIEWS[vw];
-  const url = v.url(divId);
-  try {
-    const opts = { method: v.method||'GET', headers: { 'Accept': 'text/html' } };
-    if (v.method === 'POST') {
-      opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      opts.body = v.body(divId);
-    }
-    const r = await fetch(PROXY + encodeURIComponent(url), opts);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const html = await r.text();
-    if (!html || html.trim().length < 30) throw new Error('empty');
-    cache[key] = { html, live: true };
-    setStatus(true);
-    return cache[key];
-  } catch(e) {
-    setStatus(false);
-    cache[key] = { html: null, live: false };
-    return cache[key];
-  }
-}
-
+/* ── Standings ───────────────────────────────────────────────── */
 function parseTable(html) {
   const d = document.createElement('div');
   d.innerHTML = html;
   const table = d.querySelector('table');
   if (!table) return null;
+  const rows = [...table.querySelectorAll('tr')];
+  if (!rows.length) return null;
 
-  const allTrs = [...table.querySelectorAll('tr')];
-  if (!allTrs.length) return null;
-
-  // Try <th> elements first
   let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
-  let dataStartIdx = 1;
+  if (!headers.length) headers = [...rows[0].querySelectorAll('td')].map(td => td.textContent.trim());
 
-  // If no <th> found, treat first <tr> as header row using its <td>s
-  if (!headers.length && allTrs[0]) {
-    const firstCells = [...allTrs[0].querySelectorAll('td')];
-    if (firstCells.length) {
-      headers = firstCells.map(td => td.textContent.trim());
-    }
-  }
-
-  const rows = allTrs.slice(dataStartIdx)
+  const body = rows.slice(1)
     .map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim()))
-    .filter(r => r.length > 0);
-
-  return { headers, rows };
+    .filter(r => r.length && r.some(Boolean));
+  return { headers, body };
 }
 
-function findWinPctIdx(headers) {
+/* The report decides its own columns, and they are not always the
+   ones you'd guess — "Won" can be matches while the percentage is
+   games. So render exactly what FargoRate sends, with its own
+   headers, the way the main site does. Guessing at column meanings
+   is what put wrong numbers on this page once already. Only three
+   cells get special treatment: the rank, the team name, and
+   whichever column is the win percentage. */
+function findPctIdx(headers) {
   const patterns = [/win\s*pct/i, /win\s*%/i, /pct/i, /%/i];
   for (const p of patterns) {
-    const idx = headers.findIndex(h => p.test(h));
-    if (idx >= 0) return idx;
+    const i = headers.findIndex(h => p.test(h));
+    if (i >= 0) return i;
   }
   return -1;
 }
 
-function winColor(pctStr) {
-  const v = Math.min(Math.max(parseFloat(pctStr)/100, 0), 1);
-  return `hsl(${Math.round(v*130)},${isLightTheme()?62:55}%,${isLightTheme()?36:42}%)`;
-}
-function fargoColor(rating) {
-  const pct = Math.min((parseInt(rating)||0)/800, 1);
-  return `hsl(${Math.round(pct*100+20)},${isLightTheme()?62:55}%,${isLightTheme()?38:48}%)`;
-}
+async function loadStandings() {
+  const frame = document.getElementById('standings-frame');
+  try {
+    const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateTeamStandingsReport/' + DIVISION));
+    if (!r.ok) throw new Error(r.status);
+    const t = parseTable(await r.text());
+    if (!t || !t.body.length) throw new Error('empty');
 
-/* ── Teams ── */
-function renderTeams(data) {
-  if (!data.live || !data.html) return notice('Team standings will appear here once live data loads.');
+    const pct = findPctIdx(t.headers);
 
-  // Parse team IDs from anchor tags in the raw HTML
-  const d = document.createElement('div');
-  d.innerHTML = data.html;
-  const teamLinks = {};
-  d.querySelectorAll('a[href*="teamId"]').forEach(a => {
-    const m = a.href.match(/teamId=([a-f0-9-]+)/i);
-    if (m) teamLinks[a.textContent.trim()] = m[1];
-  });
+    /* The report leads with a rank column today, so column 1 is the
+       team. Don't bet the team name on that: if column 0 isn't a
+       rank, treat it as the team instead. Getting this wrong drops
+       the names entirely and shows a column of numbers. */
+    const hasRank = /rank|pos|place|^#$/i.test((t.headers[0] || '').trim()) ||
+      t.body.every(r => /^\d+\.?$/.test((r[0] || '').trim()));
+    const teamIdx = hasRank ? 1 : 0;
 
-  const t = parseTable(data.html);
-  if (!t || !t.rows.length) return notice('Team standings will appear here once live data loads.');
-  const pctIdx = findWinPctIdx(t.headers);
-
-  return `<div class="card">
-    <div class="card-header">
-      <span class="card-title">Team Standings</span>
-      <span class="card-meta">${t.rows.length} teams · ${DIVISIONS[league].label}</span>
-    </div>
-    <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-      <tbody>${t.rows.map((r,i) => {
-        const teamName = r[1] || '';
-        const teamId = teamLinks[teamName] || null;
-        return `<tr>
-          ${r.map((cell,ci) => {
-            if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-            if (ci===1) return `<td>${teamId
-              ? `<span style="font-weight:500;color:var(--cream);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--text3)" onclick="loadTeamDetail('${teamId}','${teamName.replace(/'/g,"\\'")}')">${cell}</span>`
-              : `<span style="font-weight:500;color:var(--cream)">${cell}</span>`
-            }</td>`;
-            if (ci===pctIdx && pctIdx>0) {
-              const pv = parseFloat(cell)||0;
-              return `<td><div class="bar-wrap">
-                <div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pv}%;background:${winColor(cell)}"></div></div>
-                <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
-              </div></td>`;
+    frame.innerHTML =
+      '<table class="stand"><thead><tr>' +
+      t.headers.map((h, i) => {
+        const cls = (hasRank && i === 0) ? 'hpos' : (i === teamIdx ? 'hteam' : 'r');
+        return '<th class="' + cls + '">' + esc(h) + '</th>';
+      }).join('') +
+      '</tr></thead><tbody>' +
+      t.body.map((row, i) =>
+        '<tr class="' + (i === 0 ? 'lead' : '') + '">' +
+        row.map((cell, ci) => {
+          if (hasRank && ci === 0) return '<td class="pos">' + String(i + 1).padStart(2, '0') + '</td>';
+          if (ci === teamIdx) {
+            let bar = '';
+            if (pct >= 0) {
+              const v = Math.max(0, Math.min(100, parseFloat(row[pct]) || 0));
+              bar = '<span class="wbar"><i style="width:' + Math.max(2, v).toFixed(1) + '%"></i></span>';
             }
-            return `<td class="num" style="color:var(--text2)">${cell}</td>`;
-          }).join('')}
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>
-  </div>`;
-}
-
-/* ── Players ── */
-function renderPlayers(data) {
-  const t = data.live && data.html ? parseTable(data.html) : null;
-  if (!t || !t.rows.length) return notice('Player standings will appear here once live data loads.');
-  const winIdx = findWinPctIdx(t.headers);
-  return `<div class="card">
-    <div class="card-header">
-      <span class="card-title">Player Standings</span>
-      <span class="card-meta">${t.rows.length} players</span>
-    </div>
-    <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr>${t.headers.map(h=>{
-          const label = h.replace(/^GMS WON$/i,'W/L').replace(/^WIN PCT$/i,'WIN %');
-          return `<th>${label}</th>`;
-        }).join('')}</tr></thead>
-      <tbody>${t.rows.map((r,i) => `<tr>
-        ${r.map((cell,ci) => {
-          if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${cell}</td>`;
-          if (ci===winIdx && winIdx>0) {
-            const pv = parseFloat(cell)||0;
-            return `<td><div class="bar-wrap">
-              <div class="bar-track" style="width:65px"><div class="bar-fill" style="width:${pv}%;background:${winColor(cell)}"></div></div>
-              <span class="num" style="font-size:13px;color:${winColor(cell)};font-weight:600">${cell}</span>
-            </div></td>`;
+            return '<td class="team">' + esc(cell) + bar + '</td>';
           }
-          const hdr = t.headers[ci] || '';
-          const isAccolade = /^(brs|trs|wzs|wbs|cws|pms)$/i.test(hdr) && parseInt(cell) > 0;
-          return `<td class="num" style="color:${isAccolade?'var(--green2)':'var(--text2)'}${isAccolade?';font-weight:700':''}">${cell}</td>`;
-        }).join('')}
-      </tr>`).join('')}</tbody>
-    </table></div>
-  </div>`;
+          return '<td class="num' + (ci === pct ? ' pct' : '') + '">' + esc(cell) + '</td>';
+        }).join('') +
+        '</tr>'
+      ).join('') +
+      '</tbody></table>';
+  } catch (e) {
+    frame.innerHTML = '<div class="quiet-note">Standings aren\u2019t loading right now. ' +
+      'Give it a minute, or try <a href="league.html?lg=10ball">the standings page</a>.</div>';
+  }
 }
 
-/* ── Players by Team ── */
-function renderByTeam(data) {
-  if (!data.live || !data.html) return notice('Players by team will appear here once live data loads.');
-  const d = document.createElement('div');
-  d.innerHTML = data.html;
-  const table = d.querySelector('table');
-  if (!table) return notice('No data available.');
-
-  // Get headers — try <th> first, fall back to first <tr> tds
-  let headers = [...table.querySelectorAll('th')].map(th => th.textContent.trim());
-  const allTrs = [...table.querySelectorAll('tr')];
-  let dataRows = allTrs.slice(1);
-  if (!headers.length && allTrs[0]) {
-    headers = [...allTrs[0].querySelectorAll('td')].map(td => td.textContent.trim());
-  }
-
-  // Find WIN PCT column index (for bar rendering)
-  const winPctIdx = headers.findIndex(h => /win.?pct|win.?%|pct/i.test(h));
-  // Name column is index 0, but FargoRate puts name at col 0 in byteam view
-  // Detect if names are "Last, First" or "First Last"
-
-  // Count teams for the meta line
-  let teamCount = 0;
-
-  let html = `<div style="display:flex;flex-direction:column;gap:16px">`;
-
-  let currentTeam = null;
-  let currentPlayers = [];
-
-  function flushTeam() {
-    if (!currentTeam) return;
-    teamCount++;
-    html += `<div class="card">
-      <div class="card-header" style="border-left:3px solid var(--accent)">
-        <span class="card-title" style="color:var(--cream);font-size:15px">${currentTeam}</span>
-        <span class="card-meta">${currentPlayers.length} player${currentPlayers.length!==1?'s':''}</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Player</th>
-          ${headers.slice(1).map(h => {
-            const label = h.replace(/^GMS WON$/i,'W/L').replace(/^WIN PCT$/i,'WIN %');
-            return `<th style="text-align:${h==='NAME'?'left':'center'}">${label}</th>`;
-          }).join('')}
-        </tr></thead>
-        <tbody>
-          ${currentPlayers.map(cells => {
-            const name = (cells[0] || '').replace(/\s+/g, ' ').trim();
-            // Format name: "Last, First" → "First Last", or leave as-is
-            const displayName = /,\s/.test(name)
-              ? name.replace(/^([^,]+),\s*(.+)$/, '$2 $1')
-              : name;
-            return `<tr>
-              <td style="font-weight:600;color:var(--cream);min-width:130px">${displayName}</td>
-              ${cells.slice(1).map((cell, ci) => {
-                const hdr = headers[ci + 1] || '';
-                // Win pct bar
-                if (ci + 1 === winPctIdx) {
-                  const pv = parseFloat(cell) || 0;
-                  const pvNorm = pv > 1 ? pv : pv * 100;
-                  const pvStr = cell.includes('%') ? cell : pvNorm.toFixed(0) + '%';
-                  return `<td style="text-align:center"><div class="bar-wrap" style="justify-content:center">
-                    <div class="bar-track" style="width:55px"><div class="bar-fill" style="width:${pvNorm}%;background:${winColor(pvNorm+'%')}"></div></div>
-                    <span class="num" style="font-size:13px;color:${winColor(pvNorm+'%')};font-weight:600;min-width:36px">${pvStr}</span>
-                  </div></td>`;
-                }
-                // Highlight non-zero BR/TR type cols
-                const isHighlight = /^(brs|trs|wzs|wbs|cws|pms)$/i.test(hdr) && parseInt(cell) > 0;
-                return `<td class="num" style="text-align:center;color:${isHighlight?'var(--green2)':'var(--text2)'}${isHighlight?';font-weight:700':''}">${cell||'—'}</td>`;
-              }).join('')}
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table></div>
-    </div>`;
-    currentPlayers = [];
-  }
-
-  dataRows.forEach(row => {
-    const cells = [...row.querySelectorAll('td')];
-    if (!cells.length) return;
-    // A team header row has either: only 1 cell, or a colspan > 1 on the first cell,
-    // or ALL non-first cells are empty/dash (but NOT just zeros — players can have 0 wins)
-    const isTeamHdr = cells.length === 1
-      || (cells[0] && cells[0].colSpan > 1)
-      || (cells.length > 1 && cells.slice(1).every(c => {
-            const t = c.textContent.trim();
-            return t === '' || t === '-';
-          }));
-    if (isTeamHdr) {
-      flushTeam();
-      currentTeam = cells[0]?.textContent.trim();
-    } else {
-      const vals = cells.map(c => c.textContent.trim());
-      if (vals[0]) currentPlayers.push(vals);
-    }
-  });
-  flushTeam();
-
-  html += `</div>`;
-  return html;
+/* ── Next match ──────────────────────────────────────────────
+   The schedule comes back grouped by date; we want the first date
+   that hasn't happened yet. ─────────────────────────────────── */
+function parseDate(str) {
+  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
 }
 
-/* ── Player List ── */
-function renderList(data) {
-  const t = data.live && data.html ? parseTable(data.html) : null;
-  if (!t || !t.rows.length) return notice('Player list will appear here once live data loads.');
-  const ratingIdx = t.headers.findIndex(h => /rating|fargo/i.test(h));
-  const sorted = ratingIdx >= 0
-    ? [...t.rows].sort((a,b) => (parseInt(b[ratingIdx])||0)-(parseInt(a[ratingIdx])||0))
-    : t.rows;
-  return `<div class="card">
-    <div class="card-header">
-      <span class="card-title">Player List &amp; Fargo Ratings</span>
-      <span class="card-meta">${sorted.length} players · sorted by rating</span>
-    </div>
-    <div style="overflow-x:auto"><table class="tbl">
-      <thead><tr><th>#</th>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-      <tbody>${sorted.map((r,i) => {
-        const rating = ratingIdx>=0 ? parseInt(r[ratingIdx])||0 : 0;
-        const pct = Math.min(rating/800,1);
-        return `<tr>
-          <td><span class="rank-num">${i+1}</span></td>
-          ${r.map((cell,ci) => {
-            if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${cell}</td>`;
-            if (ci===ratingIdx && ratingIdx>=0) return `<td>
-              <div class="fargo-wrap">
-                <div class="fargo-track"><div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div></div>
-                <span class="fargo-num" style="color:${fargoColor(rating)}">${cell}</span>
-              </div></td>`;
-            return `<td style="color:var(--text2)">${cell}</td>`;
-          }).join('')}
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>
-  </div>`;
-}
-
-/* ── Schedule ── */
-function renderSchedule(data) {
-  if (!data.live || !data.html) return notice('Schedule will appear here once live data loads.');
-  const d = document.createElement('div');
-  d.innerHTML = data.html;
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  // Parse date string "M/D/YYYY" into a Date
-  function parseDate(str) {
-    try { const p = str.split('/'); return new Date(p[2], p[0]-1, p[1]); }
-    catch(e) { return null; }
-  }
-
-  function fmtDate(str) {
-    const dt = parseDate(str);
-    if (!dt) return str;
-    return dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-  }
-
-  // Pre-collect ALL matchIds from anywhere in the document, in order
-  const allMatchLinks = [...d.querySelectorAll('a[href*="matchId"], a[href*="MatchResult"]')]
-    .map(a => {
-      const href = a.getAttribute('href') || '';
-      const m = href.match(/matchId=([a-f0-9-]{36})/i);
-      return m ? m[1] : null;
-    }).filter(Boolean);
-  let matchLinkIdx = 0;
-
-  const blocks = [];
-  let cur = null;
-  const container = d.querySelector('#schedule-list') || d;
-
-  // Also search entire document for ALL schedule-team-blocks with data-url
-  // Build a map of team pair → matchId for reliable lookup
-  const matchIdMap = {};
-  [...d.querySelectorAll('.schedule-team-block[data-url]')].forEach(block => {
-    const url = block.getAttribute('data-url') || '';
-    const mu  = url.match(/matchId=([a-f0-9-]{36})/i);
-    if (!mu) return;
-    const teams = [...block.querySelectorAll('.schedule-team')]
-      .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
-    if (teams.length >= 2) matchIdMap[`${teams[0]}|${teams[1]}`] = mu[1];
-  });
-
-  [...container.children].forEach(node => {
-    if (node.classList.contains('schedule-date')) {
-      cur = { date: node.textContent.trim(), matches: [] };
-      blocks.push(cur);
-    } else if (node.classList.contains('schedule-team-block') && cur) {
-      const teams = [...node.querySelectorAll('.schedule-team')]
-        .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
-      const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
-
-      // Try data-url on this node first, then map lookup, then sequential fallback
-      let matchId = null;
-      const dataUrl = node.getAttribute('data-url') || '';
-      const mu = dataUrl.match(/matchId=([a-f0-9-]{36})/i);
-      if (mu) {
-        matchId = mu[1];
-      } else if (teams.length >= 2 && matchIdMap[`${teams[0]}|${teams[1]}`]) {
-        matchId = matchIdMap[`${teams[0]}|${teams[1]}`];
-      } else if (allMatchLinks.length > matchLinkIdx) {
-        matchId = allMatchLinks[matchLinkIdx++] || null;
-      }
-
-      if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
-    }
-  });
-
-  if (!blocks.length) return notice('No schedule data found.');
-
-  // First block on or after today — the schedule scrolls here on open.
-  const nextIdx = blocks.findIndex(b => {
-    if (!b.matches.length) return false;
-    const d = parseDate(b.date);
-    return d && d >= today;
-  });
-
-  return `<div class="sched-toolbar">
-    <div class="print-title">
-      Kemmerer Pool League &mdash; ${DIVISIONS[league].label}
-      <span class="print-sub">Printed ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
-    </div>
-    <button class="print-btn" onclick="window.print()">Print Schedule</button>
-  </div>
-
-  <div style="display:flex;flex-direction:column;gap:10px">
-    ${blocks.map((block, bi) => {
-      if (!block.matches.length) return '';
-      const dt     = parseDate(block.date);
-      const isPast = dt && dt <= today;
-      const isNext = bi === nextIdx;
-      return `<div class="sched-block${isNext?' sched-next':''}"${isNext?' id="sched-next"':''}>
-        <div class="sched-date-hdr">
-          <span>${fmtDate(block.date)}${isNext?' <span class="next-pill">Next up</span>':''}</span>
-          <span class="sched-count">${block.matches.length} match${block.matches.length!==1?'es':''}</span>
-        </div>
-        <div class="match-grid">
-          ${block.matches.map(m => `
-            <div class="match-card">
-              <div class="match-teams-row">
-                <div class="match-home">
-                  <div class="match-name">${m.home}</div>
-                  <div class="match-label">Home</div>
-                </div>
-                <div class="vs-col">
-                  <div class="vs-chip">VS</div>
-                </div>
-                <div class="match-away">
-                  <div class="match-name">${m.away}</div>
-                  <div class="match-label">Away</div>
-                </div>
-              </div>
-              ${m.venue || isPast ? `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-                ${m.venue ? `<div class="venue-label">${m.venue}</div>` : ''}
-                ${isPast && m.matchId
-                  ? `<button class="result-btn" onclick="loadMatchResult('${m.matchId}',this.dataset.title)" data-title="${m.home} vs ${m.away}">📋 Results</button>`
-                  : isPast ? `<div class="venue-label" style="font-style:italic">No results</div>` : ''}
-              </div>` : ''}
-            </div>`).join('')}
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
-}
-
-/* ── Match Result ── */
-async function loadMatchResult(matchId, title) {
-  inDrillDown = true;
-  // Store schedule HTML so we can go back
-  document.getElementById('content').innerHTML = `
-    <div style="margin-bottom:12px">
-      <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
-        ← Back to Schedule
-      </button>
-    </div>
-    <div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading results…</div></div>`;
-
+async function loadNext() {
+  const when = document.getElementById('next-when');
+  const body = document.getElementById('next-body');
   try {
-    const url = `https://lms.fargorate.com/PublicReport/MatchResultBCAPL?matchId=${matchId}`;
-    const r   = await fetch(PROXY + encodeURIComponent(url));
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const html = await r.text();
-    document.getElementById('content').innerHTML =
-      renderMatchResult(html, title) +
-      `<div style="margin-top:16px">
-        <button onclick="switchView('schedule')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
-          ← Back to Schedule
-        </button>
-      </div>`;
-  } catch(e) {
-    document.getElementById('content').innerHTML = notice(`Could not load match results: ${e.message}`);
-  }
-}
+    const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateDivisionScheduleReport'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'divisionId=' + DIVISION
+    });
+    if (!r.ok) throw new Error(r.status);
 
-function renderMatchResult(html, title) {
-  const d = document.createElement('div');
-  d.innerHTML = html;
+    const d = document.createElement('div');
+    d.innerHTML = await r.text();
+    const list = d.querySelector('#schedule-list') || d;
 
-  // Hidden input helper
-  const gi = id => d.querySelector(`#${id}`)?.value || '';
-  const team1 = gi('TeamOne_Name') || title.split(' vs ')[0];
-  const team2 = gi('TeamTwo_Name') || title.split(' vs ')[1] || '';
-  const dateStr = gi('Date') || '';
-  const matchDate = dateStr ? new Date(dateStr).toLocaleDateString('en-US',
-    { weekday:'long', month:'long', day:'numeric', year:'numeric' }) : '';
-
-  // Clean player name — strip trailing "()" or "(328)" ratings and extra whitespace
-  const cleanName = s => (s||'').replace(/\s*\(\s*[^)]*\s*\)\s*$/, '').replace(/\s+/g,' ').trim();
-
-  // Match settings from hidden inputs
-  const useHandicap = gi('UseHandicapScoring') === 'True';
-  const maxScore    = parseInt(gi('MaxScore')) || 1;
-
-  // Get unique round numbers in order
-  const roundNums = [...new Set(
-    [...d.querySelectorAll('.game-container[data-round]')]
-      .map(g => g.getAttribute('data-round'))
-  )].sort((a,b) => Number(a)-Number(b));
-
-  let out = '';
-  let matchTotal1 = 0, matchTotal2 = 0;   // raw point totals for final card
-  let matchWins1  = 0, matchWins2  = 0;   // total individual game wins
-  let matchRoundWins1 = 0, matchRoundWins2 = 0; // rounds won (0.5 for tie)
-
-  // Pre-calculate exact FargoRate handicap distribution across rounds
-  const use8BallFargoHdcp = maxScore > 1;
-  let matchHdcpByRound = {};  // rn → balls for that round
-  let matchHdcpTeam = 0;      // which team receives handicap (1 or 2)
-  if (use8BallFargoHdcp) {
-    const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
-    // Collect all per-game expectations across all rounds
-    let totalV1 = 0.0, totalV2 = 0.0;
-    roundNums.forEach(rn => {
-      const games = [...d.querySelectorAll(`.game-container[data-round="${rn}"]`)];
-      games.forEach(game => {
-        const r1 = parseInt(game.querySelector('select.team-one-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-        const r2 = parseInt(game.querySelector('select.team-two-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-        if (r1 > 0 && r2 > 0) {
-          const p = 1.0 / (1 + Math.pow(2, (r2 - r1) / 100.0));
-          totalV1 += p * 10.0 + (1.0 - p) * (7.4 - 0.0062 * r2);
-          totalV2 += (1.0 - p) * 10.0 + p * (7.4 - 0.0062 * r1);
+    const weeks = [];
+    let cur = null;
+    [...list.children].forEach(node => {
+      if (node.classList.contains('schedule-date')) {
+        cur = { date: node.textContent.trim(), matches: [] };
+        weeks.push(cur);
+      } else if (node.classList.contains('schedule-team-block') && cur) {
+        const teams = [...node.querySelectorAll('.schedule-team')]
+          .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
+        const loc = node.querySelector('.schedule-location');
+        if (teams.length >= 2) {
+          cur.matches.push({ home: teams[0], away: teams[1], room: loc ? loc.textContent.trim() : '' });
         }
-      });
-    });
-    // Floor of difference = total match handicap
-    let totalHdcp = 0;
-    if (totalV2 > totalV1) {
-      matchHdcpTeam = 1;  // team 1 gets handicap
-      totalHdcp = Math.min(Math.floor(totalV2 - totalV1), maxHdcp);
-    } else if (totalV1 > totalV2) {
-      matchHdcpTeam = 2;  // team 2 gets handicap
-      totalHdcp = Math.min(Math.floor(totalV1 - totalV2), maxHdcp);
-    }
-    // Distribute last-to-first
-    let remaining = totalHdcp;
-    let currentRound = roundNums.length - 1;
-    const rnArr = [...roundNums];
-    while (remaining > 0) {
-      const rn = rnArr[currentRound];
-      matchHdcpByRound[rn] = (matchHdcpByRound[rn] || 0) + 1;
-      remaining--;
-      currentRound--;
-      if (currentRound < 0) currentRound = rnArr.length - 1;
-    }
-  }
-
-  roundNums.forEach(rn => {
-    const games = [...d.querySelectorAll(`.game-container[data-round="${rn}"]`)];
-    if (!games.length) return;
-
-    const gameType = games[0]?.getAttribute('data-gametype') || 'SINGLES';
-    const isDoubles = gameType.startsWith('D');
-
-    let rows = '';
-    let roundWins1 = 0, roundWins2 = 0;
-    let roundPts1  = 0, roundPts2  = 0;
-
-
-
-
-    games.forEach((game, gi_idx) => {
-      // Player names — first selected option from each team's select
-      const p1sel = game.querySelector('select.team-one-player');
-      const p2sel = game.querySelector('select.team-two-player');
-      const p1 = cleanName(p1sel?.querySelector('option[selected]')?.textContent || p1sel?.options?.[p1sel?.selectedIndex||0]?.textContent);
-      const p2 = cleanName(p2sel?.querySelector('option[selected]')?.textContent || p2sel?.options?.[p2sel?.selectedIndex||0]?.textContent);
-
-      // Scores — specifically .row-score inputs (not .row-handicap)
-      const s1inp = game.querySelector('input.row-score[data-team="1"]');
-      const s2inp = game.querySelector('input.row-score[data-team="2"]');
-      const s1 = s1inp?.value ?? '—';
-      const s2 = s2inp?.value ?? '—';
-      const sv1 = parseInt(s1) || 0;
-      const sv2 = parseInt(s2) || 0;
-      const hasScore = s1inp !== null;
-
-      // Winner = whoever reached maxScore or scored higher
-      const w1 = hasScore && (sv1 >= maxScore || (sv1 > sv2 && sv2 < maxScore));
-      const w2 = hasScore && (sv2 >= maxScore || (sv2 > sv1 && sv1 < maxScore));
-      // Also check for adornment codes in raw value (TR, BR, WZ, WF = automatic win)
-      const rawS1 = (s1||'').toString().toUpperCase().trim();
-      const rawS2 = (s2||'').toString().toUpperCase().trim();
-      const adornWin1 = ['TR','BR','WZ','WF'].includes(rawS1);
-      const adornWin2 = ['TR','BR','WZ','WF'].includes(rawS2);
-
-      if (hasScore) {
-        // Count game WINS for round totals (1 per game)
-        if (adornWin1 || w1) roundWins1 += 1;
-        else if (adornWin2 || w2) roundWins2 += 1;
-        // Sum raw POINTS for overall ball-count total (TR/BR/WZ/WF = maxScore pts)
-        roundPts1 += adornWin1 ? maxScore : sv1;
-        roundPts2 += adornWin2 ? maxScore : sv2;
-      }
-
-      // Break indicator — active chip = who broke
-      const broke1 = game.querySelector('.break-container-1 .game-chip.break-active') !== null;
-      const broke2 = game.querySelector('.break-container-2 .game-chip.break-active') !== null;
-
-      if (isDoubles) {
-        // Doubles: each game-container has 2 player-containers per side
-        // Render as two sub-rows (one per player pair), score only on first row spanning both
-        const p1containers = [...game.querySelectorAll('.player-container-1')];
-        const p2containers = [...game.querySelectorAll('.player-container-2')];
-        const p1breaks = [...game.querySelectorAll('.break-container-1 .game-chip')];
-        const p2breaks = [...game.querySelectorAll('.break-container-2 .game-chip')];
-
-        const getPlayer = (containers, idx) => {
-          const sel = containers[idx]?.querySelector('select');
-          return cleanName(sel?.querySelector('option[selected]')?.textContent || sel?.options?.[sel?.selectedIndex||0]?.textContent);
-        };
-        const getBroke = (chips, idx) => chips[idx]?.classList.contains('break-active') || false;
-
-        const dp1a = getPlayer(p1containers, 0);
-        const dp1b = getPlayer(p1containers, 1);
-        const dp2a = getPlayer(p2containers, 0);
-        const dp2b = getPlayer(p2containers, 1);
-        const db1a = getBroke(p1breaks, 0);
-        const db1b = getBroke(p1breaks, 1);
-        const db2a = getBroke(p2breaks, 0);
-        const db2b = getBroke(p2breaks, 1);
-
-        const nameStyle = 'color:var(--cream);font-weight:600;font-size:14px';
-        const dotStyle = (active) => `color:${active?'var(--green2)':'var(--border2)'};font-size:9px`;
-
-        rows += `<tr>
-          <td style="padding-bottom:2px">
-            <div style="${nameStyle}"><span style="${dotStyle(db1a)};margin-right:5px">●</span>${dp1a}</div>
-            <div style="${nameStyle}"><span style="${dotStyle(db1b)};margin-right:5px">●</span>${dp1b}</div>
-          </td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w1?'var(--green2)':w2?'var(--loss)':'var(--text2)'}">${s1}</td>
-          <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${w2?'var(--green2)':w1?'var(--loss)':'var(--text2)'}">${s2}</td>
-          <td style="text-align:right;padding-bottom:2px">
-            <div style="${nameStyle}">${dp2a}<span style="${dotStyle(db2a)};margin-left:5px">●</span></div>
-            <div style="${nameStyle}">${dp2b}<span style="${dotStyle(db2b)};margin-left:5px">●</span></div>
-          </td>
-        </tr>`;
-      } else {
-        // Display adornment codes as green badges
-      const displayS1 = adornWin1 ? `<span style="font-size:11px;background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s1}</span>` : s1;
-      const displayS2 = adornWin2 ? `<span style="font-size:11px;background:var(--green);color:var(--on-accent);padding:2px 6px;border-radius:4px;font-weight:700">${s2}</span>` : s2;
-      const aw1 = adornWin1 || w1;
-      const aw2 = adornWin2 || w2;
-
-      // Accumulate ratings and per-game handicap (floor(|diff|/50) per matchup)
-      const pgR1 = parseInt(game.querySelector('select.team-one-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-      const pgR2 = parseInt(game.querySelector('select.team-two-player')?.querySelector('option[selected]')?.getAttribute('data-handicap') || '0') || 0;
-
-
-
-      rows += `<tr>
-          <td style="color:var(--cream);font-weight:600">
-            <span style="color:${broke1?'var(--green2)':'var(--border2)'};font-size:9px;margin-right:5px">●</span>${p1}
-          </td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw1?'var(--green2)':aw2?'var(--loss)':'var(--text2)'}">${displayS1}</td>
-          <td style="text-align:center;color:var(--text3);font-size:18px;font-weight:300">—</td>
-          <td class="num" style="text-align:center;font-size:17px;font-weight:700;color:${aw2?'var(--green2)':aw1?'var(--loss)':'var(--text2)'}">${displayS2}</td>
-          <td style="text-align:right;color:var(--cream);font-weight:600">
-            ${p2}<span style="color:${broke2?'var(--green2)':'var(--border2)'};font-size:9px;margin-left:5px">●</span>
-          </td>
-        </tr>`;
       }
     });
 
-    // Round totals:
-    // 10-ball (maxScore=1): show game wins (1-3, 2-2 etc.)
-    // 8-ball  (maxScore>1): show total points + round handicap
-    const use8BallScoring = maxScore > 1;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const next = weeks.filter(w => w.matches.length)
+      .find(w => { const dt = parseDate(w.date); return dt && dt >= today; });
 
-    // 8-ball: FargoRate HandicapMode=2 uses floor(diff/50) per game, summed for the round
-    // The lower-rated team accumulates handicap balls across all games in the round
-    const maxHdcp = parseInt(gi('Division_MaximumAllowedHandicap') || '20');
-    const roundHdcpAmt = use8BallScoring ? (matchHdcpByRound[rn] || 0) : 0;
-    const team1GetsHdcp = use8BallScoring && matchHdcpTeam === 1 && roundHdcpAmt > 0;
-    const team2GetsHdcp = use8BallScoring && matchHdcpTeam === 2 && roundHdcpAmt > 0;
-    const adjPts1 = roundPts1 + (team1GetsHdcp ? roundHdcpAmt : 0);
-    const adjPts2 = roundPts2 + (team2GetsHdcp ? roundHdcpAmt : 0);
-
-    const tot1 = use8BallScoring ? adjPts1 : roundWins1;
-    const tot2 = use8BallScoring ? adjPts2 : roundWins2;
-    matchTotal1 += use8BallScoring ? adjPts1 : roundPts1;
-    matchTotal2 += use8BallScoring ? adjPts2 : roundPts2;
-    matchWins1  += Math.floor(roundWins1);
-    matchWins2  += Math.floor(roundWins2);
-    // Award round win for this round
-    if (tot1 > tot2)       { matchRoundWins1 += 1; }
-    else if (tot2 > tot1)  { matchRoundWins2 += 1; }
-    else if (tot1 > 0)     { matchRoundWins1 += 0.5; matchRoundWins2 += 0.5; }
-    const totW1 = Number(tot1) > Number(tot2);
-    const totW2 = Number(tot2) > Number(tot1);
-
-    // Handicap row (8-ball only, when there's an actual handicap)
-    if (use8BallScoring && roundHdcpAmt > 0) {
-      rows += `<tr style="background:var(--bg3);border-top:1px solid var(--border)">
-        <td style="font-weight:600;color:var(--green2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Handicap</td>
-        <td class="num" style="text-align:center;font-weight:700;font-size:15px;color:${team1GetsHdcp?'var(--green2)':'var(--text3)'}">
-          ${team1GetsHdcp ? '+' + roundHdcpAmt : '—'}
-        </td>
-        <td></td>
-        <td class="num" style="text-align:center;font-weight:700;font-size:15px;color:${team2GetsHdcp?'var(--green2)':'var(--text3)'}">
-          ${team2GetsHdcp ? '+' + roundHdcpAmt : '—'}
-        </td>
-        <td></td>
-      </tr>`;
+    if (!next) {
+      body.innerHTML = '<div class="nextup-wait">Season\u2019s done. The next one goes up once it\u2019s set.</div>';
+      return;
     }
 
-    // Round total row — (W) on winner's score, (T) on both if tie
-    const roundWinner = totW1 ? team1 : totW2 ? team2 : null;
-    const roundLabel = roundWinner
-      ? `<span style="color:var(--green2);font-weight:700">${roundWinner} wins</span>`
-      : `<span style="color:var(--text2);font-weight:600">Tie</span>`;
-    const tag1 = totW1
-      ? ` <span style="font-size:11px;font-weight:700;color:var(--green2)">(W)</span>`
-      : (!totW2 ? ` <span style="font-size:11px;font-weight:600;color:var(--text2)">(T)</span>` : '');
-    const tag2 = totW2
-      ? ` <span style="font-size:11px;font-weight:700;color:var(--green2)">(W)</span>`
-      : (!totW1 ? ` <span style="font-size:11px;font-weight:600;color:var(--text2)">(T)</span>` : '');
-    rows += `<tr style="background:var(--bg);border-top:2px solid var(--accent)">
-      <td style="font-weight:700;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:.06em">Round ${rn} Total</td>
-      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW1?'var(--green2)':totW2?'var(--loss)':'var(--text2)'}">${tot1}${tag1}</td>
-      <td></td>
-      <td class="num" style="text-align:center;font-weight:800;font-size:18px;color:${totW2?'var(--green2)':totW1?'var(--loss)':'var(--text2)'}">${tot2}${tag2}</td>
-      <td style="font-size:11px;text-align:right">${roundLabel}</td>
-    </tr>`;
+    const dt = parseDate(next.date);
+    when.textContent = dt
+      ? dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
+      : next.date;
 
-    out += `<div class="card" style="margin-bottom:12px">
-      <div class="card-header">
-        <span class="card-title">Round ${rn}${isDoubles?' <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">Doubles</span>':''}</span>
-        <span class="card-meta">${games.length} game${games.length!==1?'s':''}</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>${team1}</th>
-          <th style="text-align:center">Score</th>
-          <th style="text-align:center;width:30px"></th>
-          <th style="text-align:center">Score</th>
-          <th style="text-align:right">${team2}</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table></div>
-    </div>`;
-  });
-
-  if (!out) {
-    out = `<div class="card"><div style="padding:20px;color:var(--text2)">
-      No match data found. <a href="https://lms.fargorate.com/PublicReport/MatchResultBCAPL?matchId=${gi('Id')}"
-      target="_blank" style="color:var(--green2)">View on FargoRate ↗</a>
-    </div></div>`;
-  }
-
-  const use8BallFinal = maxScore > 1;
-
-  // 5th point: total points (balls/games) across all rounds — can tie
-  if (matchTotal1 > matchTotal2)      { matchRoundWins1 += 1; }
-  else if (matchTotal2 > matchTotal1) { matchRoundWins2 += 1; }
-  else if (matchTotal1 > 0)           { matchRoundWins1 += 0.5; matchRoundWins2 += 0.5; }
-  const fin1 = use8BallFinal ? matchTotal1 : matchWins1;
-  const fin2 = use8BallFinal ? matchTotal2 : matchWins2;
-  const rw1str = matchRoundWins1 % 1 === 0 ? String(matchRoundWins1) : matchRoundWins1.toFixed(1);
-  const rw2str = matchRoundWins2 % 1 === 0 ? String(matchRoundWins2) : matchRoundWins2.toFixed(1);
-  const rwWin1 = matchRoundWins1 > matchRoundWins2;
-  const rwWin2 = matchRoundWins2 > matchRoundWins1;
-  const mw1 = fin1 > fin2;
-  const mw2 = fin2 > fin1;
-  const matchResult = rwWin1 ? `${team1} wins` : rwWin2 ? `${team2} wins` : 'Tie';
-
-  // (W)/(T) tags for total games row
-  const finTag1 = mw1
-    ? ` <span style="font-size:13px;font-weight:700;color:var(--green2)">(W)</span>`
-    : (!mw2 ? ` <span style="font-size:13px;font-weight:600;color:var(--text2)">(T)</span>` : '');
-  const finTag2 = mw2
-    ? ` <span style="font-size:13px;font-weight:700;color:var(--green2)">(W)</span>`
-    : (!mw1 ? ` <span style="font-size:13px;font-weight:600;color:var(--text2)">(T)</span>` : '');
-
-  out += `<div class="card" style="margin-top:4px">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px">
-      <span style="font-weight:700;color:var(--cream);font-size:15px">${team1}</span>
-      <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:26px;font-weight:800;color:${mw1?'var(--green2)':mw2?'var(--loss)':'var(--text2)'}">${fin1}${finTag1}</span>
-        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">TOTAL<br>GAMES</span>
-        <span style="font-size:26px;font-weight:800;color:${mw2?'var(--green2)':mw1?'var(--loss)':'var(--text2)'}">${fin2}${finTag2}</span>
-      </div>
-      <span style="font-weight:700;color:var(--cream);font-size:15px">${team2}</span>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;border-top:1px solid var(--border)">
-      <span style="font-size:12px;color:var(--text3)"></span>
-      <div style="display:flex;align-items:center;gap:16px">
-        <span style="font-size:26px;font-weight:800;color:${rwWin1?'var(--green2)':rwWin2?'var(--loss)':'var(--text2)'}">${rw1str}</span>
-        <span style="color:var(--text3);font-size:11px;font-weight:600;text-align:center;line-height:1.3">ROUNDS<br>WON</span>
-        <span style="font-size:26px;font-weight:800;color:${rwWin2?'var(--green2)':rwWin1?'var(--loss)':'var(--text2)'}">${rw2str}</span>
-      </div>
-      <span style="font-size:12px;color:var(--text3)"></span>
-    </div>
-    <div style="padding:0 20px 14px;text-align:center;font-size:12px;color:${rwWin1||rwWin2?'var(--green2)':'var(--text3)'};font-weight:600;letter-spacing:.05em;text-transform:uppercase">
-      ${matchResult}
-    </div>
-  </div>`;
-
-  return `
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-header">
-        <span class="card-title" style="color:var(--cream);font-size:16px">${team1} vs ${team2}</span>
-        <span class="card-meta">${matchDate}</span>
-      </div>
-      <div style="padding:10px 20px;font-size:12px;color:var(--text3);border-top:1px solid var(--border)">
-        <span style="color:var(--green2);font-size:10px;margin-right:4px">●</span> Green dot = that player breaks
-        &nbsp;·&nbsp; BR = Break &amp; Run &nbsp;·&nbsp; TR = Table Run &nbsp;·&nbsp; WZ = Win-zip &nbsp;·&nbsp; WF = Win by Forfeit
-      </div>
-    </div>
-    ${out}`;
-}
-
-function notice(msg) {
-  return `<div class="notice">${msg}</div>`;
-}
-
-/* ── Team Detail ── */
-async function loadTeamDetail(teamId, teamName) {
-  inDrillDown = true;
-  const url = `https://lms.fargorate.com/PublicReport/DivisionTeamReportBCAPL?teamId=${teamId}`;
-  document.getElementById('content').innerHTML =
-    `<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading ${teamName}…</div></div>`;
-  try {
-    const r = await fetch(PROXY + encodeURIComponent(url));
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const html = await r.text();
-    document.getElementById('content').innerHTML = renderTeamDetail(html, teamName);
-  } catch(e) {
-    document.getElementById('content').innerHTML = notice(`Could not load team detail: ${e.message}`);
+    body.innerHTML = next.matches.map(m =>
+      '<div class="fixture">' +
+        '<span class="h">' + esc(m.home) + '</span>' +
+        '<span class="v">VS</span>' +
+        '<span class="a">' + esc(m.away) + '</span>' +
+        (m.room ? '<span class="rm">' + esc(m.room) + '</span>' : '') +
+      '</div>').join('');
+  } catch (e) {
+    body.innerHTML = '<div class="nextup-wait">Couldn\u2019t reach the schedule just now.</div>';
   }
 }
 
-function renderTeamDetail(html, teamName) {
-  const d = document.createElement('div');
-  d.innerHTML = html;
-
-  const table = d.querySelector('table');
-  if (!table) return notice('No team data found.');
-
-  const allRows = [...table.querySelectorAll('tr')];
-
-  // ── Step 1: find the header row that names the stat columns ──────────────
-  // FargoRate puts week columns first, then summary stats at the far right.
-  // We scan RIGHT-TO-LEFT so we find the summary stats, not the week opponent names.
-  const knownStatCols = ['games played','games won','win percentage','player points',
-                          'opp. points','opp points','break & run','break run',
-                          'table run','weeks played','opp. run','played','won',
-                          'win%','win pct','pct','pts','br','tr','wks','weeks'];
-  let colMap = {};
-  let playerHeaderRowIdx = -1;
-
-  allRows.forEach((row, ri) => {
-    const cells = [...row.querySelectorAll('th,td')];
-    const texts = cells.map(c => c.textContent.replace(/\s+/g,' ').trim().toLowerCase());
-    const matchCount = texts.filter(t => knownStatCols.some(k => t === k || t.includes(k))).length;
-    if (matchCount >= 3 && playerHeaderRowIdx === -1) {
-      playerHeaderRowIdx = ri;
-      // Scan RIGHT-TO-LEFT so summary stats win over week column labels
-      for (let ci = texts.length - 1; ci >= 0; ci--) {
-        const t = texts[ci];
-        if ((t.includes('games played') || t === 'played') && colMap.played === undefined) colMap.played = ci;
-        if ((t.includes('games won') || (t.includes('won') && !t.includes('rounds') && !t.includes('opp'))) && colMap.won === undefined) colMap.won = ci;
-        if ((t.includes('win percentage') || t.includes('win pct') || t.includes('win%') || t === 'pct') && colMap.winPct === undefined) colMap.winPct = ci;
-        if ((t.includes('player points') || t === 'pts' || t === 'points') && colMap.pts === undefined) colMap.pts = ci;
-        if ((t.includes('opp. points') || t.includes('opp points') || (t.includes('opp') && !t.includes('run'))) && colMap.opp === undefined) colMap.opp = ci;
-        if ((t === 'br' || t.includes('break & run') || t.includes('break run')) && colMap.br === undefined) colMap.br = ci;
-        if ((t === 'tr' || t.includes('table run')) && colMap.tr === undefined) colMap.tr = ci;
-        if ((t.includes('weeks played') || t === 'wks' || (t.includes('week') && !t.includes('played') === false)) && colMap.weeks === undefined) colMap.weeks = ci;
-      }
-    }
-  });
-
-  // Fallback: if header detection failed, use end-offsets
-  const useFallback = Object.keys(colMap).length < 3;
-
-  // ── Step 2: find week-date header row ─────────────────────────────────────
-  // FargoRate rotates month+day headers. They appear as "MAY\n27" or "MAY 27".
-  const isDateToken = t => /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s\n]\d+/i.test(t.trim());
-  let weekDates = [];
-  let weekColStart = -1;   // first column index that is a date
-  let weekColEnd   = -1;   // last column index that is a date
-
-  allRows.forEach(row => {
-    const cells = [...row.querySelectorAll('th,td')];
-    const texts = cells.map(c => c.textContent.replace(/\s+/g,' ').trim());
-    if (weekDates.length) return; // already found
-    const dateIdxs = texts.map((t,i) => isDateToken(t) ? i : -1).filter(i => i >= 0);
-    if (dateIdxs.length >= 1) {
-      weekDates = dateIdxs.map(i => texts[i]);
-      weekColStart = dateIdxs[0];
-      weekColEnd   = dateIdxs[dateIdxs.length - 1];
-    }
-  });
-
-  // ── Step 3: classify every data row ───────────────────────────────────────
-  // Stat label pattern — broaden to catch anything FargoRate might use
-  const statLabelRe = /^(match\s*points?|opp\.?(\s*pts?)?|rounds?\s*won|rounds?\s*lost|win\s*[\/\-]?\s*loss|w\s*\/\s*l|points?|games?(\s*won)?|score|result)/i;
-
-  const playerRows = [];
-  const statRows   = [];
-
-  // Skip known non-player row labels
-  const skipRowLabels = /^(week|location|name|date|home|away|bye|stat|team|round|division|points?)$/i;
-
-  // Player detection: primary signal is <td class="heavy"> on the name cell
-  // Fallback: two+ word name-like string not matching stat labels
-  const isPlayerRow = (row, firstText) => {
-    const nameCell = row.querySelector('td.heavy, th.heavy');
-    if (nameCell) {
-      const t = nameCell.textContent.trim();
-      // Exclude known stat/section labels
-      if (skipRowLabels.test(t) || statLabelRe.test(t)) return false;
-      // Must look like a name (letters, spaces, hyphens, apostrophes)
-      if (/^[A-Za-zÀ-ÖØ-öø-ÿ'][\w\sÀ-ÖØ-öø-ÿ'\-]{1,}$/.test(t)) return true;
-    }
-    // Fallback: two+ word string
-    if (!firstText || skipRowLabels.test(firstText) || statLabelRe.test(firstText)) return false;
-    return /^[A-Za-zÀ-ÖØ-öø-ÿ][\w\sÀ-ÖØ-öø-ÿ'\-,]{2,}$/.test(firstText.trim()) &&
-           /\s/.test(firstText.trim());
-  };
-
-  allRows.forEach((row, ri) => {
-    // Skip the detected header row, but always process if no header was found
-    if (playerHeaderRowIdx >= 0 && ri === playerHeaderRowIdx) return;
-    const cells = [...row.querySelectorAll('td,th')];
-    if (!cells.length) return;
-    // Normalize whitespace in first cell (FargoRate uses double spaces)
-    const first = cells[0]?.textContent.replace(/\s+/g, ' ').trim();
-    if (!first) return;
-
-    if (statLabelRe.test(first)) {
-      // Stat row: grab week-column values
-      let values;
-      if (weekColStart >= 0) {
-        values = cells.slice(weekColStart, weekColEnd + 1).map(c => c.textContent.trim());
-      } else {
-        values = cells.slice(1).map(c => c.textContent.trim());
-      }
-      statRows.push({ label: first, values });
-
-    } else if (isPlayerRow(row, first)) {
-      // Player row — map by header names when available, fallback to end-offsets
-      const vals = cells.map(c => c.textContent.trim());
-      const len  = vals.length;
-      const get  = (key, fallbackOffset) =>
-        colMap[key] !== undefined ? (vals[colMap[key]] || '-') : (vals[len + fallbackOffset] || '-');
-
-      playerRows.push({
-        name:    vals[0].replace(/\s+/g, ' ').trim(),
-        gPlayed: get('played', -8),
-        gWon:    get('won',    -7),
-        winPct:  get('winPct', -6),
-        pts:     get('pts',    -5),
-        oppPts:  get('opp',    -4),
-        br:      get('br',     -3),
-        tr:      get('tr',     -2),
-        weeks:   get('weeks',  -1),
-      });
-    }
-  });
-
-  // ── Render ────────────────────────────────────────────────────────────────
-  return `
-    <div style="margin-bottom:12px">
-      <button onclick="switchView('teams')" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
-        ← Back to Teams
-      </button>
-    </div>
-
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header">
-        <span class="card-title" style="font-size:18px;color:var(--cream)">${teamName}</span>
-        <span class="card-meta">${DIVISIONS[league].label}</span>
-      </div>
-
-      ${playerRows.length ? `
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Player</th><th>Played</th><th>GMS WON</th><th>Win %</th>
-          <th>Pts</th><th>Opp Pts</th><th>BR</th><th>TR</th><th>Wks</th>
-        </tr></thead>
-        <tbody>
-          ${playerRows.map(p => {
-            const pv = parseFloat(p.winPct)||0;  // works whether value is "48%" or "48" or "0.48"
-            const pvNorm = pv > 1 ? pv : pv * 100; // normalise to 0-100 for bar width
-            const pvStr = p.winPct.includes('%') ? p.winPct : pvNorm.toFixed(0) + '%';
-            return `<tr>
-              <td style="font-weight:500;color:var(--cream)">${p.name}</td>
-              <td class="num" style="color:var(--text2)">${p.gPlayed}</td>
-              <td class="num" style="color:var(--text2)">${p.gWon}</td>
-              <td><div class="bar-wrap">
-                <div class="bar-track" style="width:60px"><div class="bar-fill" style="width:${pvNorm}%;background:${winColor(pvNorm+'%')}"></div></div>
-                <span class="num" style="font-size:13px;color:${winColor(pvNorm+'%')};font-weight:600">${pvStr}</span>
-              </div></td>
-              <td class="num" style="color:var(--text2)">${p.pts}</td>
-              <td class="num" style="color:var(--text2)">${p.oppPts}</td>
-              <td class="num" style="color:${parseInt(p.br)>0?'var(--green2)':'var(--text2)'}">${p.br}</td>
-              <td class="num" style="color:${parseInt(p.tr)>0?'var(--green2)':'var(--text2)'}">${p.tr}</td>
-              <td class="num" style="color:var(--text2)">${p.weeks}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table></div>` : '<div style="padding:20px;color:var(--text3);font-size:13px">No player data detected.</div>'}
-    </div>
-
-    ${statRows.length ? `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Season Record</span>
-        <span class="card-meta">${weekDates.length} week${weekDates.length!==1?'s':''} scheduled</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th style="min-width:140px">Stat</th>
-          ${weekDates.map(w => `<th style="text-align:center;min-width:52px;white-space:nowrap">${w}</th>`).join('')}
-        </tr></thead>
-        <tbody>
-          ${statRows.map(r => `<tr>
-            <td style="font-weight:500;color:var(--cream)">${r.label}</td>
-            ${r.values.map(v => {
-              const isWL  = /win|w\/l|result/i.test(r.label);
-              const isW   = isWL && /^w$/i.test(v);
-              const isL   = isWL && /^l$/i.test(v);
-              const color = isW ? 'var(--green2)' : isL ? 'var(--loss)' : 'var(--text2)';
-              return `<td class="num" style="text-align:center;color:${color};font-weight:${isW||isL?'700':'400'}">${v||'—'}</td>`;
-            }).join('')}
-          </tr>`).join('')}
-        </tbody>
-      </table></div>
-    </div>` : ''}
-  `;
-}
-
-/* The bars that host league nights. Phone numbers are tel: links so they can be
-   tapped from a phone. */
-const BARS = [
-  { name: 'Grumpies',       address: '815 S Main St., Kemmerer', phone: '307-877-5661' },
-  { name: 'Sage Lanes',     address: '918 Sage Ave, Kemmerer',   phone: '307-877-2973' },
-  { name: 'Stock Exchange', address: '712 JC Penny Dr, Kemmerer', phone: '307-877-3244' },
-];
-
-/* The photos that dress the Info tab. Kept small — they are decoration, and the
-   page should still open quickly on bar wifi. */
-const PHOTOS = [
-  { src: 'images/grumpies-team.jpg', alt: 'League night at Grumpies' },
-  { src: 'images/play-1.jpg',       alt: 'League night at the table' },
-  { src: 'images/play-2.jpg',       alt: 'Lining up a shot' },
-  { src: 'images/play-3.jpg',       alt: 'Down on the cue' },
-  { src: 'images/sage-lanes.jpg',   alt: 'The tables at Sage Lanes' },
-];
-
-function renderInfo() {
-  return `
-    <div class="photo-strip">
-      ${PHOTOS.map(p => `<figure class="shot">
-        <img src="${p.src}" alt="${p.alt}" loading="lazy">
-      </figure>`).join('')}
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">League Rules and Information</span>
-        <span class="card-meta">Coming soon</span>
-      </div>
-      <div class="pad-note">
-        League rules and other information will be posted here once finalized.
-      </div>
-    </div>
-
-  <div style="display:flex;flex-direction:column;gap:20px">
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Leagues</span>
-      </div>
-
-      <div class="lg-block">
-        <div class="lg-head">
-          <span class="lg-name">8-Ball Fall 2026&ndash;27</span>
-          <span class="lg-tag soon">Coming soon</span>
-        </div>
-        <div class="lg-body">
-          <p class="lg-note">
-            Season information coming soon. Check
-            <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">our Facebook group</a>
-            for upcoming league meetings and news. Final information, teams and schedules
-            will be posted here.
-          </p>
-        </div>
-      </div>
-
-      <div class="lg-block">
-        <div class="lg-head">
-          <span class="lg-name">10-Ball Summer 2026</span>
-          <span class="lg-tag on">Running now</span>
-        </div>
-        <div class="lg-body">
-          <div class="lg-links">
-            <button class="lg-link" onclick="switchLeague('10ball')">
-              <span class="ll-name">Season information</span>
-              <span class="ll-sub">Standings, players and results</span>
-            </button>
-            <a class="lg-link" href="schedule.html?league=10ball">
-              <span class="ll-name">Schedule</span>
-              <span class="ll-sub">Every week, who plays who, and where</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div class="lg-block">
-        <div class="lg-head">
-          <span class="lg-name">8-Ball Fall 2025&ndash;26</span>
-          <span class="lg-tag">Last season</span>
-        </div>
-        <div class="lg-body">
-          <div class="lg-links">
-            <button class="lg-link" onclick="switchLeague('8ball')">
-              <span class="ll-name">Season information</span>
-              <span class="ll-sub">Final standings and results</span>
-            </button>
-            <a class="lg-link" href="schedule.html?league=8ball">
-              <span class="ll-name">Schedule</span>
-              <span class="ll-sub">Last season, for reference</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">League Officers</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Position</th>
-          <th>Name</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">President</td>
-            <td style="color:var(--text2)">Trevor Connelly</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Vice President</td>
-            <td style="color:var(--text2)">Cody Baker</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Secretary</td>
-            <td style="color:var(--text2)">Andy Cass</td>
-          </tr>
-        </tbody>
-      </table></div>
-      <div class="officer-contact">
-        Need to reach them directly?
-        <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Thanks to Our Local Bars</span>
-      </div>
-      <div class="thanks-note">
-        The league runs on their tables and their hospitality. Give them your business.
-      </div>
-      <div class="bars">
-        ${BARS.map(b => `<div class="bar">
-          <div class="bn">${b.name}</div>
-          <div class="ba">${b.address}</div>
-          <a class="bp" href="tel:${b.phone.replace(/[^0-9]/g, '')}">${b.phone}</a>
-        </div>`).join('')}
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Suggestions</span>
-      </div>
-      <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
-        <p style="color:var(--text2);font-size:14px;line-height:1.7;margin:0">
-          Got an idea for the league or spotted something wrong on the site? Send it to the officers.
-        </p>
-        <div class="field-row">
-          <div class="field">
-            <label for="sg-name">Name <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
-            <input id="sg-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
-          </div>
-          <div class="field">
-            <label for="sg-email">Email <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label>
-            <input id="sg-email" type="email" maxlength="120" autocomplete="email" placeholder="So we can reply">
-          </div>
-        </div>
-        <div class="field">
-          <label for="sg-message">Suggestion</label>
-          <textarea id="sg-message" maxlength="2000" placeholder="What's on your mind?"></textarea>
-        </div>
-        <div class="hp" aria-hidden="true">
-          <label for="sg-website">Leave this field empty</label>
-          <input id="sg-website" type="text" tabindex="-1" autocomplete="off">
-        </div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-          <button class="submit-btn" id="sg-submit" onclick="submitSuggestion()">Send Suggestion</button>
-          <span class="form-status" id="sg-status"></span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderEvents() {
-  return `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Upcoming Events</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Event</th>
-          <th>Date</th>
-          <th>Location</th>
-          <th style="text-align:center">Info</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Nov 6&ndash;8, 2026</td>
-            <td style="color:var(--text2)">Rock Springs, WY</td>
-            <td style="text-align:center;color:var(--green2);font-weight:600">Confirmed</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">Early Dec 2026</td>
-            <td style="color:var(--text2)">TBD</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">Awaiting date</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 8&ndash;10, 2027</td>
-            <td style="color:var(--text2)">Pinedale, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">Expected</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">AMOW Wyoming State 8-Ball</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Mar 15&ndash;21, 2027</td>
-            <td style="color:var(--text2)">Casper, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">Estimated</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins End of Year</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 8&ndash;11, 2027</td>
-            <td style="color:var(--text2)">Rock Springs, WY</td>
-            <td style="text-align:center;color:var(--green2);font-weight:600">Confirmed</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 30 &ndash; May 2, 2027</td>
-            <td style="color:var(--text2)">Dubois, WY</td>
-            <td style="text-align:center;color:var(--green2);font-weight:600">Confirmed</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
-            <td style="color:var(--text2)">Evanston, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Red Short Memorial Tri City</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
-            <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Bridger Valley Tri City</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
-            <td style="color:var(--text2)">Bridger Valley, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-        </tbody>
-      </table></div>
-      <div style="padding:20px;border-top:1px solid var(--border)">
-        <p style="color:var(--text2);font-size:14px;line-height:1.8;margin-bottom:16px">
-          The December tournament is expected the first or second weekend &mdash; the date
-          hasn't been confirmed yet. Pinedale in January is likely but not yet firm. The AMOW
-          state date is our own estimate from the last four years, which all landed in the
-          third week of March &mdash; watch playcsipool.com for the official announcement.
-          Tri City dates are still being finalized; check with Jenkins Music &amp; Vending for
-          anything not listed here.
-        </p>
-        <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:opacity .15s"
-           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          🎱 Jenkins Music &amp; Vending — Leagues &amp; Tournaments ↗
-        </a>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Past Events</span>
-        <span class="card-meta">2025–2026 Season</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Event</th>
-          <th>Date</th>
-          <th>Location</th>
-          <th style="text-align:center">Info</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Kemmerer Year End</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 25–26, 2026</td>
-            <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center;color:var(--text3)">—</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">AMOW Wyoming State Championships</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Mar 16–22, 2026</td>
-            <td style="color:var(--text2)">Casper, WY</td>
-            <td style="text-align:center">
-              <a href="https://www.playcsipool.com/2026-amow-wyoming-8ball-championships.html" target="_blank" rel="noopener"
-                 style="color:var(--green2);font-size:12px;font-weight:600;text-decoration:none"
-                 onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--green2)'">Details ↗</a>
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Bridger Valley Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Feb 28–Mar 1, 2026</td>
-            <td style="color:var(--text2)">Bridger Valley, WY</td>
-            <td style="text-align:center">
-              <button onclick="openLightbox('bridgervalley.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Red Short Memorial Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 31–Feb 1, 2026</td>
-            <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center">
-              <button onclick="openLightbox('kemmerer.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 3–4, 2026</td>
-            <td style="color:var(--text2)">Evanston, WY</td>
-            <td style="text-align:center">
-              <button onclick="openLightbox('evanston.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
-            </td>
-          </tr>
-        </tbody>
-      </table></div>
-    </div>
-
-
-  </div>  `;
-}
-
+/* ── Suggestions ─────────────────────────────────────────────
+   Posts to the same Cloudflare Function the old Info tab used,
+   honeypot and all. ────────────────────────────────────────── */
 async function submitSuggestion() {
-  const btn    = document.getElementById('sg-submit');
+  const btn = document.getElementById('sg-submit');
   const status = document.getElementById('sg-status');
   const say = (msg, color) => { status.textContent = msg; status.style.color = color; };
 
   const message = document.getElementById('sg-message').value.trim();
   if (message.length < 5) {
-    say('Please enter a suggestion first.', 'var(--loss)');
+    say('Put something in the box first.', '#c0553f');
     document.getElementById('sg-message').focus();
     return;
   }
 
   btn.disabled = true;
-  say('Sending…', 'var(--text3)');
+  say('Sending\u2026', 'var(--dim)');
 
   try {
     const r = await fetch('/suggest', {
@@ -1817,95 +1025,26 @@ async function submitSuggestion() {
       body: JSON.stringify({
         name:    document.getElementById('sg-name').value,
         email:   document.getElementById('sg-email').value,
-        website: document.getElementById('sg-website').value,  // honeypot
+        website: document.getElementById('sg-website').value,   // honeypot
         message,
       }),
     });
     const data = await r.json().catch(() => ({}));
 
     if (r.ok && data.ok) {
-      ['sg-name','sg-email','sg-message'].forEach(id => document.getElementById(id).value = '');
-      say('Thanks — your suggestion was sent.', 'var(--green2)');
-      btn.disabled = false;
+      ['sg-name', 'sg-email', 'sg-message'].forEach(id => document.getElementById(id).value = '');
+      say('Thanks \u2014 it\u2019s on its way to the officers.', '#4fae86');
     } else {
-      say(data.error || 'Something went wrong. Please try again.', 'var(--loss)');
-      btn.disabled = false;
+      say(data.error || 'Something went wrong. Try again.', '#c0553f');
     }
-  } catch(e) {
-    say('Could not connect. Please try again.', 'var(--loss)');
-    btn.disabled = false;
+  } catch (e) {
+    say('Couldn\u2019t connect. Try again.', '#c0553f');
   }
+  btn.disabled = false;
 }
 
-const PAGE_TABS = ['info', 'events'];          // not leagues, so no standings views
-
-function switchLeague(lg) {
-  league = lg;
-  ['info','10ball','8ball','events'].forEach(k => {
-    const el = document.getElementById(`ltab-${k}`);
-    el.classList.toggle('active', k === lg);
-    if (!PAGE_TABS.includes(k)) {
-      el.classList.toggle('inactive-league', k !== lg && !PAGE_TABS.includes(lg));
-    }
-  });
-  // The view bar picks standings, players and so on — meaningless on these tabs.
-  document.querySelector('.view-bar').style.display = PAGE_TABS.includes(lg) ? 'none' : '';
-  if (lg === 'info')   { document.getElementById('content').innerHTML = renderInfo();   return; }
-  if (lg === 'events') { document.getElementById('content').innerHTML = renderEvents(); return; }
-  cache = {};
-  loadView();
-}
-function switchView(vw) {
-  view = vw;
-  ['teams','players','byteam','list','schedule'].forEach(k => document.getElementById(`vt-${k}`).classList.toggle('active', k===vw));
-  loadView();
-}
-
-async function loadView() {
-  inDrillDown = false;
-  document.getElementById('content').innerHTML =
-    `<div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Loading…</div></div>`;
-  const data = await fetchSection(league, view);
-  let html = '';
-  if      (view==='teams')    html = renderTeams(data);
-  else if (view==='players')  html = renderPlayers(data);
-  else if (view==='byteam')   html = renderByTeam(data);
-  else if (view==='list')     html = renderList(data);
-  else if (view==='schedule') html = renderSchedule(data);
-  document.getElementById('content').innerHTML = html;
-  if (view === 'schedule') scrollToNextMatch();
-}
-
-// Jump to the next upcoming date so the schedule doesn't open on old weeks.
-function scrollToNextMatch() {
-  const el = document.getElementById('sched-next');
-  if (!el) return;                       // season over, or nothing upcoming
-  if (el.previousElementSibling === null) return;  // already at the top
-  const bar = document.querySelector('.view-bar');
-  const offset = (bar ? bar.offsetHeight : 0) + 12;
-  const y = el.getBoundingClientRect().top + window.scrollY - offset;
-  window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' });
-}
-
-// The site opens on Info — schedules and league news, not a standings table.
-switchLeague('info');
-
-function openLightbox(src) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+loadStandings();
+loadNext();
 </script>
-<!-- Lightbox -->
-<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
-  <span class="lightbox-close" onclick="closeLightbox()">✕</span>
-  <img id="lightbox-img" src="" alt="Tournament flyer" onclick="event.stopPropagation()">
-</div>
-
 </body>
 </html>
