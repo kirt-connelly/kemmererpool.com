@@ -201,23 +201,31 @@
       .bar-track { width: 50px !important; }
     }
 
-    /* ── Leagues on Info ── */
+    /* ── Leagues on Info ──
+       One block per season, newest first: what it is, whether it's running, and
+       the two things people come for — the standings and the schedule. */
     .lg-block { border-top: 1px solid var(--border); }
     .lg-block:first-of-type { border-top: none; }
-    .lg-head { display: flex; align-items: center; gap: 10px; padding: 12px 18px 0; }
-    .lg-name { font-size: 16px; font-weight: 700; color: var(--cream); }
+    .lg-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 0; }
+    .lg-name { font-size: 17px; font-weight: 700; color: var(--cream); }
     .lg-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3); }
+      padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3);
+      white-space: nowrap; }
     .lg-tag.on { border-color: var(--accent); color: var(--green2); }
+    .lg-tag.soon { border-color: var(--border2); color: var(--text2); }
     .lg-body { padding: 10px 18px 16px; }
-    .lg-note { font-size: 14px; color: var(--text2); line-height: 1.6; margin: 0 0 12px; }
-    .sched-link { display: block; text-align: left; font-family: inherit; cursor: pointer;
-      text-decoration: none; max-width: 360px;
-      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 14px 16px; transition: border-color .15s; }
-    .sched-link:hover { border-color: var(--accent); }
-    .sched-link .sl-name { display: block; font-size: 16px; font-weight: 700; color: var(--green2); }
-    .sched-link .sl-sub { display: block; font-size: 12px; color: var(--text3); margin-top: 3px; }
+    .lg-note { font-size: 14px; color: var(--text2); line-height: 1.7; margin: 0; }
+    .lg-note a { color: var(--green2); font-weight: 600; text-decoration: none; }
+    .lg-note a:hover { text-decoration: underline; }
+
+    .lg-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .lg-link { display: block; text-align: left; font-family: inherit; cursor: pointer;
+      text-decoration: none; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 13px 15px; transition: border-color .15s; }
+    .lg-link:hover { border-color: var(--accent); }
+    .ll-name { display: block; font-size: 15px; font-weight: 600; color: var(--green2); }
+    .ll-sub { display: block; font-size: 12px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
+    @media (max-width: 560px) { .lg-links { grid-template-columns: 1fr; } }
 
     /* ── Info photos ──
        Decoration, so they load lazily and keep a fixed shape to stop the page
@@ -356,9 +364,9 @@
       </div>
     </div>
     <div class="league-tabs">
-      <button class="ltab" id="ltab-info" onclick="switchLeague('info')">Info</button>
-      <button class="ltab active" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
-      <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 26</button>
+      <button class="ltab active" id="ltab-info" onclick="switchLeague('info')">Info</button>
+      <button class="ltab" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
+      <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 25-26</button>
       <button class="ltab" id="ltab-events" onclick="switchLeague('events')">Events</button>
     </div>
   </div>
@@ -387,7 +395,7 @@
   <div class="footer-inner">
     <div>
       Powered by <a href="https://fargorate.com" target="_blank" rel="noopener">FargoRate LMS</a>
-      &nbsp;·&nbsp; v2.12
+      &nbsp;·&nbsp; v2.14
     </div>
     <div class="footer-status">
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading…</span>
@@ -411,7 +419,7 @@ const VIEWS = {
   schedule: { url: ()  => `${BASE}/GenerateDivisionScheduleReport`,           method: 'POST', body: id => `divisionId=${id}` },
 };
 
-let league = '10ball', view = 'teams', cache = {}, isLive = null, inDrillDown = false;
+let league = 'info', view = 'teams', cache = {}, isLive = null, inDrillDown = false;
 
 /* ── Theme ── */
 function isLightTheme() {
@@ -1489,11 +1497,11 @@ function renderInfo() {
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title">League Rules and Information</span>
+        <span class="card-title">Information Pending</span>
         <span class="card-meta">Coming soon</span>
       </div>
       <div class="pad-note">
-        2026&ndash;27 8-Ball season information coming soon.
+        League rules and other information will be posted here once finalized.
       </div>
     </div>
 
@@ -1506,31 +1514,54 @@ function renderInfo() {
 
       <div class="lg-block">
         <div class="lg-head">
-          <span class="lg-name">10-Ball 2026</span>
-          <span class="lg-tag on">Running now</span>
+          <span class="lg-name">8-Ball Fall 2026&ndash;27</span>
+          <span class="lg-tag soon">Coming soon</span>
         </div>
         <div class="lg-body">
-          <a class="sched-link" href="schedule.html?league=10ball">
-            <span class="sl-name">Full season schedule</span>
-            <span class="sl-sub">Every week, who plays who, and where</span>
-          </a>
+          <p class="lg-note">
+            Season information coming soon. Check
+            <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">our Facebook group</a>
+            for upcoming league meetings and news. Final information, teams and schedules
+            will be posted here.
+          </p>
         </div>
       </div>
 
       <div class="lg-block">
         <div class="lg-head">
-          <span class="lg-name">8-Ball 25-26</span>
+          <span class="lg-name">10-Ball Summer 2026</span>
+          <span class="lg-tag on">Running now</span>
+        </div>
+        <div class="lg-body">
+          <div class="lg-links">
+            <button class="lg-link" onclick="switchLeague('10ball')">
+              <span class="ll-name">Season information</span>
+              <span class="ll-sub">Standings, players and results</span>
+            </button>
+            <a class="lg-link" href="schedule.html?league=10ball">
+              <span class="ll-name">Schedule</span>
+              <span class="ll-sub">Every week, who plays who, and where</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg-block">
+        <div class="lg-head">
+          <span class="lg-name">8-Ball Fall 2025&ndash;26</span>
           <span class="lg-tag">Last season</span>
         </div>
         <div class="lg-body">
-          <p class="lg-note">
-            This is last year's league information. The 2026&ndash;27 information will be
-            posted soon after league meetings conclude.
-          </p>
-          <a class="sched-link" href="schedule.html?league=8ball">
-            <span class="sl-name">2025&ndash;26 schedule</span>
-            <span class="sl-sub">Last season, for reference</span>
-          </a>
+          <div class="lg-links">
+            <button class="lg-link" onclick="switchLeague('8ball')">
+              <span class="ll-name">Season information</span>
+              <span class="ll-sub">Final standings and results</span>
+            </button>
+            <a class="lg-link" href="schedule.html?league=8ball">
+              <span class="ll-name">Schedule</span>
+              <span class="ll-sub">Last season, for reference</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -1856,7 +1887,8 @@ function scrollToNextMatch() {
   window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' });
 }
 
-loadView();
+// The site opens on Info — schedules and league news, not a standings table.
+switchLeague('info');
 
 function openLightbox(src) {
   document.getElementById('lightbox-img').src = src;
