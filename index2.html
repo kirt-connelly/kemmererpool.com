@@ -122,6 +122,7 @@ h2.head {
    The page opens on the cloth, because that's where the league
    happens. The rack breaks once on load, then sits still. ────── */
 .cloth {
+  --ball: clamp(22px, 2.9vw, 31px);
   position: relative; overflow: hidden;
   background:
     radial-gradient(90% 120% at 50% -10%, rgba(255,255,255,.09), transparent 55%),
@@ -137,20 +138,22 @@ h2.head {
 }
 .cloth-in {
   position: relative; z-index: 2;
-  display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center;
-  padding: 66px 0 62px;
+  padding: 46px 0 56px; text-align: center;
 }
 
 .hero-h1 {
   font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400;
-  font-size: clamp(46px, 8.2vw, 96px); line-height: .92;
+  font-size: clamp(50px, 9.4vw, 100px); line-height: .94;
   letter-spacing: -.025em; margin: 14px 0 0;
-  text-shadow: 0 3px 0 rgba(0,0,0,.28), 0 22px 44px rgba(0,0,0,.4);
+  text-shadow: 0 3px 0 rgba(0,0,0,.3), 0 22px 44px rgba(0,0,0,.45);
 }
-.hero-h1 em { font-style: normal; display: block; color: var(--brass); }
-.hero-sub { margin-top: 20px; font-size: 19px; color: rgba(244,239,228,.84); max-width: 34ch; }
+.hero-h1 em { font-style: normal; color: var(--brass); }
+.hero-sub {
+  margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
+  max-width: 40ch; text-wrap: balance;
+}
 
-.hero-cta { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+.hero-cta { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; justify-content: center; }
 .btn {
   display: inline-flex; align-items: center; text-decoration: none;
   font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
@@ -163,13 +166,17 @@ h2.head {
 .btn-ghost { border-color: rgba(244,239,228,.34); color: var(--bone); background: rgba(0,0,0,.14); }
 .btn-ghost:hover { border-color: var(--bone); transform: translateY(-1px); }
 
-/* ── The rack ──────────────────────────────────────────────── */
-.rack-wrap { display: flex; justify-content: center; }
+/* ── The rack ──────────────────────────────────────────────────
+   It used to sit in a right-hand column, which pushed the words
+   off-centre and stacked badly on a phone. Now it's a small crest
+   racked up dead centre above the headline — same idea, a tenth
+   of the room, and it behaves at every width. ────────────────── */
+.rack-wrap { display: flex; justify-content: center; margin-bottom: 22px; }
 .rack { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .rack-row { display: flex; gap: 3px; }
 .ball {
   --c: #b8342c;
-  width: 46px; height: 46px; border-radius: 50%; flex: none;
+  width: var(--ball, 46px); height: var(--ball, 46px); border-radius: 50%; flex: none;
   display: grid; place-items: center; position: relative;
   box-shadow: inset -5px -7px 13px rgba(0,0,0,.5), 0 7px 14px rgba(0,0,0,.42);
 }
@@ -177,9 +184,12 @@ h2.head {
 .ball.stripe { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.62), rgba(255,255,255,0) 42%),
                  linear-gradient(180deg, var(--bone) 0 25%, var(--c) 25% 75%, var(--bone) 75% 100%); }
 .ball.eight  { background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #141010; }
+/* Circle and number both scale off --ball, so a two-digit number
+   never crowds its circle at any size. */
 .ball span {
-  width: 18px; height: 18px; border-radius: 50%; background: var(--bone);
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  width: 44%; height: 44%; border-radius: 50%; background: var(--bone);
+  font-family: 'Space Mono', monospace; font-weight: 700;
+  font-size: calc(var(--ball, 31px) * .26);
   color: #17120d; display: grid; place-items: center; line-height: 1;
   box-shadow: inset 0 -1px 2px rgba(0,0,0,.2);
 }
@@ -193,8 +203,10 @@ h2.head {
 
 /* ── Next up ───────────────────────────────────────────────── */
 .nextup {
-  margin-top: 30px; border: 1px solid rgba(244,239,228,.2);
-  background: rgba(9,26,21,.5); border-radius: 5px; overflow: hidden; max-width: 460px;
+  margin: 30px auto 0; border: 1px solid rgba(244,239,228,.2);
+  background: rgba(9,26,21,.66); border-radius: 5px; overflow: hidden;
+  max-width: 480px; text-align: left;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
 }
 .nextup-hd {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -212,7 +224,8 @@ h2.head {
 .fixture .a { text-align: left; font-weight: 600; }
 .fixture .v { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--dim); }
 .fixture .rm {
-  grid-column: 1 / -1; font-family: 'Space Mono', monospace; font-size: 10px;
+  grid-column: 1 / -1; text-align: center;
+  font-family: 'Space Mono', monospace; font-size: 10px;
   letter-spacing: .1em; text-transform: uppercase; color: var(--brass); opacity: .85;
 }
 .nextup-wait { padding: 16px 15px; color: rgba(244,239,228,.6); font-size: 15px; }
@@ -342,10 +355,7 @@ a:focus-visible, button:focus-visible {
 
 /* ═══ NARROW ═════════════════════════════════════════════════ */
 @media (max-width: 900px) {
-  .cloth-in { grid-template-columns: 1fr; gap: 34px; padding: 44px 0 46px; }
-  .rack-wrap { order: -1; }
-  .ball { width: 38px; height: 38px; }
-  .ball span { width: 15px; height: 15px; font-size: 9px; }
+  .cloth-in { padding: 40px 0 46px; }
   .seasons, .rooms { grid-template-columns: 1fr; }
   .foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
@@ -363,6 +373,14 @@ a:focus-visible, button:focus-visible {
   .hero-sub { font-size: 17px; }
   .nextup { max-width: none; }
   .shell { padding: 0 16px; }
+  .cloth { --ball: 24px; }
+  .rack-wrap { margin-bottom: 20px; }
+  /* Four nav items plus the wordmark don't fit on a phone, and a
+     clipped "WHERE" looks broken. The eight ball keeps the home
+     link and the nav gets the width. */
+  .mast-in { gap: 12px; }
+  .mark b { display: none; }
+  .mast nav a { padding: 8px 6px; letter-spacing: .06em; }
 }
 </style>
 </head>
@@ -392,31 +410,28 @@ a:focus-visible, button:focus-visible {
 
     <div class="cloth">
       <div class="shell cloth-in">
-        <div>
-          <div class="eyebrow">Kemmerer, Wyoming</div>
-          <h1 class="hero-h1">Rack<br>'em<em>up.</em></h1>
-          <p class="hero-sub">
-            Wednesday nights on three tables in town. Eight ball through the
-            winter, ten ball all summer.
-          </p>
-          <div class="hero-cta">
-            <a class="btn btn-solid" href="schedule.html?league=10ball">This season's schedule</a>
-            <a class="btn btn-ghost" href="#standings">Where we stand</a>
-          </div>
-
-          <div class="nextup">
-            <div class="nextup-hd">
-              <span class="eyebrow">Next on the sheet</span>
-              <span class="nextup-when" id="next-when"></span>
-            </div>
-            <div class="nextup-body" id="next-body">
-              <div class="nextup-wait">Checking the schedule&hellip;</div>
-            </div>
-          </div>
+        <div class="rack-wrap" aria-hidden="true">
+          <div class="rack" id="rack"></div>
+        </div>
+        <div class="eyebrow">Kemmerer, Wyoming</div>
+        <h1 class="hero-h1">Rack 'em <em>up.</em></h1>
+        <p class="hero-sub">
+          Wednesday nights. Grab a beer, shoot some pool. Eight ball all
+          winter, ten ball all summer.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-solid" href="schedule.html?league=10ball">This season's schedule</a>
+          <a class="btn btn-ghost" href="#standings">Standings</a>
         </div>
 
-        <div class="rack-wrap">
-          <div class="rack" id="rack" aria-hidden="true"></div>
+        <div class="nextup">
+          <div class="nextup-hd">
+            <span class="eyebrow">Next on the sheet</span>
+            <span class="nextup-when" id="next-when"></span>
+          </div>
+          <div class="nextup-body" id="next-body">
+            <div class="nextup-wait">Checking the schedule&hellip;</div>
+          </div>
         </div>
       </div>
     </div>
@@ -428,8 +443,8 @@ a:focus-visible, button:focus-visible {
     <div class="shell">
       <div class="band-hd">
         <div class="eyebrow">10-Ball Summer 2026</div>
-        <h2 class="head">Where we stand</h2>
-        <p class="lede">Straight off FargoRate, updated as scoresheets come in.</p>
+        <h2 class="head">Standings</h2>
+        <p class="lede">Updated as the sheets come in.</p>
       </div>
       <div class="table-frame" id="standings-frame">
         <div class="quiet-note">Loading the standings&hellip;</div>
@@ -451,16 +466,17 @@ a:focus-visible, button:focus-visible {
           <span class="flag">Coming soon</span>
           <h3>8-Ball Fall 2026&ndash;27</h3>
           <p>
-            Meetings are being set now. Watch
+            Signups start this fall. Want in? Watch
             <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">the Facebook group</a>
-            for dates &mdash; teams and schedules land here once they're settled.
+            or grab an officer &mdash; teams and the schedule show up here once
+            they're set.
           </p>
         </article>
 
         <article class="season live">
           <span class="flag">Playing now</span>
           <h3>10-Ball Summer 2026</h3>
-          <p>Wednesday nights, running through the summer.</p>
+          <p>Wednesday nights all summer. Come watch, come play.</p>
           <div class="season-go">
             <a href="index.html">Standings and players</a>
             <a href="schedule.html?league=10ball">Full schedule</a>
@@ -470,7 +486,7 @@ a:focus-visible, button:focus-visible {
         <article class="season">
           <span class="flag">Wrapped</span>
           <h3>8-Ball Fall 2025&ndash;26</h3>
-          <p>Last winter's league, kept here for the record.</p>
+          <p>Last winter's league. Still here if you want to argue about it.</p>
           <div class="season-go">
             <a href="index.html">Final standings</a>
             <a href="schedule.html?league=8ball">Schedule</a>
@@ -487,7 +503,7 @@ a:focus-visible, button:focus-visible {
       <div class="band-hd">
         <div class="eyebrow">Road trips</div>
         <h2 class="head">On the calendar</h2>
-        <p class="lede">Jenkins tournaments and state. Anything not marked confirmed isn't official yet.</p>
+        <p class="lede">Jenkins tournaments and state. If it doesn't say confirmed, don't book the motel yet.</p>
       </div>
 
       <div class="dates">
@@ -539,6 +555,7 @@ a:focus-visible, button:focus-visible {
         <div class="eyebrow">Three bars, one town</div>
         <h2 class="head">Where we play</h2>
         <p class="lede">They keep the tables level and the lights on. Spend your money with them.</p>
+
       </div>
 
       <div class="rooms">
@@ -576,9 +593,9 @@ a:focus-visible, button:focus-visible {
         <div>
           <h4>The league</h4>
           <p class="foot-sign">
-            A bar league in Kemmerer, Wyoming, run through Jenkins Music &amp; Vending
-            and rated by FargoRate. New players are welcome &mdash; find an officer or
-            turn up on a Wednesday.
+            A bar pool league in Kemmerer, Wyoming, run through Jenkins Music &amp;
+            Vending. New shooters are always welcome &mdash; find an officer, or just
+            show up on a Wednesday and say hello.
           </p>
         </div>
         <div>
@@ -598,7 +615,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League</span>
-        <span>Design study &middot; index2</span>
+        <span>Design study &middot; index2 v0.30</span>
       </div>
     </div>
   </footer>
@@ -608,7 +625,7 @@ a:focus-visible, button:focus-visible {
 <script>
 /* ═══════════════════════════════════════════════════════════════
    Live data comes through the same Cloudflare proxy the main site
-   uses. Everything degrades quietly: if FargoRate is slow or down,
+   uses. Everything degrades quietly: if the league data is slow or down,
    each section says so plainly rather than sitting empty.
    ═══════════════════════════════════════════════════════════════ */
 
@@ -724,8 +741,8 @@ async function loadStandings() {
         '</tr>').join('') +
       '</tbody></table>';
   } catch (e) {
-    frame.innerHTML = '<div class="quiet-note">Standings live on FargoRate and it isn\u2019t ' +
-      'answering right now. Try <a href="index.html">the full site</a>.</div>';
+    frame.innerHTML = '<div class="quiet-note">Standings aren\u2019t loading right now. ' +
+      'Give it a minute, or try <a href="index.html">the full site</a>.</div>';
   }
 }
 
