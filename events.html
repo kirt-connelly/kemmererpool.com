@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Events — Kemmerer Pool League</title>
+<meta name="description" content="Jenkins tournaments, Tri City weekends and Wyoming state — what's coming up and what's been." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Events — the road trips and state, on their own page.
+   These used to be a tab on the standings page, sitting alongside
+   Players and Ratings, which made a list of tournaments look like
+   a league report. Same room as the rest of the site.
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --night:   #14100c;
+  --night-2: #1d1712;
+  --felt:    #1c5142;
+  --felt-lo: #102e26;
+  --brass:   #d4a13c;
+  --bone:    #f4efe4;
+  --dim:     #9d9282;
+  --set:     #4fae86;
+  --shell:   900px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--night); color: var(--bone);
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 16px; line-height: 1.55; min-height: 100vh;
+  overflow-x: hidden; -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--night); }
+::-webkit-scrollbar-thumb { background: #473829; border-radius: 3px; }
+
+.wrap { width: 100%; max-width: var(--shell); margin: 0 auto; padding: 0 24px; }
+
+.lamp {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
+    radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
+}
+/* Nothing that needs to stick gets its position from a shared rule. */
+footer { position: relative; z-index: 1; }
+main { position: relative; z-index: 0; }
+
+/* ═══ MASTHEAD ═══════════════════════════════════════════════ */
+header {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(20,16,12,.86);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(212,161,60,.15);
+}
+.mast-in { display: flex; align-items: center; gap: 24px; height: 62px; }
+.mark { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+.mark .eight {
+  width: 27px; height: 27px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+  box-shadow: inset -3px -4px 7px rgba(0,0,0,.6);
+}
+.mark .eight span {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
+  font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
+}
+.mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; color: var(--bone); white-space: nowrap; }
+.mast-nav { margin-left: auto; display: flex; gap: 4px; }
+.mast-nav a {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  text-decoration: none; padding: 8px 12px; border-radius: 4px;
+}
+.mast-nav a:hover { color: var(--bone); background: rgba(244,239,228,.06); }
+
+/* ═══ RAIL DIAMONDS ══════════════════════════════════════════ */
+.rail-rule {
+  display: flex; align-items: center; justify-content: center; gap: 46px;
+  height: 26px; position: relative;
+}
+.rail-rule::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,161,60,.22) 12%,
+              rgba(212,161,60,.22) 88%, transparent);
+}
+.rail-rule i {
+  width: 7px; height: 7px; background: var(--brass); opacity: .5;
+  transform: rotate(45deg); position: relative; flex: none;
+}
+
+/* ═══ PAGE HEAD ══════════════════════════════════════════════ */
+.page-hd { padding: 26px 0 0; }
+.eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+}
+.page-hd h1 {
+  font-size: clamp(26px, 4vw, 38px); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.1; margin: 9px 0 0;
+}
+.page-hd .sub { color: var(--dim); font-size: 15px; margin-top: 7px; max-width: 56ch; }
+
+.acts { display: flex; gap: 8px; flex-wrap: wrap; padding: 20px 0 6px; }
+.act {
+  display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  padding: 10px 15px; border-radius: 4px; text-decoration: none;
+  border: 1px solid #33291f; background: transparent; color: var(--dim);
+  white-space: nowrap; transition: color .15s, border-color .15s, background .15s;
+}
+.act:hover { background: rgba(244,239,228,.05); color: var(--bone); border-color: #473829; }
+
+/* ═══ PANELS ═════════════════════════════════════════════════ */
+main { padding: 22px 0 70px; }
+.panel {
+  border: 1px solid rgba(244,239,228,.13); border-radius: 5px;
+  overflow: hidden; background: rgba(0,0,0,.18); margin-bottom: 18px;
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 16px; background: rgba(0,0,0,.28);
+  border-bottom: 1px solid rgba(244,239,228,.12); min-height: 42px;
+}
+.panel-note {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .08em;
+  color: var(--dim); text-align: right;
+}
+
+/* The next thing on the calendar sits on cloth, the way Next up does
+   on the front page — it's the one row most people came to read. */
+.panel.cloth-panel {
+  position: relative; border-color: rgba(212,161,60,.26);
+  background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.58));
+}
+.panel.cloth-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+.panel.cloth-panel > * { position: relative; z-index: 1; }
+.panel.cloth-panel .panel-hd {
+  background: rgba(11,33,27,.72); border-bottom-color: rgba(212,161,60,.28);
+}
+
+/* ═══ THE LIST ═══════════════════════════════════════════════
+   Not a table. Each event is a row of its own: name and place on
+   the left, date and status on the right. It folds onto two lines
+   on a phone instead of scrolling sideways. ────────────────── */
+.ev {
+  display: grid; grid-template-columns: 1fr auto; gap: 3px 18px;
+  align-items: baseline; padding: 14px 16px;
+  border-bottom: 1px solid rgba(244,239,228,.08);
+}
+.ev:last-child { border-bottom: none; }
+.ev:hover { background: rgba(244,239,228,.03); }
+.ev .n { font-weight: 600; font-size: 17px; grid-column: 1; grid-row: 1; }
+.ev .w { color: var(--dim); font-size: 14px; grid-column: 1; grid-row: 2; }
+.ev .d {
+  font-family: 'Space Mono', monospace; font-size: 13px; color: var(--brass);
+  white-space: nowrap; grid-column: 2; grid-row: 1; text-align: right;
+}
+.ev .s {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dim);
+  grid-column: 2; grid-row: 2; text-align: right;
+}
+.ev .s.set { color: var(--set); }
+.ev.soft .d { color: var(--dim); }
+
+/* Flyers and detail links sit on the right, under the date. */
+.ev .s a, .ev .s button {
+  font: inherit; color: var(--brass); background: none; border: none;
+  padding: 0; cursor: pointer; text-decoration: none; letter-spacing: .12em;
+}
+.ev .s a:hover, .ev .s button:hover { color: var(--bone); text-decoration: underline; }
+
+.panel-foot {
+  padding: 17px 16px; border-top: 1px solid rgba(244,239,228,.1);
+  background: rgba(0,0,0,.16);
+}
+.panel-foot p { color: var(--dim); font-size: 15px; line-height: 1.7; margin: 0 0 15px; }
+.out {
+  display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 11px 16px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.55); background: rgba(212,161,60,.12); color: var(--brass);
+  transition: background .15s, color .15s;
+}
+.out:hover { background: rgba(212,161,60,.22); color: var(--bone); }
+
+/* ═══ LIGHTBOX ═══════════════════════════════════════════════ */
+.lb {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10,7,4,.92); align-items: center; justify-content: center; cursor: pointer;
+}
+.lb.open { display: flex; }
+.lb img {
+  max-width: 92vw; max-height: 92vh; border-radius: 5px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
+}
+.lb-x {
+  position: fixed; top: 16px; right: 20px; font-size: 30px; line-height: 1;
+  color: var(--bone); cursor: pointer; opacity: .8; z-index: 1001;
+}
+.lb-x:hover { opacity: 1; }
+
+/* ═══ FOOTER ═════════════════════════════════════════════════ */
+footer {
+  border-top: 1px solid rgba(244,239,228,.1); background: var(--night-2);
+  padding: 24px 0; text-align: center; font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--dim); letter-spacing: .06em;
+}
+footer a { color: #b7ab99; text-decoration: none; }
+footer a:hover { color: var(--brass); }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 3px;
+}
+
+@media (max-width: 600px) {
+  .wrap { padding-left: 16px; padding-right: 16px; }
+  .page-hd { padding-top: 20px; }
+  .mast-in { height: auto; flex-direction: column; justify-content: center;
+             gap: 2px; padding-top: 9px; padding-bottom: 7px; }
+  .mark b { font-size: 14px; }
+  .mast-nav { margin-left: 0; }
+  .mast-nav a { padding: 6px 9px; letter-spacing: .08em; }
+  .rail-rule { gap: 26px; }
+  .act { flex: 1; justify-content: center; padding: 10px 8px; font-size: 10px; letter-spacing: .08em; }
+  .ev { padding: 13px 14px; gap: 2px 12px; }
+  .ev .n { font-size: 16px; }
+}
+
+@media print {
+  html, body { background: #fff; color: #000; font-size: 10.5pt; }
+  .lamp, .rail-rule, .mast-nav, .acts, .lb, .out, footer { display: none !important; }
+  header { position: static; background: none; border-bottom: 2px solid #000; }
+  .mast-in { height: auto; padding: 0 0 6px; }
+  .mark .eight { display: none; }
+  .mark b { color: #000; font-size: 11pt; }
+  .wrap { max-width: none; padding: 0; }
+  .page-hd h1 { color: #000; font-size: 16pt; }
+  .eyebrow, .page-hd .sub { color: #444; }
+  .panel { border: 1px solid #999; border-radius: 0; background: none !important; margin-bottom: 10px; }
+  .panel::before { display: none !important; }
+  .panel-hd, .panel-foot { background: none !important; border-color: #999; }
+  .ev { border-bottom: 1px solid #ddd; break-inside: avoid; }
+  .ev .n, .ev .d, .ev .w, .ev .s { color: #000 !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="lamp" aria-hidden="true"></div>
+
+<header>
+  <div class="wrap mast-in">
+    <a class="mark" href="index.html">
+      <span class="eight" aria-hidden="true"><span>8</span></span>
+      <b>Kemmerer Pool League</b>
+    </a>
+    <nav class="mast-nav">
+      <a href="index.html">Home</a>
+      <a href="league.html?lg=10ball">Standings</a>
+      <a href="index.html#rooms">Bars</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+<main>
+  <div class="wrap">
+    <div class="page-hd">
+      <div class="eyebrow">Road and state</div>
+      <h1>Events</h1>
+      <p class="sub">
+        Jenkins tournaments, the Tri City weekends and Wyoming state.
+        If it doesn't say confirmed, don't book the motel yet.
+      </p>
+      <div class="acts">
+        <a class="act" href="index.html">&larr; Home</a>
+        <a class="act" href="league.html?lg=10ball">Standings</a>
+        <a class="act" href="schedule.html?league=10ball">League schedule</a>
+      </div>
+    </div>
+
+    <section class="panel cloth-panel">
+      <div class="panel-hd">
+        <span class="eyebrow">Coming up</span>
+        <span class="panel-note">2026&ndash;27</span>
+      </div>
+
+      <div class="ev">
+        <span class="n">Jenkins Tournament</span>
+        <span class="w">Rock Springs, WY</span>
+        <span class="d">Nov 6&ndash;8, 2026</span>
+        <span class="s set">Confirmed</span>
+      </div>
+      <div class="ev soft">
+        <span class="n">Jenkins Tournament</span>
+        <span class="w">Venue to come</span>
+        <span class="d">Early Dec 2026</span>
+        <span class="s">Awaiting date</span>
+      </div>
+      <div class="ev">
+        <span class="n">Jenkins Tournament</span>
+        <span class="w">Pinedale, WY</span>
+        <span class="d">Jan 8&ndash;10, 2027</span>
+        <span class="s">Expected</span>
+      </div>
+      <div class="ev">
+        <span class="n">AMOW Wyoming State 8-Ball</span>
+        <span class="w">Casper, WY</span>
+        <span class="d">Mar 15&ndash;21, 2027</span>
+        <span class="s">Estimated</span>
+      </div>
+      <div class="ev">
+        <span class="n">Jenkins End of Year</span>
+        <span class="w">Rock Springs, WY</span>
+        <span class="d">Apr 8&ndash;11, 2027</span>
+        <span class="s set">Confirmed</span>
+      </div>
+      <div class="ev">
+        <span class="n">Jenkins Tournament</span>
+        <span class="w">Dubois, WY</span>
+        <span class="d">Apr 30 &ndash; May 2, 2027</span>
+        <span class="s set">Confirmed</span>
+      </div>
+      <div class="ev soft">
+        <span class="n">Evanston Tri City</span>
+        <span class="w">Evanston, WY</span>
+        <span class="d">Date to come</span>
+        <span class="s">Not set</span>
+      </div>
+      <div class="ev soft">
+        <span class="n">Red Short Memorial Tri City</span>
+        <span class="w">Kemmerer, WY</span>
+        <span class="d">Date to come</span>
+        <span class="s">Not set</span>
+      </div>
+      <div class="ev soft">
+        <span class="n">Bridger Valley Tri City</span>
+        <span class="w">Bridger Valley, WY</span>
+        <span class="d">Date to come</span>
+        <span class="s">Not set</span>
+      </div>
+
+      <div class="panel-foot">
+        <p>
+          December is expected the first or second weekend, but it isn't confirmed.
+          Pinedale in January is likely, not firm. The state date is our own guess
+          &mdash; the last four years all landed in the third week of March. Tri City
+          dates aren't set yet. For anything not listed, ask Jenkins.
+        </p>
+        <a class="out" href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener">
+          Jenkins Music &amp; Vending &nearr;
+        </a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-hd">
+        <span class="eyebrow">Been and gone</span>
+        <span class="panel-note">2025&ndash;26 season</span>
+      </div>
+
+      <div class="ev">
+        <span class="n">Kemmerer Year End</span>
+        <span class="w">Kemmerer, WY</span>
+        <span class="d">Apr 25&ndash;26, 2026</span>
+        <span class="s">&mdash;</span>
+      </div>
+      <div class="ev">
+        <span class="n">AMOW Wyoming State Championships</span>
+        <span class="w">Casper, WY</span>
+        <span class="d">Mar 16&ndash;22, 2026</span>
+        <span class="s"><a href="https://www.playcsipool.com/2026-amow-wyoming-8ball-championships.html" target="_blank" rel="noopener">Details &nearr;</a></span>
+      </div>
+      <div class="ev">
+        <span class="n">Bridger Valley Tri City</span>
+        <span class="w">Bridger Valley, WY</span>
+        <span class="d">Feb 28 &ndash; Mar 1, 2026</span>
+        <span class="s"><button type="button" onclick="openFlyer('bridgervalley.jpg','Bridger Valley Tri City flyer')">Flyer &nearr;</button></span>
+      </div>
+      <div class="ev">
+        <span class="n">Red Short Memorial Tri City</span>
+        <span class="w">Kemmerer, WY</span>
+        <span class="d">Jan 31 &ndash; Feb 1, 2026</span>
+        <span class="s"><button type="button" onclick="openFlyer('kemmerer.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button></span>
+      </div>
+      <div class="ev">
+        <span class="n">Evanston Tri City</span>
+        <span class="w">Evanston, WY</span>
+        <span class="d">Jan 3&ndash;4, 2026</span>
+        <span class="s"><button type="button" onclick="openFlyer('evanston.jpg','Evanston Tri City flyer')">Flyer &nearr;</button></span>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; events v1.00</div>
+</footer>
+
+<div class="lb" id="lb" onclick="closeFlyer()">
+  <span class="lb-x" onclick="closeFlyer()">&#10005;</span>
+  <img id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
+<script>
+/* The flyers are photos of paper taped up in the bars, so they open
+   full size rather than trying to live in the row. */
+function openFlyer(src, alt) {
+  var img = document.getElementById('lb-img');
+  img.src = src;
+  img.alt = alt || 'Tournament flyer';
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFlyer() {
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeFlyer();
+});
+</script>
+</body>
+</html>

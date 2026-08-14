@@ -276,22 +276,6 @@
     .submit-btn:disabled { opacity: .5; cursor: default; }
     .form-status { font-size: 13px; font-weight: 500; }
 
-    /* ── Lightbox ── */
-    .lightbox-overlay {
-      display: none; position: fixed; inset: 0; z-index: 1000;
-      background: var(--overlay); align-items: center; justify-content: center;
-      cursor: pointer;
-    }
-    .lightbox-overlay.open { display: flex; }
-    .lightbox-overlay img {
-      max-width: 92vw; max-height: 92vh; border-radius: var(--radius);
-      box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
-    }
-    .lightbox-close {
-      position: fixed; top: 18px; right: 22px; font-size: 28px; color: var(--on-accent);
-      cursor: pointer; line-height: 1; opacity: .8; z-index: 1001;
-    }
-    .lightbox-close:hover { opacity: 1; }
 
     /* ── Print ── */
     @media print {
@@ -305,7 +289,7 @@
       }
       html, body { background: #fff; font-size: 10.5pt; }
       header, .view-bar, footer, .felt-strip, .theme-btn,
-      .lightbox-overlay, .result-btn, .print-btn, .next-pill { display: none !important; }
+      .result-btn, .print-btn, .next-pill { display: none !important; }
       main { padding: 0; }
       .wrap { max-width: none; padding: 0; }
 
@@ -479,10 +463,6 @@
     .sched-block.sched-next { border-color: rgba(212,161,60,.5); }
     .spinner { border-top-color: var(--brass); }
 
-    /* --on-accent is dark now, which would have hidden this against
-       the overlay. */
-    .lightbox-close { color: var(--bone); }
-
     /* ── Footer ─────────────────────────────────────────────────── */
     footer {
       background: var(--bg2); border-top: 1px solid rgba(244,239,228,.1);
@@ -533,7 +513,7 @@
     </a>
     <nav class="mast-nav">
       <a href="index.html">Home</a>
-      <a href="index.html#tournaments">Tournaments</a>
+      <a href="events.html">Events</a>
       <a href="index.html#rooms">Bars</a>
     </nav>
   </div>
@@ -548,7 +528,6 @@
   <div class="league-tabs">
     <button class="ltab" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
     <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 25-26</button>
-    <button class="ltab" id="ltab-events" onclick="switchLeague('events')">Events</button>
   </div>
 </div>
 
@@ -577,7 +556,7 @@
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading&hellip;</span>
       <span id="refresh-note"></span>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.01</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.02</div>
   </div>
 </footer>
 
@@ -1645,153 +1624,8 @@ const PHOTOS = [
 /* renderInfo lived here. The front page carries the officers, the bars,
    the league blocks and the suggestion form now. */
 
-function renderEvents() {
-  return `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Upcoming Events</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Event</th>
-          <th>Date</th>
-          <th>Location</th>
-          <th style="text-align:center">Info</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Nov 6&ndash;8, 2026</td>
-            <td style="color:var(--text2)">Rock Springs, WY</td>
-            <td style="text-align:center;color:var(--green2);font-weight:600">Confirmed</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">Early Dec 2026</td>
-            <td style="color:var(--text2)">TBD</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">Awaiting date</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 8&ndash;10, 2027</td>
-            <td style="color:var(--text2)">Pinedale, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">Expected</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">AMOW Wyoming State 8-Ball</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Mar 15&ndash;21, 2027</td>
-            <td style="color:var(--text2)">Casper, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">Estimated</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins End of Year</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 8&ndash;11, 2027</td>
-            <td style="color:var(--text2)">Rock Springs, WY</td>
-            <td style="text-align:center;color:var(--green2);font-weight:600">Confirmed</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Jenkins Tournament</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 30 &ndash; May 2, 2027</td>
-            <td style="color:var(--text2)">Dubois, WY</td>
-            <td style="text-align:center;color:var(--green2);font-weight:600">Confirmed</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
-            <td style="color:var(--text2)">Evanston, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Red Short Memorial Tri City</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
-            <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Bridger Valley Tri City</td>
-            <td class="num" style="color:var(--text3);white-space:nowrap;font-style:italic">TBD</td>
-            <td style="color:var(--text2)">Bridger Valley, WY</td>
-            <td style="text-align:center;color:var(--text3);font-style:italic">TBD</td>
-          </tr>
-        </tbody>
-      </table></div>
-      <div style="padding:20px;border-top:1px solid var(--border)">
-        <p style="color:var(--text2);font-size:14px;line-height:1.8;margin-bottom:16px">
-          The December tournament is expected the first or second weekend &mdash; the date
-          hasn't been confirmed yet. Pinedale in January is likely but not yet firm. The AMOW
-          state date is our own estimate from the last four years, which all landed in the
-          third week of March &mdash; watch playcsipool.com for the official announcement.
-          Tri City dates are still being finalized; check with Jenkins Music &amp; Vending for
-          anything not listed here.
-        </p>
-        <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener"
-           style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--on-accent);padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:opacity .15s"
-           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          🎱 Jenkins Music &amp; Vending — Leagues &amp; Tournaments ↗
-        </a>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Past Events</span>
-        <span class="card-meta">2025–2026 Season</span>
-      </div>
-      <div style="overflow-x:auto"><table class="tbl">
-        <thead><tr>
-          <th>Event</th>
-          <th>Date</th>
-          <th>Location</th>
-          <th style="text-align:center">Info</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Kemmerer Year End</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Apr 25–26, 2026</td>
-            <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center;color:var(--text3)">—</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">AMOW Wyoming State Championships</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Mar 16–22, 2026</td>
-            <td style="color:var(--text2)">Casper, WY</td>
-            <td style="text-align:center">
-              <a href="https://www.playcsipool.com/2026-amow-wyoming-8ball-championships.html" target="_blank" rel="noopener"
-                 style="color:var(--green2);font-size:12px;font-weight:600;text-decoration:none"
-                 onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--green2)'">Details ↗</a>
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Bridger Valley Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Feb 28–Mar 1, 2026</td>
-            <td style="color:var(--text2)">Bridger Valley, WY</td>
-            <td style="text-align:center">
-              <button onclick="openLightbox('bridgervalley.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Red Short Memorial Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 31–Feb 1, 2026</td>
-            <td style="color:var(--text2)">Kemmerer, WY</td>
-            <td style="text-align:center">
-              <button onclick="openLightbox('kemmerer.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--cream)">Evanston Tri City</td>
-            <td class="num" style="color:var(--text2);white-space:nowrap">Jan 3–4, 2026</td>
-            <td style="color:var(--text2)">Evanston, WY</td>
-            <td style="text-align:center">
-              <button onclick="openLightbox('evanston.jpg')" style="background:none;border:none;color:var(--green2);font-size:12px;font-weight:600;cursor:pointer;padding:0">Flyer ↗</button>
-            </td>
-          </tr>
-        </tbody>
-      </table></div>
-    </div>
-
-
-  </div>  `;
-}
+/* renderEvents lived here. Events is events.html now — a list of
+   tournaments has no business sitting in a tab next to Ratings. */
 
 async function submitSuggestion() {
   const btn    = document.getElementById('sg-submit');
@@ -1835,7 +1669,7 @@ async function submitSuggestion() {
   }
 }
 
-const PAGE_TABS = ['events'];          // not leagues, so no standings views
+const PAGE_TABS = [];   // every tab here is a league now; Events has its own page          // not leagues, so no standings views
 
 /* Title, subtitle and the printable-sheet link all follow the tab. */
 const LEAGUE_HD = {
@@ -1843,13 +1677,11 @@ const LEAGUE_HD = {
               sub: 'Standings, players and the schedule.' },
   '8ball':  { title: '8-Ball Fall 2025\u201326', eyebrow: 'Wrapped',
               sub: 'Last winter\u2019s league, start to finish.' },
-  'events': { title: 'Events', eyebrow: 'Road and state',
-              sub: 'What\u2019s coming up, and the flyers from what\u2019s been.' },
 };
 
 function switchLeague(lg) {
   league = lg;
-  ['10ball','8ball','events'].forEach(k => {
+  ['10ball','8ball'].forEach(k => {
     const el = document.getElementById(`ltab-${k}`);
     if (!el) return;
     el.classList.toggle('active', k === lg);
@@ -1875,7 +1707,6 @@ function switchLeague(lg) {
 
   try { history.replaceState(null, '', '?lg=' + lg); } catch (e) {}
 
-  if (lg === 'events') { document.getElementById('content').innerHTML = renderEvents(); return; }
   cache = {};
   loadView();
 }
@@ -1914,25 +1745,11 @@ function scrollToNextMatch() {
 /* Which league to open on comes from the link that got you here. */
 (function boot() {
   const want = new URLSearchParams(location.search).get('lg');
-  switchLeague(['10ball', '8ball', 'events'].includes(want) ? want : '10ball');
+  /* ?lg=events used to be a tab here. It has its own page now. */
+  if (want === 'events') { location.replace('events.html'); return; }
+  switchLeague(['10ball', '8ball'].includes(want) ? want : '10ball');
 })();
 
-function openLightbox(src) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
-<!-- Lightbox -->
-<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
-  <span class="lightbox-close" onclick="closeLightbox()">✕</span>
-  <img id="lightbox-img" src="" alt="Tournament flyer" onclick="event.stopPropagation()">
-</div>
-
 </body>
 </html>
