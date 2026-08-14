@@ -427,6 +427,17 @@ h2.head {
 }
 
 
+/* League Information isn't a season, so it doesn't get a season's box.
+   Dashed edge, no fill — it reads as a placeholder for something that
+   is coming rather than a block that's missing its content. */
+.info-block {
+  margin-top: 16px;
+  border-style: dashed;
+  border-color: rgba(212,161,60,.3);
+  background: none;
+}
+.info-block p { max-width: 60ch; }
+
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
    The one place on the page anyone types. It sits in the same
    panel the standings do, so it reads as part of the league
@@ -529,7 +540,7 @@ a:focus-visible, button:focus-visible {
   }
   .mark { gap: 9px; }
   .mark b { font-size: 14px; }
-  .mast nav { margin-left: 0; }
+  .mast nav { margin-left: 0; flex-wrap: wrap; justify-content: center; }
   .mast nav a { padding: 6px 9px; letter-spacing: .08em; }
 }
 @media (max-width: 360px) {
@@ -551,10 +562,10 @@ a:focus-visible, button:focus-visible {
         <b>Kemmerer Pool League</b>
       </a>
       <nav>
-        <a href="#leagues">Leagues</a>
-        <a href="#tournaments">Tournaments</a>
+        <a href="league.html?lg=10ball">Standings</a>
+        <a href="schedule.html?league=10ball">Schedule</a>
+        <a href="tournaments.html">Tournaments</a>
         <a href="#rooms">Bars</a>
-        <a href="#suggest">Contact</a>
       </nav>
     </div>
   </header>
@@ -652,6 +663,18 @@ a:focus-visible, button:focus-visible {
           </div>
         </article>
       </div>
+
+      <!-- Not a league, but it belongs with them: the rules and money
+           people ask about every season. Full width under the pair. -->
+      <article class="league info-block">
+        <div class="league-hd">
+          <div>
+            <span class="flag">Coming soon</span>
+            <h3>League Information</h3>
+            <p>Full 8-ball league details, rules and payouts.</p>
+          </div>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -705,7 +728,7 @@ a:focus-visible, button:focus-visible {
       </div>
 
       <div class="league-go" style="margin-top:18px">
-        <a href="events.html">All events, past and coming</a>
+        <a href="tournaments.html">All tournaments, past and coming</a>
       </div>
     </div>
   </section>
@@ -835,7 +858,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.04</span>
+        <span>v1.06</span>
       </div>
     </div>
   </footer>
