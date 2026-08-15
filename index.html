@@ -431,7 +431,6 @@ h2.head {
    Dashed edge, no fill — it reads as a placeholder for something that
    is coming rather than a block that's missing its content. */
 .info-block {
-  margin-top: 16px;
   border-style: dashed;
   border-color: rgba(212,161,60,.3);
   background: none;
@@ -594,6 +593,17 @@ a:focus-visible, button:focus-visible {
         <h2 class="head">Leagues</h2>
       </div>
 
+      <!-- Not a league, but it belongs with them: the rules and money
+           people ask about every season. Full width under the pair. -->
+      <article class="league info-block">
+        <div class="league-hd">
+          <div>
+            <h3>League Information</h3>
+            <p>Coming soon, full 8 ball league details, rules and payouts.</p>
+          </div>
+        </div>
+      </article>
+
       <!-- Running now: carries its own standings and its own next match. -->
       <article class="league live">
         <div class="league-hd">
@@ -664,16 +674,6 @@ a:focus-visible, button:focus-visible {
         </article>
       </div>
 
-      <!-- Not a league, but it belongs with them: the rules and money
-           people ask about every season. Full width under the pair. -->
-      <article class="league info-block">
-        <div class="league-hd">
-          <div>
-            <h3>League Information</h3>
-            <p>Coming soon, full 8 ball league details, rules and payouts.</p>
-          </div>
-        </div>
-      </article>
     </div>
   </section>
 
@@ -857,7 +857,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.08</span>
+        <span>v1.09</span>
       </div>
     </div>
   </footer>
