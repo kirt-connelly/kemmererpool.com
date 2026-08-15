@@ -32,6 +32,12 @@
   --brass:   #d4a13c;
   --bone:    #f4efe4;
   --dim:     #9d9282;
+  /* One edge for every box on the page, and one for the rules inside
+     them. Nothing sets its own border colour — the leagues area ended
+     up with four different ones that way. */
+  --edge:    rgba(244,239,228,.13);
+  --edge-in: rgba(244,239,228,.10);
+  --radius:  6px;
   --shell:   1080px;
 }
 
@@ -180,7 +186,7 @@ h2.head {
   transition: background .15s;
 }
 .fixture:hover { background: rgba(244,239,228,.04); }
-.fixture + .fixture { border-top: 1px solid rgba(244,239,228,.10); }
+.fixture + .fixture { border-top: 1px solid var(--edge-in); }
 .fixture .h { text-align: right; font-weight: 600; }
 .fixture .a { text-align: left; font-weight: 600; }
 /* The separator is a ball, not the word "vs" in grey — it's the one
@@ -205,7 +211,7 @@ h2.head {
    and its way out to the rest of the schedule. */
 .panel-more {
   display: block; padding: 12px 15px; text-align: center; text-decoration: none;
-  border-top: 1px solid rgba(244,239,228,.10); background: rgba(0,0,0,.24);
+  border-top: 1px solid var(--edge-in); background: rgba(0,0,0,.24);
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
   transition: background .15s, color .15s;
@@ -219,8 +225,8 @@ h2.head {
   .nextup-body { display: grid; grid-template-columns: 1fr 1fr; padding: 0; }
   .fixture { padding: 13px 18px; }
   .fixture + .fixture { border-top: none; }
-  .fixture:nth-child(n+3) { border-top: 1px solid rgba(244,239,228,.08); }
-  .fixture:nth-child(odd) { border-right: 1px solid rgba(244,239,228,.08); }
+  .fixture:nth-child(n+3) { border-top: 1px solid var(--edge-in); }
+  .fixture:nth-child(odd) { border-right: 1px solid var(--edge-in); }
 }
 
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
@@ -234,7 +240,7 @@ h2.head {
    say so and link out. Add a block when a league starts, mark it
    .live, and drop .live when it finishes. ──────────────────── */
 .league {
-  border: 1px solid rgba(244,239,228,.13); border-radius: 6px;
+  border: 1px solid var(--edge); border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(244,239,228,.035), transparent);
   padding: 24px;
 }
@@ -242,7 +248,6 @@ h2.head {
    green Next up panel inside it belongs to something rather than
    sitting there on its own. */
 .league.live {
-  border-color: rgba(212,161,60,.45);
   background: linear-gradient(180deg, rgba(28,81,66,.20), rgba(244,239,228,.02) 55%, transparent);
 }
 .league + .league, .league + .league-pair { margin-top: 16px; }
@@ -271,7 +276,7 @@ h2.head {
 .league-go a {
   display: inline-flex; align-items: center; gap: 9px;
   text-decoration: none; color: var(--bone); font-size: 14px; font-weight: 600;
-  padding: 9px 14px; border: 1px solid rgba(244,239,228,.15); border-radius: 4px;
+  padding: 9px 14px; border: 1px solid var(--edge); border-radius: 4px;
   transition: border-color .15s, background .15s;
 }
 .league-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
@@ -287,13 +292,13 @@ h2.head {
 
 /* ── Panels (standings, next up) ───────────────────────────── */
 .panel {
-  border: 1px solid rgba(244,239,228,.13); border-radius: 5px;
+  border: 1px solid var(--edge); border-radius: var(--radius);
   overflow: hidden; background: rgba(0,0,0,.18);
 }
 .panel-hd {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 15px; background: rgba(0,0,0,.28);
-  border-bottom: 1px solid rgba(244,239,228,.12); min-height: 40px;
+  border-bottom: 1px solid var(--edge-in); min-height: 40px;
 }
 
 /* ── The cloth panel ───────────────────────────────────────────
@@ -305,7 +310,6 @@ h2.head {
    afterthought. ─────────────────────────────────────────────── */
 .panel.cloth-panel {
   position: relative;
-  border-color: rgba(212,161,60,.26);
   background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.58));
 }
 .panel.cloth-panel::before {
@@ -315,10 +319,7 @@ h2.head {
     repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
 }
 .panel.cloth-panel > * { position: relative; z-index: 1; }
-.panel.cloth-panel .panel-hd {
-  background: rgba(11,33,27,.72);
-  border-bottom-color: rgba(212,161,60,.28);
-}
+.panel.cloth-panel .panel-hd { background: rgba(11,33,27,.72); }
 
 /* ═══ STANDINGS ══════════════════════════════════════════════ */
 .stand { width: 100%; border-collapse: collapse; }
@@ -327,10 +328,10 @@ h2.head {
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
   text-align: left; padding: 11px 14px; background: var(--night-2);
-  border-bottom: 1px solid rgba(244,239,228,.13); white-space: nowrap;
+  border-bottom: 1px solid var(--edge-in); white-space: nowrap;
 }
 .stand thead th.r { text-align: right; }
-.stand tbody td { padding: 12px 14px; border-bottom: 1px solid rgba(244,239,228,.07); }
+.stand tbody td { padding: 12px 14px; border-bottom: 1px solid var(--edge-in); }
 .stand tbody tr:last-child td { border-bottom: none; }
 .stand tbody tr:hover td { background: rgba(244,239,228,.03); }
 .stand .pos { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--dim); width: 46px; }
@@ -345,11 +346,11 @@ h2.head {
 .quiet-note a { color: var(--brass); }
 
 /* ═══ DATES ══════════════════════════════════════════════════ */
-.dates { border-top: 1px solid rgba(244,239,228,.1); }
+.dates { border-top: 1px solid var(--edge-in); }
 .date-row {
   display: grid; grid-template-columns: 172px 1fr 180px 112px;
   gap: 16px; align-items: baseline; padding: 15px 4px;
-  border-bottom: 1px solid rgba(244,239,228,.08);
+  border-bottom: 1px solid var(--edge-in);
 }
 .date-row .d { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--brass); white-space: nowrap; }
 .date-row .n { font-weight: 600; font-size: 17px; }
@@ -364,7 +365,7 @@ h2.head {
 /* ═══ ROOMS ══════════════════════════════════════════════════ */
 .rooms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .room {
-  border: 1px solid rgba(244,239,228,.13); border-radius: 5px; overflow: hidden;
+  border: 1px solid var(--edge); border-radius: var(--radius); overflow: hidden;
   background: var(--night-2);
 }
 .room figure { margin: 0; aspect-ratio: 3 / 2; overflow: hidden; background: var(--felt-lo); }
@@ -390,7 +391,7 @@ h2.head {
 .room .tel svg { width: 14px; height: 14px; flex: none; fill: currentColor; }
 
 /* ═══ FOOTER ═════════════════════════════════════════════════ */
-.foot { background: var(--night-2); border-top: 1px solid rgba(244,239,228,.1); padding: 46px 0 34px; }
+.foot { background: var(--night-2); border-top: 1px solid var(--edge); padding: 46px 0 34px; }
 .foot-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 32px; }
 .foot h4 {
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
@@ -398,7 +399,7 @@ h2.head {
 }
 .foot-off {
   display: flex; justify-content: space-between; gap: 14px; padding: 6px 0;
-  border-bottom: 1px solid rgba(244,239,228,.07); font-size: 15px;
+  border-bottom: 1px solid var(--edge-in); font-size: 15px;
 }
 .foot-off b { font-weight: 600; }
 .foot-off span { color: var(--dim); }
@@ -412,7 +413,7 @@ h2.head {
 .foot-links { list-style: none; display: grid; gap: 8px; }
 .foot-links a {
   display: flex; align-items: center; gap: 11px;
-  padding: 10px 13px; border: 1px solid rgba(244,239,228,.14); border-radius: 4px;
+  padding: 10px 13px; border: 1px solid var(--edge); border-radius: 4px;
   background: rgba(244,239,228,.025);
   color: var(--bone); font-size: 15px; font-weight: 600; line-height: 1.35;
   transition: border-color .15s, background .15s;
@@ -421,20 +422,15 @@ h2.head {
 .foot-links svg { width: 18px; height: 18px; flex: none; fill: var(--brass); }
 .foot-links span { min-width: 0; overflow-wrap: anywhere; }
 .colophon {
-  margin-top: 34px; padding-top: 20px; border-top: 1px solid rgba(244,239,228,.08);
+  margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--edge-in);
   display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   font-family: 'Space Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: .06em;
 }
 
 
-/* League Information isn't a season, so it doesn't get a season's box.
-   Dashed edge, no fill — it reads as a placeholder for something that
-   is coming rather than a block that's missing its content. */
-.info-block {
-  border-style: dashed;
-  border-color: rgba(212,161,60,.3);
-  background: none;
-}
+/* League Information isn't a season, so it doesn't get a season's
+   fill — but it keeps the same edge as everything else. */
+.info-block { background: none; }
 .info-block p { max-width: 60ch; }
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
@@ -451,7 +447,7 @@ h2.head {
 .field label i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 400; }
 .field input, .field textarea {
   font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; color: var(--bone);
-  background: rgba(0,0,0,.3); border: 1px solid rgba(244,239,228,.15);
+  background: rgba(0,0,0,.3); border: 1px solid var(--edge);
   border-radius: 4px; padding: 10px 12px; width: 100%; transition: border-color .15s;
 }
 .field input::placeholder, .field textarea::placeholder { color: #6e6558; }
@@ -519,7 +515,7 @@ a:focus-visible, button:focus-visible {
   .stand tr > td.team:first-child { left: 0; }
   .stand thead th.hpos, .stand thead th.hteam { background: var(--night-2); }
   .stand td.pos, .stand td.team { background: #16120e; }
-  .stand .hteam, .stand td.team { border-right: 1px solid rgba(244,239,228,.10); }
+  .stand .hteam, .stand td.team { border-right: 1px solid var(--edge-in); }
   .stand tbody td { padding: 10px; }
   .stand .team { font-size: 15px; }
   .panel-note { display: none; }
@@ -857,7 +853,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.09</span>
+        <span>v1.10</span>
       </div>
     </div>
   </footer>
