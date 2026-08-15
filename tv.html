@@ -27,9 +27,23 @@ body {
   padding: 26px 30px 40px;
 }
 
-.head { border-bottom: 2px solid #363636; padding-bottom: 10px; margin-bottom: 16px; overflow: hidden; }
-.head h1 { font-size: 27px; font-weight: 700; color: #e8ddd0; float: left; }
-.head .meta { float: right; text-align: right; font-size: 17px; color: #666058; padding-top: 4px; }
+/* Title left, payouts through the middle, status right. Floats before,
+   but the payouts need the space between the two and that is what flex
+   is for. */
+.head { border-bottom: 2px solid #363636; padding-bottom: 10px; margin-bottom: 16px;
+  display: flex; align-items: flex-start; gap: 24px; }
+.head h1 { font-size: 27px; font-weight: 700; color: #e8ddd0; flex: none; }
+.head .meta { text-align: right; font-size: 17px; color: #666058; padding-top: 4px; flex: none; }
+
+/* Readable across a bar, not shouting over the bracket. */
+.pay { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline;
+  justify-content: center; gap: 6px 20px; padding-top: 3px; min-width: 0; }
+.pay .it { white-space: nowrap; }
+.pay .pl { font-size: 14px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #666058; margin-right: 7px; }
+.pay .amt { font-size: 21px; font-weight: 700; color: #e8ddd0; }
+.pay .it.first .amt { color: #32a870; }
+.pay .pot { font-size: 15px; color: #666058; letter-spacing: .04em; }
 .head .code { font-family: monospace; letter-spacing: .1em; color: #b0a898; }
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
   background: #32a870; margin-right: 8px; vertical-align: middle; }
@@ -113,14 +127,14 @@ body {
   text-transform: uppercase; white-space: nowrap; line-height: 1.5;
   background: #27855a; color: #ffffff; padding: 1px 10px; border-radius: 99px; }
 .mt .tbl.held { background: #1e1e1e; color: #cc4444; border: 1px solid #cc4444; }
-.sl { height: 33px; line-height: 33px; padding: 0 12px 0 34px; font-size: 21px;
+.sl { height: 33px; line-height: 33px; padding: 0 12px 0 34px; font-size: 19px;
   font-weight: 600; color: #e8ddd0; border-bottom: 1px solid #2e2e2e;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sl:last-child { border-bottom: none; }
 .sl.won { color: #32a870; }
 .sl.lost { color: #6b6459; text-decoration: line-through; font-weight: 400; }
 .sl.empty { color: #666058; font-weight: 400; }
-.sl .src { font-size: 17px; letter-spacing: .04em; }
+.sl .src { font-size: 16px; letter-spacing: .04em; }
 /* The race sits at the right end of each row, so a match reads
    "Dave 3 / Kirt 2" straight down the box. */
 .sl .rc { float: right; min-width: 26px; margin-left: 8px; text-align: center;
@@ -163,6 +177,7 @@ body {
 <div id="board" style="display:none">
   <div class="head">
     <h1 id="title">Tournament</h1>
+    <div class="pay" id="pay"></div>
     <div class="meta">
       <div><span class="dot"></span><span id="live">Live</span></div>
       <div class="code" id="code"></div>
@@ -713,6 +728,92 @@ function fit(w, h) {
   return Math.min(1, availW / w, availH / h);
 }
 
+/* ── Payouts ──
+   The board is where players look to see what they are playing for, so
+   it shows the same figures the scoring page does — same split, same
+   $5 rounding, same last-place-absorbs-the-remainder rule. If the
+   officer has hand-edited the payouts, those win outright. ES5 only,
+   like the rest of this file. */
+var ORDINALS = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+
+function suggestedSplit(spots) {
+  var n = Math.max(1, Math.min(10, spots | 0)), i, weights = [], total = 0, out = [50];
+  if (n === 1) return [100];
+  for (i = 1; i < n; i++) { weights.push(n - i); total += n - i; }
+  for (i = 0; i < weights.length; i++) out.push((weights[i] / total) * 50);
+  return out;
+}
+
+function defaultPayouts() {
+  var split = suggestedSplit(3), out = [], i;
+  for (i = 0; i < split.length; i++) out.push({ label: ORDINALS[i], pct: split[i] });
+  return out;
+}
+
+function money(cents) {
+  var v = cents / 100;
+  return '$' + (v === Math.floor(v) ? v.toLocaleString('en-US')
+    : v.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+}
+
+function computePayouts(players, feeDollars, addOnDollars, spec) {
+  var entries = Math.round(players * feeDollars * 100);
+  var addOn = Math.round((addOnDollars || 0) * 100);
+  var pot = entries + addOn, i, rows, out = [], others;
+  if (pot <= 0) return null;
+
+  rows = (spec && spec.length ? spec : defaultPayouts());
+  for (i = 0; i < rows.length; i++) {
+    out.push({ label: rows[i].label, cents: Math.round((pot * (Number(rows[i].pct) || 0) / 100) / 500) * 500 });
+  }
+  // A small pot can round a lower place away to nothing; drop it rather
+  // than putting someone on the board for $0.
+  out = out.filter(function (r, idx) { return idx === 0 || r.cents > 0; });
+
+  for (;;) {
+    others = 0;
+    for (i = 0; i < out.length - 1; i++) others += out[i].cents;
+    out[out.length - 1].cents = pot - others;
+    if (out.length === 1 || out[out.length - 1].cents > 0) break;
+    out.pop();
+  }
+  return { pot: pot, rows: out };
+}
+
+function entrantCount(d) {
+  var n = 0, k;
+  if (d.kind === 'chip') return (d.roster || []).length;
+  for (k in (d.bySeed || {})) {
+    if (d.bySeed.hasOwnProperty(k) && d.bySeed[k]) n++;
+  }
+  if (n) return n;
+  return (d.roster || []).length;
+}
+
+function payStrip(d) {
+  var fee = parseFloat(d.fee) || 0, bar = parseFloat(d.bar) || 0;
+  var players = entrantCount(d), rows, p, i, html = '';
+
+  if (d.payoutsManual && d.payoutsManual.length) {
+    rows = d.payoutsManual;
+    p = { pot: 0 };
+    for (i = 0; i < rows.length; i++) p.pot += rows[i].cents;
+  } else {
+    p = computePayouts(players, fee, bar, d.payoutSpec);
+    if (!p) return '';
+    rows = p.rows;
+  }
+  if (!rows.length) return '';
+
+  for (i = 0; i < rows.length; i++) {
+    html += '<span class="it' + (i === 0 ? ' first' : '') + '">'
+          + '<span class="pl">' + esc(rows[i].label) + '</span>'
+          + '<span class="amt">' + money(rows[i].cents) + '</span></span>';
+  }
+  html += '<span class="pot">' + money(p.pot) + ' pot</span>';
+  return html;
+}
+
 function draw(d) {
   LAST = d;
   var pool = [], k;
@@ -726,6 +827,7 @@ function draw(d) {
   $('enter').style.display = 'none';
   $('title').innerHTML = esc(d.name || 'Tournament');
   $('code').innerHTML = esc(CODE);
+  $('pay').innerHTML = payStrip(d);
 
   var champ = championOf(d), html = '';
   if (champ) {
@@ -825,7 +927,7 @@ $('codebox').onkeyup = function (e) {
 start();
 </script>
 <div style="text-align:center;padding:14px 0 4px;font-size:14px;color:#3a3a3a">
-  Kemmerer Pool League &middot; TV Board &middot; v1.00
+  Kemmerer Pool League &middot; TV Board &middot; v1.01
 </div>
 </body>
 </html>
