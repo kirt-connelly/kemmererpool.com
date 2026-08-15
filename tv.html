@@ -27,23 +27,26 @@ body {
   padding: 26px 30px 40px;
 }
 
-/* Title left, payouts through the middle, status right. Floats before,
-   but the payouts need the space between the two and that is what flex
-   is for. */
+/* Title left, payouts through the middle, status right.
+   NO `gap:` ANYWHERE IN THIS FILE. Bar TV browsers are old enough to do
+   flexbox but not flex gap, so a gap silently collapses to zero and the
+   payouts run together — "1ST$402ND$25". Spacing is margins only. */
 .head { border-bottom: 2px solid #363636; padding-bottom: 10px; margin-bottom: 16px;
-  display: flex; align-items: flex-start; gap: 24px; }
-.head h1 { font-size: 27px; font-weight: 700; color: #e8ddd0; flex: none; }
-.head .meta { text-align: right; font-size: 17px; color: #666058; padding-top: 4px; flex: none; }
+  display: flex; align-items: flex-start; }
+.head h1 { font-size: 27px; font-weight: 700; color: #e8ddd0; flex: none; margin-right: 24px; }
+.head .meta { text-align: right; font-size: 17px; color: #666058; padding-top: 4px;
+  flex: none; margin-left: 24px; }
 
 /* Readable across a bar, not shouting over the bracket. */
 .pay { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline;
-  justify-content: center; gap: 6px 20px; padding-top: 3px; min-width: 0; }
-.pay .it { white-space: nowrap; }
+  justify-content: center; padding-top: 3px; min-width: 0; }
+.pay .it { white-space: nowrap; margin: 0 14px 4px; }
 .pay .pl { font-size: 14px; font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: #666058; margin-right: 7px; }
+  text-transform: uppercase; color: #666058; margin-right: 8px; }
 .pay .amt { font-size: 21px; font-weight: 700; color: #e8ddd0; }
 .pay .it.first .amt { color: #32a870; }
-.pay .pot { font-size: 15px; color: #666058; letter-spacing: .04em; }
+.pay .pot { font-size: 15px; color: #666058; letter-spacing: .04em;
+  margin: 0 14px 4px; padding-left: 16px; border-left: 1px solid #363636; }
 .head .code { font-family: monospace; letter-spacing: .1em; color: #b0a898; }
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
   background: #32a870; margin-right: 8px; vertical-align: middle; }
@@ -927,7 +930,7 @@ $('codebox').onkeyup = function (e) {
 start();
 </script>
 <div style="text-align:center;padding:14px 0 4px;font-size:14px;color:#3a3a3a">
-  Kemmerer Pool League &middot; TV Board &middot; v1.01
+  Kemmerer Pool League &middot; TV Board &middot; v1.02
 </div>
 </body>
 </html>
