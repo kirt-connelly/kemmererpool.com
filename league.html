@@ -41,7 +41,7 @@
     }
 
     html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; font-size: 15px; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -54,7 +54,6 @@
     .header-inner { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 0 0; gap: 12px; flex-wrap: nowrap; }
     .logo-block { display: flex; align-items: center; gap: 0; min-width: 0; }
     .league-name { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.02em; line-height: 1.2; }
-    .league-sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 3px; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
     .live-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
     .live-pill.live { background: rgba(50,168,112,.12); border: 1px solid rgba(50,168,112,.3); color: var(--green2); }
@@ -176,7 +175,6 @@
     @media (max-width: 640px) {
       .header-inner { padding: 12px 0 0; gap: 8px; }
       .league-name { font-size: 20px; }
-      .league-sub { display: none; }
       .live-pill { font-size: 10px; padding: 3px 9px; }
       .refresh-note { font-size: 10px; }
       .league-tabs { padding-top: 12px; }
@@ -255,18 +253,6 @@
     }
 
     /* ── Suggestion form ── */
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
-    .field input, .field textarea {
-      font-family: inherit; font-size: 14px; color: var(--text);
-      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 9px 12px; width: 100%; transition: border-color .15s;
-    }
-    .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
-    .field textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
-    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
     .submit-btn {
       background: var(--accent); color: var(--on-accent); border: none;
       padding: 10px 22px; border-radius: var(--radius-sm); font-family: inherit;
@@ -453,7 +439,8 @@
 
     /* ── Type through the data views ────────────────────────────── */
     .tbl th, .num, .rank-num, .fargo-num, .lg-tag, .next-pill, .vs-chip,
-    .match-label, .sched-count, .card-meta, .live-pill, .print-btn {
+    .match-label, .sched-count, .card-meta, .live-pill, .print-btn,
+    .team-section-hdr, .sched-date-hdr, .result-btn {
       font-family: 'Space Mono', monospace;
     }
     .tbl th { letter-spacing: .12em; font-weight: 700; }
@@ -564,7 +551,7 @@
       <span id="live-status" class="live-pill demo"><span class="dot"></span> Loading&hellip;</span>
       <span id="refresh-note"></span>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.06</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.07</div>
   </div>
 </footer>
 
