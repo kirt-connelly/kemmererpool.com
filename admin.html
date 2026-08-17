@@ -215,6 +215,10 @@
     color: var(--text2); }
   .section .grid { padding: 16px 16px 0; }
   .section .hint { padding: 0 16px 16px; }
+
+  /* Not fine print — it tells you where the payouts actually get set. */
+  .payout-note { font-size: 15px; line-height: 1.5; color: var(--text2);
+    padding: 14px 16px 16px; }
   .pct-total { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
     letter-spacing: 0; text-transform: none; }
   .pct-total.ok { color: var(--green2); }
@@ -478,7 +482,7 @@
               <input id="spots" class="inp" type="number" min="1" max="10" step="1" value="3">
             </div>
           </div>
-          <div class="hint">Payouts will be split up accordingly. Make payout adjustments after the tournament page loads.</div>
+          <div class="payout-note">Payouts will be split up accordingly. Make payout adjustments after the tournament page loads.</div>
         </div>
       </div>
       <div class="btn-row">
@@ -526,7 +530,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.24</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Admin &nbsp;·&nbsp; v1.25</div>
 </footer>
 
 <script>
