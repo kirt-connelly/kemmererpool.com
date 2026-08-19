@@ -428,10 +428,16 @@ h2.head {
 }
 
 
-/* League Information isn't a season, so it doesn't get a season's
-   fill — but it keeps the same edge as everything else. */
-.info-block { background: none; }
-.info-block p { max-width: 60ch; }
+/* The season that's taking sign-ups. Not playing yet, so it isn't
+   .live — but it's the focus of the page this fall, so it gets the
+   brass flag and a trace of brass in the fill. */
+.league.signup {
+  background: linear-gradient(180deg, rgba(212,161,60,.10), rgba(244,239,228,.02) 55%, transparent);
+  border-color: rgba(212,161,60,.30);
+}
+.league.signup .flag { color: var(--brass); }
+.league.signup .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
+.league.signup p { max-width: 60ch; }
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
    The one place on the page anyone types. It sits in the same
@@ -589,13 +595,23 @@ a:focus-visible, button:focus-visible {
         <h2 class="head">Leagues</h2>
       </div>
 
-      <!-- Not a league, but it belongs with them: the rules and money
-           people ask about every season. Full width under the pair. -->
-      <article class="league info-block">
+      <!-- The main league, and the one everything is pointed at right now:
+           sign-ups. Full width, above the running season, because getting
+           teams in is the job this fall. -->
+      <article class="league signup">
         <div class="league-hd">
           <div>
-            <h3>League Information</h3>
-            <p>Coming soon, full 8 ball league details, rules and payouts.</p>
+            <span class="flag">Signups open</span>
+            <h3>8-Ball Fall/Winter 2026&ndash;27</h3>
+            <p>
+              Time to get signed up. Put a team in, or if you don't have one,
+              give us your name and we'll get you on a roster. Coming soon,
+              full 8 ball league details, rules and payouts.
+            </p>
+          </div>
+          <div class="league-go">
+            <a href="league-signup.html">Sign up a team</a>
+            <a href="league-signup.html#solo">I need a team</a>
           </div>
         </div>
       </article>
@@ -638,37 +654,20 @@ a:focus-visible, button:focus-visible {
         </div>
       </article>
 
-      <!-- Eight ball: the one coming, and the one just finished. -->
-      <div class="league-pair">
-        <article class="league">
-          <div class="league-hd">
-            <div>
-              <span class="flag">Coming soon</span>
-              <h3>8-Ball Fall 2026&ndash;27</h3>
-              <p>
-                Signups start this fall. Watch
-                <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">the Facebook group</a>
-                or talk to an officer. Teams and the schedule go up here once
-                they're set.
-              </p>
-            </div>
+      <!-- Eight ball, last winter. -->
+      <article class="league">
+        <div class="league-hd">
+          <div>
+            <span class="flag">Season ended</span>
+            <h3>8-Ball Fall 2025&ndash;26</h3>
+            <p>Last winter's league.</p>
           </div>
-        </article>
-
-        <article class="league">
-          <div class="league-hd">
-            <div>
-              <span class="flag">Season ended</span>
-              <h3>8-Ball Fall 2025&ndash;26</h3>
-              <p>Last winter's league.</p>
-            </div>
-          </div>
-          <div class="league-go">
-            <a href="league.html?lg=8ball">Final standings</a>
-            <a href="schedule.html?league=8ball">Schedule</a>
-          </div>
-        </article>
-      </div>
+        </div>
+        <div class="league-go">
+          <a href="league.html?lg=8ball">Final standings</a>
+          <a href="schedule.html?league=8ball">Schedule</a>
+        </div>
+      </article>
 
     </div>
   </section>
@@ -686,19 +685,19 @@ a:focus-visible, button:focus-visible {
       <div class="dates">
         <div class="date-row">
           <span class="d">Nov 6&ndash;8, 2026</span>
-          <span class="n">Jenkins Tournament</span>
+          <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Rock Springs</span>
           <span class="s set">Confirmed</span>
         </div>
         <div class="date-row soft">
           <span class="d">Early Dec 2026</span>
-          <span class="n">Jenkins Tournament</span>
-          <span class="w">Venue to come</span>
+          <span class="n">Jenkins Cup Tournament</span>
+          <span class="w">Bridger Valley</span>
           <span class="s">Awaiting date</span>
         </div>
         <div class="date-row">
           <span class="d">Jan 8&ndash;10, 2027</span>
-          <span class="n">Jenkins Tournament</span>
+          <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Pinedale</span>
           <span class="s">Expected</span>
         </div>
@@ -853,7 +852,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.10</span>
+        <span>v1.11</span>
       </div>
     </div>
   </footer>

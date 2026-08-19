@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>8-Ball Signup — Kemmerer Pool League</title>
+<meta name="description" content="Sign up a team, or get your name on the list, for the 8-Ball Fall/Winter 2026-27 season of the Kemmerer Pool League." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Kemmerer Pool League — 8-ball signup
+
+   Same room as the front page: tungsten on green cloth, brass,
+   bone, warm brown dark. This page is the front page's palette,
+   not the tournament tools' charcoal.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --night:   #14100c;
+  --night-2: #1d1712;
+  --felt:    #1c5142;
+  --felt-lo: #102e26;
+  --rail:    #3a2318;
+  --brass:   #d4a13c;
+  --bone:    #f4efe4;
+  --dim:     #9d9282;
+  --edge:    rgba(244,239,228,.13);
+  --edge-in: rgba(244,239,228,.10);
+  --radius:  6px;
+  --shell:   1080px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--bone);
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 17px; line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell { width: 100%; max-width: var(--shell); margin: 0 auto; padding: 0 24px; }
+
+.eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+}
+h2.head {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.1; margin: 10px 0 0;
+}
+.lede { color: var(--dim); max-width: 56ch; margin-top: 12px; }
+
+/* ── Rail diamonds ─────────────────────────────────────────── */
+.rail-rule {
+  display: flex; align-items: center; justify-content: center; gap: 46px;
+  height: 26px; position: relative;
+}
+.rail-rule::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,161,60,.22) 12%,
+              rgba(212,161,60,.22) 88%, transparent);
+}
+.rail-rule i {
+  width: 7px; height: 7px; background: var(--brass); opacity: .5;
+  transform: rotate(45deg); position: relative; flex: none;
+}
+
+/* ── The lamp ──────────────────────────────────────────────── */
+.lamp {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
+    radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
+}
+.page { position: relative; z-index: 1; }
+
+/* ═══ MASTHEAD ═══════════════════════════════════════════════ */
+.mast {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(20,16,12,.84);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(212,161,60,.15);
+}
+.mast-in { display: flex; align-items: center; gap: 24px; height: 62px; }
+.mark { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+.mark .eight {
+  width: 27px; height: 27px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+  box-shadow: inset -3px -4px 7px rgba(0,0,0,.6);
+}
+.mark .eight span {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
+  font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
+}
+.mark b {
+  font-weight: 700; font-size: 15px;
+  letter-spacing: -.01em; color: var(--bone); white-space: nowrap;
+}
+.mast nav { margin-left: auto; display: flex; gap: 4px; }
+.mast nav a {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  text-decoration: none; padding: 8px 12px; border-radius: 4px;
+}
+.mast nav a:hover { color: var(--bone); background: rgba(244,239,228,.06); }
+
+/* ═══ HERO ═══════════════════════════════════════════════════ */
+.cloth {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 50% -10%, rgba(255,255,255,.09), transparent 55%),
+    linear-gradient(180deg, var(--felt) 0%, var(--felt-lo) 100%);
+  border-top: 3px solid var(--rail);
+  border-bottom: 3px solid var(--rail);
+}
+.cloth::after {                     /* the nap of the cloth */
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+/* Longhand on purpose — this element carries .shell too, and .shell's
+   `padding: 0 24px` shorthand is redefined in the 560px query. A
+   `padding:` shorthand here gets wiped by it and the hero loses all
+   its vertical room on a phone. */
+.cloth-in {
+  position: relative; z-index: 2;
+  padding-top: 62px; padding-bottom: 66px; text-align: center;
+}
+.hero-h1 {
+  font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400;
+  font-size: clamp(42px, 8vw, 84px); line-height: .96;
+  letter-spacing: -.025em; margin: 14px 0 0;
+  text-shadow: 0 3px 0 rgba(0,0,0,.3), 0 22px 44px rgba(0,0,0,.45);
+}
+.hero-h1 em { font-style: normal; color: var(--brass); }
+.hero-sub {
+  margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
+  max-width: 44ch; text-wrap: balance;
+}
+/* Two doors into the page, for anyone who lands here on a phone and
+   doesn't want to scroll past a team form to find the short one. */
+.hero-jump { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+.hero-jump a {
+  display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+  color: var(--bone); font-size: 14px; font-weight: 600;
+  padding: 10px 16px; border: 1px solid rgba(244,239,228,.28); border-radius: 4px;
+  background: rgba(0,0,0,.22);
+  transition: border-color .15s, background .15s;
+}
+.hero-jump a:hover { border-color: var(--brass); background: rgba(212,161,60,.14); }
+.hero-jump a::after { content: '\2193'; color: var(--brass); }
+
+/* ═══ SECTION FRAME ══════════════════════════════════════════ */
+.band { padding: 54px 0; }
+.band-hd { margin-bottom: 26px; }
+[id] { scroll-margin-top: 76px; }   /* the masthead is sticky */
+
+/* ═══ PANELS & FORM ══════════════════════════════════════════
+   Same panel the standings and the suggestion box use, so the
+   forms read as part of the league rather than bolted on. ──── */
+.panel {
+  border: 1px solid var(--edge); border-radius: var(--radius);
+  overflow: hidden; background: rgba(0,0,0,.18);
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 15px; background: rgba(0,0,0,.28);
+  border-bottom: 1px solid var(--edge-in); min-height: 40px;
+}
+.panel-note {
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .06em;
+  color: var(--dim); text-align: right;
+}
+.form-panel { max-width: 760px; }
+.form-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+.form-note { color: var(--dim); font-size: 15px; margin: 0; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.field label i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 400; }
+.field input, .field textarea, .field select {
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; color: var(--bone);
+  background: rgba(0,0,0,.3); border: 1px solid var(--edge);
+  border-radius: 4px; padding: 10px 12px; width: 100%; transition: border-color .15s;
+}
+.field select { appearance: none; -webkit-appearance: none; padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--dim) 50%),
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 52%, calc(100% - 12px) 52%;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.field select option { background: var(--night-2); color: var(--bone); }
+.field input::placeholder, .field textarea::placeholder { color: #6e6558; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--brass); }
+.field input.bad, .field select.bad { border-color: #c0553f; }
+.field textarea { resize: vertical; min-height: 92px; line-height: 1.6; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.rule { height: 1px; background: var(--edge-in); margin: 4px 0; }
+.sub-hd {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
+}
+
+/* Player rows. Blank ones are ignored on send, so a team that's a
+   player short can still get its entry in. */
+.player-row { display: grid; grid-template-columns: 26px 1fr 1fr; gap: 14px; align-items: end; }
+.player-row .num {
+  font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
+  color: var(--dim); padding-bottom: 11px;
+}
+.add-btn {
+  align-self: flex-start;
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  padding: 9px 14px; border-radius: 4px; color: var(--brass);
+  border: 1px dashed rgba(212,161,60,.45); background: none;
+  transition: background .15s, border-color .15s;
+}
+.add-btn:hover { background: rgba(212,161,60,.10); border-color: var(--brass); }
+
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.send-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.send-btn {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  padding: 11px 20px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.55); background: rgba(212,161,60,.12); color: var(--brass);
+  transition: background .15s, color .15s;
+}
+.send-btn:hover:not(:disabled) { background: rgba(212,161,60,.22); color: var(--bone); }
+.send-btn:disabled { opacity: .5; cursor: default; }
+.form-status { font-size: 14px; font-weight: 500; }
+
+/* What's left after a form is sent: the panel body swaps for this. */
+.sent { padding: 26px 20px; text-align: center; }
+.sent b { display: block; font-size: 19px; margin-bottom: 6px; }
+.sent p { color: var(--dim); font-size: 15px; max-width: 46ch; margin: 0 auto; }
+
+/* ═══ FOOTER ═════════════════════════════════════════════════ */
+.foot { border-top: 1px solid var(--edge); margin-top: 20px; padding: 34px 0 40px; background: rgba(0,0,0,.2); }
+.foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.foot-links a { color: var(--bone); text-decoration: none; font-size: 15px; }
+.foot-links a:hover { color: var(--brass); }
+.colophon {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--edge-in);
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim);
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 3px;
+}
+
+/* ═══ NARROW ═════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .cloth-in { padding-top: 54px; padding-bottom: 58px; }
+  .rail-rule { gap: 26px; }
+  .mast-in { gap: 14px; }
+  .mast nav { gap: 0; }
+  .mast nav a { padding: 8px 7px; font-size: 10px; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .shell { padding-left: 16px; padding-right: 16px; }
+  .cloth-in { padding-top: 50px; padding-bottom: 54px; }
+  .hero-sub { font-size: 17px; }
+  .band { padding: 44px 0; }
+  .field-row { grid-template-columns: 1fr; }
+  /* The number would eat a third of the width next to a stacked
+     name and phone, so it goes above the pair as a label. */
+  .player-row { grid-template-columns: 1fr; gap: 10px; }
+  .player-row .num { padding-bottom: 0; letter-spacing: .16em; }
+  .form-body { padding: 16px; }
+  .mast-in {
+    flex-direction: column; justify-content: center;
+    gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px;
+  }
+  .mark { gap: 9px; }
+  .mark b { font-size: 14px; }
+  .mast nav { margin-left: 0; flex-wrap: wrap; justify-content: center; }
+  .mast nav a { padding: 6px 9px; letter-spacing: .08em; }
+}
+@media (max-width: 360px) {
+  .mark b { font-size: 13px; }
+  .mast nav a { padding: 6px 6px; font-size: 9.5px; letter-spacing: .05em; }
+}
+</style>
+</head>
+<body>
+
+<div class="lamp" aria-hidden="true"></div>
+
+<div class="page">
+
+  <header class="mast">
+    <div class="shell mast-in">
+      <a class="mark" href="index.html">
+        <span class="eight" aria-hidden="true"><span>8</span></span>
+        <b>Kemmerer Pool League</b>
+      </a>
+      <nav>
+        <a href="index.html#leagues">Leagues</a>
+        <a href="tournaments.html">Tournaments</a>
+        <a href="index.html#rooms">Bars</a>
+        <a href="index.html#suggest">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="top">
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <div class="cloth">
+      <div class="shell cloth-in">
+        <div class="eyebrow">8-Ball Fall/Winter 2026&ndash;27</div>
+        <h1 class="hero-h1">Sign 'em <em>up.</em></h1>
+        <p class="hero-sub">
+          Wednesday nights, all winter. Put a team in, or give us your name
+          and we'll get you on one.
+        </p>
+        <div class="hero-jump">
+          <a href="#team">Sign up a team</a>
+          <a href="#solo">I need a team</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <!-- ═══ OPTION 1 — TEAM ═══════════════════════════════════ -->
+  <section class="band" id="team">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Option 1</div>
+        <h2 class="head">Sign up a team</h2>
+        <p class="lede">
+          One entry per team. Short a player or two? Send it in anyway and
+          we'll fill you out.
+        </p>
+      </div>
+
+      <div class="panel form-panel">
+        <div class="panel-hd">
+          <span class="eyebrow">To the officers</span>
+          <span class="panel-note">Team entry</span>
+        </div>
+
+        <div class="form-body" id="team-body">
+          <div class="field-row">
+            <div class="field">
+              <label for="tm-name">Team name</label>
+              <input id="tm-name" type="text" maxlength="80" autocomplete="off" placeholder="What you're calling yourselves">
+            </div>
+            <div class="field">
+              <label for="tm-bar">Bar</label>
+              <select id="tm-bar">
+                <option value="">Pick one</option>
+                <option>Stock Exchange</option>
+                <option>Sage Lanes</option>
+                <option>Grumpies</option>
+                <option>Golf Course</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="sub-hd">Captain</div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="tm-cap">Captain</label>
+              <input id="tm-cap" type="text" maxlength="80" autocomplete="name" placeholder="Name">
+            </div>
+            <div class="field">
+              <label for="tm-cap-phone">Captain's number</label>
+              <input id="tm-cap-phone" type="tel" maxlength="40" autocomplete="tel" placeholder="307-555-0100">
+            </div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="sub-hd">Players</div>
+          <p class="form-note">
+            Four to a team. List the captain here too if they're shooting.
+            Anything past four we'll carry as subs.
+          </p>
+
+          <div id="players"></div>
+          <button class="add-btn" id="add-player" type="button">+ Another player</button>
+
+          <div class="rule"></div>
+
+          <div class="field">
+            <label for="tm-notes">Anything else <i>(optional)</i></label>
+            <textarea id="tm-notes" maxlength="1200" placeholder="Night you can't play, players still to come, whatever we should know"></textarea>
+          </div>
+
+          <div class="hp" aria-hidden="true">
+            <label for="tm-website">Leave this field empty</label>
+            <input id="tm-website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="send-row">
+            <button class="send-btn" id="tm-submit" type="button">Send it</button>
+            <span class="form-status" id="tm-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <!-- ═══ OPTION 2 — NO TEAM ════════════════════════════════ -->
+  <section class="band" id="solo">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Option 2</div>
+        <h2 class="head">I want to play, I don't have a team</h2>
+        <p class="lede">
+          Give us a name and a number. Captains come looking for players
+          every year &mdash; we'll pass it along.
+        </p>
+      </div>
+
+      <div class="panel form-panel">
+        <div class="panel-hd">
+          <span class="eyebrow">To the officers</span>
+          <span class="panel-note">Player entry</span>
+        </div>
+
+        <div class="form-body" id="solo-body">
+          <div class="field-row">
+            <div class="field">
+              <label for="pl-name">Your name</label>
+              <input id="pl-name" type="text" maxlength="80" autocomplete="name" placeholder="Name">
+            </div>
+            <div class="field">
+              <label for="pl-phone">Your number</label>
+              <input id="pl-phone" type="tel" maxlength="40" autocomplete="tel" placeholder="307-555-0100">
+            </div>
+          </div>
+
+          <div class="hp" aria-hidden="true">
+            <label for="pl-website">Leave this field empty</label>
+            <input id="pl-website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="send-row">
+            <button class="send-btn" id="pl-submit" type="button">Send it</button>
+            <span class="form-status" id="pl-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="shell">
+      <div class="foot-links">
+        <a href="index.html">Back to the league</a>
+        <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
+        <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">Facebook group</a>
+      </div>
+      <div class="colophon">
+        <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
+        <span>signup v1.00</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Both forms post to /signup-8ball, which mails the officers with
+   the same Resend setup the suggestion box uses.
+   ═══════════════════════════════════════════════════════════════ */
+
+var ENDPOINT = '/signup-8ball';
+var MAX_PLAYERS = 8;
+
+/* ── Player rows ─────────────────────────────────────────────
+   Four to start, up to eight. Blank rows are dropped on send, so
+   nobody has to fill all four to get an entry in. ───────────── */
+var players = document.getElementById('players');
+
+function addPlayerRow() {
+  var n = players.children.length + 1;
+  if (n > MAX_PLAYERS) return;
+
+  var row = document.createElement('div');
+  row.className = 'player-row';
+  row.innerHTML =
+    '<div class="num">' + n + '</div>' +
+    '<div class="field">' +
+      '<label for="pn-' + n + '">Player</label>' +
+      '<input id="pn-' + n + '" class="p-name" type="text" maxlength="80" autocomplete="off" placeholder="Name">' +
+    '</div>' +
+    '<div class="field">' +
+      '<label for="pp-' + n + '">Number <i>(optional)</i></label>' +
+      '<input id="pp-' + n + '" class="p-phone" type="tel" maxlength="40" autocomplete="off" placeholder="307-555-0100">' +
+    '</div>';
+  players.appendChild(row);
+
+  if (players.children.length >= MAX_PLAYERS) {
+    document.getElementById('add-player').style.display = 'none';
+  }
+}
+for (var i = 0; i < 4; i++) addPlayerRow();
+document.getElementById('add-player').addEventListener('click', addPlayerRow);
+
+/* ── Helpers ─────────────────────────────────────────────────── */
+function val(id) { return document.getElementById(id).value.trim(); }
+
+function flag(id, bad) {
+  document.getElementById(id).classList.toggle('bad', !!bad);
+}
+
+function say(statusId, msg, color) {
+  var s = document.getElementById(statusId);
+  s.textContent = msg;
+  s.style.color = color;
+}
+
+function sent(bodyId, headline, note) {
+  document.getElementById(bodyId).innerHTML =
+    '<div class="sent"><b>' + headline + '</b><p>' + note + '</p></div>';
+}
+
+async function post(payload) {
+  var r = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  var data = await r.json().catch(function () { return {}; });
+  return { ok: r.ok && data.ok, error: data.error };
+}
+
+/* ── Team ────────────────────────────────────────────────────── */
+document.getElementById('tm-submit').addEventListener('click', async function () {
+  var need = ['tm-name', 'tm-bar', 'tm-cap', 'tm-cap-phone'];
+  var missing = null;
+  for (var i = 0; i < need.length; i++) {
+    var empty = !val(need[i]);
+    flag(need[i], empty);
+    if (empty && !missing) missing = need[i];
+  }
+  if (missing) {
+    say('tm-status', 'Team name, bar, captain and number, please.', '#c0553f');
+    document.getElementById(missing).focus();
+    return;
+  }
+
+  var list = [];
+  var rows = players.querySelectorAll('.player-row');
+  for (var j = 0; j < rows.length; j++) {
+    var name = rows[j].querySelector('.p-name').value.trim();
+    if (!name) continue;
+    list.push({ name: name, phone: rows[j].querySelector('.p-phone').value.trim() });
+  }
+
+  var btn = document.getElementById('tm-submit');
+  btn.disabled = true;
+  say('tm-status', 'Sending\u2026', 'var(--dim)');
+
+  try {
+    var res = await post({
+      kind: 'team',
+      team: val('tm-name'),
+      bar: val('tm-bar'),
+      captain: val('tm-cap'),
+      captainPhone: val('tm-cap-phone'),
+      players: list,
+      notes: val('tm-notes'),
+      website: val('tm-website'),
+    });
+    if (res.ok) {
+      sent('team-body', 'Team\u2019s in.',
+           'An officer will get hold of the captain before the season starts.');
+      return;
+    }
+    say('tm-status', res.error || 'Something went wrong. Try again.', '#c0553f');
+  } catch (e) {
+    say('tm-status', 'Couldn\u2019t connect. Try again.', '#c0553f');
+  }
+  btn.disabled = false;
+});
+
+/* ── Player without a team ───────────────────────────────────── */
+document.getElementById('pl-submit').addEventListener('click', async function () {
+  var need = ['pl-name', 'pl-phone'];
+  var missing = null;
+  for (var i = 0; i < need.length; i++) {
+    var empty = !val(need[i]);
+    flag(need[i], empty);
+    if (empty && !missing) missing = need[i];
+  }
+  if (missing) {
+    say('pl-status', 'We need a name and a number.', '#c0553f');
+    document.getElementById(missing).focus();
+    return;
+  }
+
+  var btn = document.getElementById('pl-submit');
+  btn.disabled = true;
+  say('pl-status', 'Sending\u2026', 'var(--dim)');
+
+  try {
+    var res = await post({
+      kind: 'player',
+      name: val('pl-name'),
+      phone: val('pl-phone'),
+      website: val('pl-website'),
+    });
+    if (res.ok) {
+      sent('solo-body', 'You\u2019re on the list.',
+           'We\u2019ll pass your name to captains looking for players.');
+      return;
+    }
+    say('pl-status', res.error || 'Something went wrong. Try again.', '#c0553f');
+  } catch (e) {
+    say('pl-status', 'Couldn\u2019t connect. Try again.', '#c0553f');
+  }
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
