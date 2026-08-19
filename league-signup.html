@@ -146,8 +146,8 @@ h2.head {
   margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
   max-width: 44ch; text-wrap: balance;
 }
-/* Two doors into the page, for anyone who lands here on a phone and
-   doesn't want to scroll past a team form to find the short one. */
+/* One way out of the page, back where they came from. Both forms are
+   already below, so there's nothing to jump to. */
 .hero-jump { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
 .hero-jump a {
   display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
@@ -157,7 +157,7 @@ h2.head {
   transition: border-color .15s, background .15s;
 }
 .hero-jump a:hover { border-color: var(--brass); background: rgba(212,161,60,.14); }
-.hero-jump a::after { content: '\2193'; color: var(--brass); }
+.hero-jump a.back::before { content: '\2190'; color: var(--brass); }
 
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
 .band { padding: 54px 0; }
@@ -215,13 +215,23 @@ h2.head {
   letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
 }
 
-/* Player rows. Blank ones are ignored on send, so a team that's a
-   player short can still get its entry in. */
-.player-row { display: grid; grid-template-columns: 26px 1fr 1fr; gap: 14px; align-items: end; }
+/* Player rows. The captain is number 1 and comes from the box above,
+   so the list starts at 2. Blank rows are ignored on send, so a team
+   that's a player short can still get its entry in. */
+.player-row { display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: end; }
+.player-row + .player-row { margin-top: 12px; }
+#players .player-row:first-child { margin-top: 0; }
 .player-row .num {
   font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
   color: var(--dim); padding-bottom: 11px;
 }
+.cap-row .num { color: var(--brass); }
+.cap-echo {
+  font-size: 15px; color: var(--bone);
+  background: rgba(212,161,60,.07); border: 1px solid rgba(212,161,60,.28);
+  border-radius: 4px; padding: 10px 12px;
+}
+.cap-echo.empty { color: #6e6558; }
 .add-btn {
   align-self: flex-start;
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
@@ -334,8 +344,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
           and we'll get you on one.
         </p>
         <div class="hero-jump">
-          <a href="#team">Sign up a team</a>
-          <a href="#solo">I need a team</a>
+          <a class="back" href="index.html">Back to the league</a>
         </div>
       </div>
     </div>
@@ -375,7 +384,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                 <option>Sage Lanes</option>
                 <option>Grumpies</option>
                 <option>Golf Course</option>
-                <option>Not sure yet</option>
               </select>
             </div>
           </div>
@@ -397,19 +405,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
           <div class="rule"></div>
           <div class="sub-hd">Players</div>
           <p class="form-note">
-            Four to a team. List the captain here too if they're shooting.
-            Anything past four we'll carry as subs.
+            List all the rest of your players here. Add a player if you plan
+            on a regular sub.
           </p>
 
-          <div id="players"></div>
-          <button class="add-btn" id="add-player" type="button">+ Another player</button>
-
-          <div class="rule"></div>
-
-          <div class="field">
-            <label for="tm-notes">Anything else <i>(optional)</i></label>
-            <textarea id="tm-notes" maxlength="1200" placeholder="Night you can't play, players still to come, whatever we should know"></textarea>
+          <div class="player-row cap-row">
+            <div class="num">1</div>
+            <div class="field">
+              <label>Captain</label>
+              <div class="cap-echo" id="cap-echo">The captain, from above</div>
+            </div>
           </div>
+
+          <div id="players"></div>
+          <button class="add-btn" id="add-player" type="button">+ Add a player</button>
 
           <div class="hp" aria-hidden="true">
             <label for="tm-website">Leave this field empty</label>
@@ -434,8 +443,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
         <div class="eyebrow">Option 2</div>
         <h2 class="head">I want to play, I don't have a team</h2>
         <p class="lede">
-          Give us a name and a number. Captains come looking for players
-          every year &mdash; we'll pass it along.
+          Give us a name and a number. We will do our best to help find
+          you a team.
         </p>
       </div>
 
@@ -480,7 +489,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.00</span>
+        <span>signup v1.01</span>
       </div>
     </div>
   </footer>
@@ -494,16 +503,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    ═══════════════════════════════════════════════════════════════ */
 
 var ENDPOINT = '/signup-8ball';
-var MAX_PLAYERS = 8;
+var MAX_ROWS = 6;          /* players 2 through 7 */
 
-/* ── Player rows ─────────────────────────────────────────────
-   Four to start, up to eight. Blank rows are dropped on send, so
-   nobody has to fill all four to get an entry in. ───────────── */
+/* ── The captain is player 1 ─────────────────────────────────
+   Typed once, up in the captain box, and echoed at the top of the
+   list so the roster reads the way it will on the schedule. ─── */
+var capInput = document.getElementById('tm-cap');
+var capEcho = document.getElementById('cap-echo');
+
+function showCaptain() {
+  var name = capInput.value.trim();
+  capEcho.textContent = name || 'The captain, from above';
+  capEcho.classList.toggle('empty', !name);
+}
+capInput.addEventListener('input', showCaptain);
+showCaptain();
+
+/* ── The rest of the roster ──────────────────────────────────
+   Three spots, numbered from 2, plus room for a regular sub.
+   Blank rows are dropped on send. ───────────────────────────── */
 var players = document.getElementById('players');
 
 function addPlayerRow() {
-  var n = players.children.length + 1;
-  if (n > MAX_PLAYERS) return;
+  if (players.children.length >= MAX_ROWS) return;
+  var n = players.children.length + 2;
 
   var row = document.createElement('div');
   row.className = 'player-row';
@@ -512,18 +535,14 @@ function addPlayerRow() {
     '<div class="field">' +
       '<label for="pn-' + n + '">Player</label>' +
       '<input id="pn-' + n + '" class="p-name" type="text" maxlength="80" autocomplete="off" placeholder="Name">' +
-    '</div>' +
-    '<div class="field">' +
-      '<label for="pp-' + n + '">Number <i>(optional)</i></label>' +
-      '<input id="pp-' + n + '" class="p-phone" type="tel" maxlength="40" autocomplete="off" placeholder="307-555-0100">' +
     '</div>';
   players.appendChild(row);
 
-  if (players.children.length >= MAX_PLAYERS) {
+  if (players.children.length >= MAX_ROWS) {
     document.getElementById('add-player').style.display = 'none';
   }
 }
-for (var i = 0; i < 4; i++) addPlayerRow();
+for (var i = 0; i < 3; i++) addPlayerRow();
 document.getElementById('add-player').addEventListener('click', addPlayerRow);
 
 /* ── Helpers ─────────────────────────────────────────────────── */
@@ -573,8 +592,7 @@ document.getElementById('tm-submit').addEventListener('click', async function ()
   var rows = players.querySelectorAll('.player-row');
   for (var j = 0; j < rows.length; j++) {
     var name = rows[j].querySelector('.p-name').value.trim();
-    if (!name) continue;
-    list.push({ name: name, phone: rows[j].querySelector('.p-phone').value.trim() });
+    if (name) list.push({ name: name });
   }
 
   var btn = document.getElementById('tm-submit');
@@ -589,7 +607,6 @@ document.getElementById('tm-submit').addEventListener('click', async function ()
       captain: val('tm-cap'),
       captainPhone: val('tm-cap-phone'),
       players: list,
-      notes: val('tm-notes'),
       website: val('tm-website'),
     });
     if (res.ok) {

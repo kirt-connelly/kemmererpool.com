@@ -438,6 +438,9 @@ h2.head {
 .league.signup .flag { color: var(--brass); }
 .league.signup .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
 .league.signup p { max-width: 60ch; }
+/* The buttons sit between the two paragraphs, so the second one
+   needs its own room off them. */
+.league.signup .signup-more { margin-top: 16px; }
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
    The one place on the page anyone types. It sits in the same
@@ -604,14 +607,15 @@ a:focus-visible, button:focus-visible {
             <span class="flag">Signups open</span>
             <h3>8-Ball Fall/Winter 2026&ndash;27</h3>
             <p>
-              Time to get signed up. Put a team in, or if you don't have one,
-              give us your name and we'll get you on a roster. Coming soon,
-              full 8 ball league details, rules and payouts.
+              Time to get signed up for the upcoming 8 ball season. Sign up
+              your team or if you don't have one, give us your name and we'll
+              help you find one.
             </p>
-          </div>
-          <div class="league-go">
-            <a href="league-signup.html">Sign up a team</a>
-            <a href="league-signup.html#solo">I need a team</a>
+            <div class="league-go">
+              <a href="league-signup.html">Sign up a team</a>
+              <a href="league-signup.html#solo">I need a team</a>
+            </div>
+            <p class="signup-more">Coming soon, full 8 ball league details, rules and payouts.</p>
           </div>
         </div>
       </article>
@@ -852,7 +856,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.11</span>
+        <span>v1.12</span>
       </div>
     </div>
   </footer>

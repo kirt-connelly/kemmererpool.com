@@ -7,13 +7,13 @@
  *   SIGNUP_FROM     — optional, falls back to SUGGEST_FROM, then noreply@send.kemmererpool.com
  *
  * Two shapes come in from league-signup.html:
- *   { kind: 'team',   team, bar, captain, captainPhone, players: [{name, phone}], notes, website }
+ *   { kind: 'team',   team, bar, captain, captainPhone, players: [{name}], website }
  *   { kind: 'player', name, phone, website }
  */
 
 const SEASON = '8-Ball Fall/Winter 2026-27';
 
-const MAX = { short: 80, phone: 40, bar: 60, notes: 1200 };
+const MAX = { short: 80, phone: 40, bar: 60 };
 
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -70,19 +70,18 @@ export async function onRequest({ request, env }) {
       ['Captain phone', captainPhone],
     ];
 
+    // The captain is player 1, so the rest of the roster starts at 2.
+    rows.push(['Player 1', `${captain} (captain)`]);
+
     const players = Array.isArray(body.players) ? body.players.slice(0, 10) : [];
-    let n = 0;
+    let n = 1;
     for (const p of players) {
       const name = oneLine(p && p.name, MAX.short);
       if (!name) continue;
-      const phone = oneLine(p && p.phone, MAX.phone);
       n++;
-      rows.push([`Player ${n}`, phone ? `${name} — ${phone}` : name]);
+      rows.push([`Player ${n}`, name]);
     }
-    if (!n) rows.push(['Players', 'none listed']);
-
-    const notes = String(body.notes ?? '').trim().slice(0, MAX.notes);
-    if (notes) rows.push(['Notes', notes]);
+    if (n === 1) rows.push(['Players', 'captain only']);
 
   } else if (body.kind === 'player') {
     const name = oneLine(body.name, MAX.short);
