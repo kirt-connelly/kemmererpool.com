@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>League Signup Admin — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #141414; --bg2: #1e1e1e; --bg3: #262626; --bg4: #2e2e2e;
+    --border: #363636; --border2: #464646;
+    --text: #ffffff; --text2: #b0a898; --text3: #666058;
+    --accent: #27855a; --cream: #e8ddd0; --green2: #32a870; --loss: #cc4444;
+    --on-accent: #ffffff;
+    --radius: 8px; --radius-sm: 5px;
+  }
+  html[data-theme="light"] {
+    --bg: #f5f3ef; --bg2: #ffffff; --bg3: #eae6df; --bg4: #ddd8ce;
+    --border: #d6d0c5; --border2: #bcb4a6;
+    --text: #1a1714; --text2: #5a5348; --text3: #8b8376;
+    --accent: #1f6b48; --cream: #2b2419; --green2: #1a7a4e; --loss: #b23636;
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0,#154d28 4px,#1a5c32 8px); opacity: .5; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 12px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
+  .head-right { display: flex; align-items: center; gap: 10px; }
+  .theme-btn { width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    cursor: pointer; font-size: 13px; padding: 0; }
+  .theme-btn:hover { background: var(--bg4); color: var(--text); }
+
+  main { padding: 22px 0 70px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .card-title { font-size: 16px; font-weight: 600; }
+  .card-meta { font-size: 13px; color: var(--text3); }
+  .pad { padding: 18px; }
+
+  .act { display: inline-flex; align-items: center; justify-content: center;
+    font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: .02em;
+    padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
+  .act:hover { background: var(--bg4); color: var(--text); }
+  .act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .act.primary:hover { background: var(--accent); opacity: .88; color: var(--on-accent); }
+  .act.small { padding: 6px 12px; font-size: 13px; }
+  .act:disabled { opacity: .45; cursor: default; }
+  .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 16px 18px; border-top: 1px solid var(--border); }
+  .linkish { background: none; border: none; font-family: inherit; font-size: 13px;
+    color: var(--text3); cursor: pointer; text-decoration: underline; padding: 0; }
+  .linkish:hover { color: var(--loss); }
+
+  .gate { max-width: 420px; margin: 60px auto; }
+  .field-lbl { display: block; font-size: 12px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  .inp { width: 100%; font-family: inherit; font-size: 15px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; }
+  .inp:focus { outline: none; border-color: var(--accent); }
+  .hint { font-size: 12px; color: var(--text3); }
+
+  /* ── Counts ── */
+  .tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px;
+    background: var(--border); }
+  .tally div { background: var(--bg2); padding: 15px 18px; }
+  .tally .n { font-size: 26px; font-weight: 700; color: var(--cream); line-height: 1.1; }
+  .tally .l { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text3); margin-top: 3px; }
+
+  /* ── Entries ── */
+  .rows { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+  .row { background: var(--bg2); padding: 14px 18px; display: flex; gap: 14px;
+    align-items: flex-start; flex-wrap: wrap; }
+  .row.done { background: var(--bg); }
+  .row .main { flex: 1; min-width: 240px; }
+  .row .name { font-size: 16px; font-weight: 600; color: var(--cream); }
+  .row.done .name { color: var(--text2); }
+  .row .meta { font-size: 13px; color: var(--text3); margin-top: 2px; }
+  .row .roster { font-size: 14px; color: var(--text2); margin-top: 7px; line-height: 1.6; }
+  .row .roster b { color: var(--cream); font-weight: 600; }
+  .row .tel { color: var(--green2); text-decoration: none; font-weight: 600; }
+  .row .tel:hover { text-decoration: underline; }
+  .row .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3); }
+  .tag.done { border-color: var(--accent); color: var(--green2); }
+  .empty { padding: 24px 18px; color: var(--text3); font-size: 14px; background: var(--bg2); }
+  .msg { font-size: 13px; color: var(--text3); }
+  .msg.bad { color: var(--loss); }
+
+  footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
+    font-size: 11px; color: var(--text3); letter-spacing: .05em; }
+  footer a { color: var(--text3); }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 0 16px; }
+    .row .acts { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-felt"></div>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <h1>League Signup Admin</h1>
+        <div class="sub">8-Ball Fall/Winter 2026&ndash;27</div>
+      </div>
+      <div class="head-right">
+        <button class="act small" id="signout" onclick="signOut()" style="display:none">Sign out</button>
+        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">🌙</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <!-- Officer sign-in -->
+  <div id="gate" class="gate">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Officers</span></div>
+      <div class="pad">
+        <label class="field-lbl" for="pw">League password</label>
+        <input id="pw" class="inp" type="password" autocomplete="current-password"
+               placeholder="Ask another officer" onkeydown="if(event.key==='Enter')signIn()">
+        <div class="btn-row" style="padding:14px 0 0">
+          <button class="act primary" onclick="signIn()">Sign in</button>
+          <span class="msg" id="gate-msg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin" style="display:none">
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Where we're at</span>
+        <span class="card-meta" id="updated"></span>
+      </div>
+      <div class="tally" id="tally"></div>
+      <div class="btn-row">
+        <button class="act" onclick="load()">Refresh</button>
+        <button class="act" onclick="exportCsv()">Download CSV</button>
+        <span class="msg" id="top-msg"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Teams</span>
+        <span class="card-meta" id="team-count"></span>
+      </div>
+      <div class="rows" id="teams"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Players looking for a team</span>
+        <span class="card-meta" id="solo-count"></span>
+      </div>
+      <div class="rows" id="solos"></div>
+    </div>
+
+  </div>
+
+</div>
+</main>
+
+<footer>
+  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; leagueadmin v1.00
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Every sign-up sent from league-signup.html is stored server-side
+   as well as mailed to the officers. This page reads that list.
+
+   The password is only ever checked on the server — the page holds
+   nothing but what the officer typed, so nobody sees a name or a
+   phone number without it.
+   ═══════════════════════════════════════════════════════════════ */
+
+const PASS_STORE = 'kpl-league-pass';
+const pass = () => { try { return sessionStorage.getItem(PASS_STORE) || ''; } catch (e) { return ''; } };
+
+let SIGNUPS = [];
+
+/* ── Theme ── */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-btn').textContent = t === 'light' ? '☀️' : '🌙';
+  try { localStorage.setItem('kpl-theme', t); } catch (e) {}
+}
+function toggleTheme() {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+}
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch (e) {}
+  applyTheme(saved || 'dark');
+})();
+
+/* ── Sign in ── */
+async function signIn() {
+  const p = document.getElementById('pw').value.trim();
+  if (!p) return;
+  const msg = document.getElementById('gate-msg');
+  msg.textContent = 'Checking…'; msg.className = 'msg';
+
+  try {
+    const r = await fetch('/api/leaguesignups', { headers: { 'X-League-Pass': p } });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) {
+      try { sessionStorage.setItem(PASS_STORE, p); } catch (e) {}
+      show(j.signups || []);
+    } else if (j.code === 'not_configured') {
+      msg.textContent = 'Sign-up storage is not set up on the server yet.';
+      msg.className = 'msg bad';
+    } else {
+      msg.textContent = 'That password was not accepted.';
+      msg.className = 'msg bad';
+    }
+  } catch (e) {
+    msg.textContent = 'Could not reach the server.';
+    msg.className = 'msg bad';
+  }
+}
+
+function signOut() {
+  try { sessionStorage.removeItem(PASS_STORE); } catch (e) {}
+  location.reload();
+}
+
+function show(list) {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('admin').style.display = '';
+  document.getElementById('signout').style.display = '';
+  render(list);
+}
+
+/* ── Load ── */
+async function load() {
+  const msg = document.getElementById('top-msg');
+  msg.textContent = 'Loading…'; msg.className = 'msg';
+  try {
+    const r = await fetch('/api/leaguesignups', { headers: { 'X-League-Pass': pass() } });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) { render(j.signups || []); msg.textContent = ''; return; }
+    msg.textContent = j.error || 'Could not load the list.'; msg.className = 'msg bad';
+  } catch (e) {
+    msg.textContent = 'Could not reach the server.'; msg.className = 'msg bad';
+  }
+}
+
+/* ── Render ── */
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const telLink = (p) => {
+  const digits = String(p || '').replace(/[^0-9]/g, '');
+  return digits ? '<a class="tel" href="tel:' + digits + '">' + esc(p) + '</a>' : '<span class="meta">no number</span>';
+};
+
+function when(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ', ' +
+         d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function rowActions(s) {
+  const next = s.status === 'contacted' ? 'new' : 'contacted';
+  const label = s.status === 'contacted' ? 'Undo contacted' : 'Mark contacted';
+  return '<div class="acts">' +
+    (s.status === 'contacted' ? '<span class="tag done">Contacted</span>' : '<span class="tag">New</span>') +
+    '<button class="act small" onclick="setStatus(\'' + s.id + '\',\'' + next + '\')">' + label + '</button>' +
+    '<button class="linkish" onclick="remove(\'' + s.id + '\')">Delete</button>' +
+  '</div>';
+}
+
+function render(list) {
+  SIGNUPS = list;
+
+  const teams = list.filter(s => s.kind === 'team');
+  const solos = list.filter(s => s.kind === 'player');
+  const players = teams.reduce((n, t) => n + 1 + (t.players || []).length, 0);
+
+  document.getElementById('tally').innerHTML =
+    '<div><div class="n">' + teams.length + '</div><div class="l">Teams in</div></div>' +
+    '<div><div class="n">' + players + '</div><div class="l">Players on teams</div></div>' +
+    '<div><div class="n">' + solos.length + '</div><div class="l">Need a team</div></div>' +
+    '<div><div class="n">' + (players + solos.length) + '</div><div class="l">Players total</div></div>';
+
+  document.getElementById('updated').textContent = 'As of ' + when(Date.now());
+  document.getElementById('team-count').textContent = teams.length + (teams.length === 1 ? ' team' : ' teams');
+  document.getElementById('solo-count').textContent = solos.length + (solos.length === 1 ? ' player' : ' players');
+
+  document.getElementById('teams').innerHTML = teams.length ? teams.map(t =>
+    '<div class="row' + (t.status === 'contacted' ? ' done' : '') + '">' +
+      '<div class="main">' +
+        '<div class="name">' + esc(t.team) + '</div>' +
+        '<div class="meta">' + esc(t.bar) + ' &middot; signed up ' + when(t.at) + '</div>' +
+        '<div class="roster">' +
+          '1. <b>' + esc(t.captain) + '</b> (captain) &middot; ' + telLink(t.captainPhone) +
+          (t.players || []).map((p, i) => '<br>' + (i + 2) + '. ' + esc(p)).join('') +
+        '</div>' +
+      '</div>' +
+      rowActions(t) +
+    '</div>').join('') : '<div class="empty">No teams signed up yet.</div>';
+
+  document.getElementById('solos').innerHTML = solos.length ? solos.map(s =>
+    '<div class="row' + (s.status === 'contacted' ? ' done' : '') + '">' +
+      '<div class="main">' +
+        '<div class="name">' + esc(s.name) + '</div>' +
+        '<div class="meta">' + telLink(s.phone) + ' &middot; signed up ' + when(s.at) + '</div>' +
+      '</div>' +
+      rowActions(s) +
+    '</div>').join('') : '<div class="empty">Nobody on the list yet.</div>';
+}
+
+/* ── Contacted / not ── */
+async function setStatus(id, status) {
+  try {
+    const r = await fetch('/api/leaguesignups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-League-Pass': pass() },
+      body: JSON.stringify({ id: id, status: status }),
+    });
+    if (r.ok) load();
+  } catch (e) {}
+}
+
+/* ── Delete ── */
+async function remove(id) {
+  const s = SIGNUPS.find(x => x.id === id);
+  const what = s ? (s.kind === 'team' ? s.team : s.name) : 'this entry';
+  if (!confirm('Delete ' + what + '? This cannot be undone.')) return;
+  try {
+    const r = await fetch('/api/leaguesignups', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'X-League-Pass': pass() },
+      body: JSON.stringify({ id: id }),
+    });
+    if (r.ok) load();
+  } catch (e) {}
+}
+
+/* ── CSV ──
+   One row per person, so it drops straight into a spreadsheet or the
+   scoring program without unpicking a roster out of one cell. */
+function exportCsv() {
+  const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lines = [['Type', 'Team', 'Bar', 'Player', 'Role', 'Phone', 'Signed up', 'Status'].map(q).join(',')];
+
+  SIGNUPS.forEach(s => {
+    const stamp = s.at ? new Date(s.at).toISOString().slice(0, 16).replace('T', ' ') : '';
+    if (s.kind === 'team') {
+      lines.push(['Team', s.team, s.bar, s.captain, 'Captain', s.captainPhone, stamp, s.status || 'new'].map(q).join(','));
+      (s.players || []).forEach(p => {
+        lines.push(['Team', s.team, s.bar, p, 'Player', '', stamp, s.status || 'new'].map(q).join(','));
+      });
+    } else {
+      lines.push(['Needs a team', '', '', s.name, 'Player', s.phone, stamp, s.status || 'new'].map(q).join(','));
+    }
+  });
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kpl-8ball-2026-27-signups.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* Already signed in this session? Go straight in. */
+if (pass()) load().then(() => {
+  if (document.getElementById('top-msg').className.indexOf('bad') === -1) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('admin').style.display = '';
+    document.getElementById('signout').style.display = '';
+  }
+});
+</script>
+</body>
+</html>

@@ -6,6 +6,11 @@
  *   SIGNUP_TO       — optional, falls back to SUGGEST_TO, then officers@kemmererpool.com
  *   SIGNUP_FROM     — optional, falls back to SUGGEST_FROM, then noreply@send.kemmererpool.com
  *
+ * Every sign-up is also kept in KV (the same namespace the tournament tools
+ * use, under an `ls:` prefix) so leagueadmin.html can show the list. If the KV
+ * binding is missing the mail still goes out — nothing is lost, it just isn't
+ * on the admin page.
+ *
  * Two shapes come in from league-signup.html:
  *   { kind: 'team',   team, bar, captain, captainPhone, players: [{name}], website }
  *   { kind: 'player', name, phone, website }
@@ -50,6 +55,7 @@ export async function onRequest({ request, env }) {
 
   let subject = '';
   let rows = [];
+  let record = null;
 
   if (body.kind === 'team') {
     const team = oneLine(body.team, MAX.short);
@@ -62,6 +68,7 @@ export async function onRequest({ request, env }) {
     }
 
     subject = `Team signup — ${team} (${bar})`;
+    record = { kind: 'team', team, bar, captain, captainPhone, players: [] };
     rows = [
       ['Season', SEASON],
       ['Team name', team],
@@ -79,6 +86,7 @@ export async function onRequest({ request, env }) {
       const name = oneLine(p && p.name, MAX.short);
       if (!name) continue;
       n++;
+      record.players.push(name);
       rows.push([`Player ${n}`, name]);
     }
     if (n === 1) rows.push(['Players', 'captain only']);
@@ -92,6 +100,7 @@ export async function onRequest({ request, env }) {
     }
 
     subject = `Player looking for a team — ${name}`;
+    record = { kind: 'player', name, phone };
     rows = [
       ['Season', SEASON],
       ['Name', name],
@@ -101,6 +110,17 @@ export async function onRequest({ request, env }) {
 
   } else {
     return json({ ok: false, error: 'Could not read the form.' }, 400);
+  }
+
+  // ── Keep it ──
+  // Stored before the mail goes out, so a mail failure never loses a sign-up.
+  if (env.TOURNAMENTS) {
+    try {
+      const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      await env.TOURNAMENTS.put(`ls:${id}`, JSON.stringify({ ...record, id, at: Date.now(), status: 'new' }));
+    } catch (e) {
+      console.error('Sign-up store failed', e && e.message);
+    }
   }
 
   if (!env.RESEND_API_KEY) {
