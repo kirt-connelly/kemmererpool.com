@@ -91,7 +91,8 @@ export async function onRequest({ request, env }) {
     }
     if (n === 1) rows.push(['Players', 'captain only']);
 
-  } else if (body.kind === 'player') {
+  } else if (body.kind === 'player' || body.kind === 'sub') {
+    const isSub = body.kind === 'sub';
     const name = oneLine(body.name, MAX.short);
     const phone = oneLine(body.phone, MAX.phone);
 
@@ -99,13 +100,13 @@ export async function onRequest({ request, env }) {
       return json({ ok: false, error: 'We need a name and a phone number.' }, 400);
     }
 
-    subject = `Player looking for a team — ${name}`;
-    record = { kind: 'player', name, phone };
+    subject = isSub ? `Sub — ${name}` : `Player looking for a team — ${name}`;
+    record = { kind: isSub ? 'sub' : 'player', name, phone };
     rows = [
       ['Season', SEASON],
       ['Name', name],
       ['Phone', phone],
-      ['Note', 'Wants to play, does not have a team.'],
+      ['Note', isSub ? 'Wants to sub, not on a team.' : 'Wants to play, does not have a team.'],
     ];
 
   } else {

@@ -476,6 +476,52 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     </div>
   </section>
 
+  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+  <!-- ═══ OPTION 3 — SUB ════════════════════════════════════ -->
+  <section class="band" id="sub">
+    <div class="shell">
+      <div class="band-hd">
+        <div class="eyebrow">Option 3</div>
+        <h2 class="head">Sign up as a sub</h2>
+        <p class="lede">
+          Don't have time to play on a team but want to play? Sign up as a
+          sub.
+        </p>
+      </div>
+
+      <div class="panel form-panel">
+        <div class="panel-hd">
+          <span class="eyebrow">Sign Up as a Sub</span>
+          <span class="panel-note">Sub entry</span>
+        </div>
+
+        <div class="form-body" id="sub-body">
+          <div class="field-row">
+            <div class="field">
+              <label for="sb-name">Your name</label>
+              <input id="sb-name" type="text" maxlength="80" autocomplete="name" placeholder="Name">
+            </div>
+            <div class="field">
+              <label for="sb-phone">Your number</label>
+              <input id="sb-phone" type="tel" maxlength="40" autocomplete="tel" placeholder="307-555-0100">
+            </div>
+          </div>
+
+          <div class="hp" aria-hidden="true">
+            <label for="sb-website">Leave this field empty</label>
+            <input id="sb-website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="send-row">
+            <button class="send-btn" id="sb-submit" type="button">Send it</button>
+            <span class="form-status" id="sb-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer class="foot">
     <div class="shell">
       <div class="foot-links">
@@ -485,7 +531,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.04</span>
+        <span>signup v1.05</span>
       </div>
     </div>
   </footer>
@@ -600,6 +646,44 @@ document.getElementById('tm-submit').addEventListener('click', async function ()
     say('tm-status', res.error || 'Something went wrong. Try again.', '#c0553f');
   } catch (e) {
     say('tm-status', 'Couldn\u2019t connect. Try again.', '#c0553f');
+  }
+  btn.disabled = false;
+});
+
+/* ── Sub ─────────────────────────────────────────────────────── */
+document.getElementById('sb-submit').addEventListener('click', async function () {
+  var need = ['sb-name', 'sb-phone'];
+  var missing = null;
+  for (var i = 0; i < need.length; i++) {
+    var empty = !val(need[i]);
+    flag(need[i], empty);
+    if (empty && !missing) missing = need[i];
+  }
+  if (missing) {
+    say('sb-status', 'We need a name and a number.', '#c0553f');
+    document.getElementById(missing).focus();
+    return;
+  }
+
+  var btn = document.getElementById('sb-submit');
+  btn.disabled = true;
+  say('sb-status', 'Sending\u2026', 'var(--dim)');
+
+  try {
+    var res = await post({
+      kind: 'sub',
+      name: val('sb-name'),
+      phone: val('sb-phone'),
+      website: val('sb-website'),
+    });
+    if (res.ok) {
+      sent('sub-body', 'You\u2019re on the sub list.',
+           'Captains short a player will have your number.');
+      return;
+    }
+    say('sb-status', res.error || 'Something went wrong. Try again.', '#c0553f');
+  } catch (e) {
+    say('sb-status', 'Couldn\u2019t connect. Try again.', '#c0553f');
   }
   btn.disabled = false;
 });
