@@ -215,23 +215,18 @@ h2.head {
   letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
 }
 
-/* Player rows. The captain is number 1 and comes from the box above,
-   so the list starts at 2. Blank rows are ignored on send, so a team
-   that's a player short can still get its entry in. */
+/* Player rows. The captain is number 1 up in the captain block, so
+   the list here starts at 2. Blank rows are ignored on send, so a
+   team that's a player short can still get its entry in. */
 .player-row { display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: end; }
 .player-row + .player-row { margin-top: 12px; }
 #players .player-row:first-child { margin-top: 0; }
+.cap-row { grid-template-columns: 26px 1fr 1fr; }
 .player-row .num {
   font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
   color: var(--dim); padding-bottom: 11px;
 }
 .cap-row .num { color: var(--brass); }
-.cap-echo {
-  font-size: 15px; color: var(--bone);
-  background: rgba(212,161,60,.07); border: 1px solid rgba(212,161,60,.28);
-  border-radius: 4px; padding: 10px 12px;
-}
-.cap-echo.empty { color: #6e6558; }
 .add-btn {
   align-self: flex-start;
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
@@ -293,7 +288,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .field-row { grid-template-columns: 1fr; }
   /* The number would eat a third of the width next to a stacked
      name and phone, so it goes above the pair as a label. */
-  .player-row { grid-template-columns: 1fr; gap: 10px; }
+  .player-row, .cap-row { grid-template-columns: 1fr; gap: 10px; }
   .player-row .num { padding-bottom: 0; letter-spacing: .16em; }
   .form-body { padding: 16px; }
   .mast-in {
@@ -366,7 +361,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
       <div class="panel form-panel">
         <div class="panel-hd">
-          <span class="eyebrow">To the officers</span>
+          <span class="eyebrow">Sign Up a Team</span>
           <span class="panel-note">Team entry</span>
         </div>
 
@@ -391,7 +386,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
           <div class="rule"></div>
           <div class="sub-hd">Captain</div>
 
-          <div class="field-row">
+          <div class="player-row cap-row">
+            <div class="num">1</div>
             <div class="field">
               <label for="tm-cap">Captain</label>
               <input id="tm-cap" type="text" maxlength="80" autocomplete="name" placeholder="Name">
@@ -408,14 +404,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             List all the rest of your players here. Add a player if you plan
             on a regular sub.
           </p>
-
-          <div class="player-row cap-row">
-            <div class="num">1</div>
-            <div class="field">
-              <label>Captain</label>
-              <div class="cap-echo" id="cap-echo">The captain, from above</div>
-            </div>
-          </div>
 
           <div id="players"></div>
           <button class="add-btn" id="add-player" type="button">+ Add a player</button>
@@ -450,7 +438,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
       <div class="panel form-panel">
         <div class="panel-hd">
-          <span class="eyebrow">To the officers</span>
+          <span class="eyebrow">Sign Up Without a Team</span>
           <span class="panel-note">Player entry</span>
         </div>
 
@@ -489,7 +477,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.01</span>
+        <span>signup v1.02</span>
       </div>
     </div>
   </footer>
@@ -505,22 +493,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 var ENDPOINT = '/signup-8ball';
 var MAX_ROWS = 6;          /* players 2 through 7 */
 
-/* ── The captain is player 1 ─────────────────────────────────
-   Typed once, up in the captain box, and echoed at the top of the
-   list so the roster reads the way it will on the schedule. ─── */
-var capInput = document.getElementById('tm-cap');
-var capEcho = document.getElementById('cap-echo');
-
-function showCaptain() {
-  var name = capInput.value.trim();
-  capEcho.textContent = name || 'The captain, from above';
-  capEcho.classList.toggle('empty', !name);
-}
-capInput.addEventListener('input', showCaptain);
-showCaptain();
-
-/* ── The rest of the roster ──────────────────────────────────
-   Three spots, numbered from 2, plus room for a regular sub.
+/* ── The roster ──────────────────────────────────────────────
+   The captain is player 1 and is entered in the captain block, so
+   this list starts at 2: three spots, plus room for a regular sub.
    Blank rows are dropped on send. ───────────────────────────── */
 var players = document.getElementById('players');
 
