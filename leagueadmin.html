@@ -97,7 +97,9 @@
      shade brighter than the date beside it. No badge. */
   .row .bar { font-size: 14px; font-weight: 600; color: var(--text2); }
   .row.done .bar { color: var(--text3); }
-  .row .stamp { font-size: 11px; color: var(--text3); opacity: .75; }
+  /* Bookkeeping, so it sits under everything else in small italics. */
+  .row .stamp { display: block; font-size: 11px; font-style: italic;
+    color: var(--text3); opacity: .75; margin-top: 9px; }
   .row .roster { font-size: 14px; color: var(--text2); margin-top: 7px; line-height: 1.6; }
   .row .roster b { color: var(--cream); font-weight: 600; }
   /* Still tappable, but it shouldn't shout over the team name. */
@@ -209,7 +211,7 @@
 </main>
 
 <footer>
-  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; leagueadmin v1.05
+  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; leagueadmin v1.06
 </footer>
 
 <script>
@@ -345,12 +347,12 @@ function render(list) {
     '<div class="row' + (t.status === 'contacted' ? ' done' : '') + '">' +
       '<div class="main">' +
         '<div class="name">' + esc(t.team) + '</div>' +
-        '<div class="meta"><span class="bar">' + esc(t.bar) + '</span>' +
-          '<span class="stamp">' + when(t.at) + '</span></div>' +
+        '<div class="meta"><span class="bar">' + esc(t.bar) + '</span></div>' +
         '<div class="roster">' +
           '1. <b>' + esc(t.captain) + '</b> (captain) &middot; ' + telLink(t.captainPhone) +
           (t.players || []).map((p, i) => '<br>' + (i + 2) + '. ' + esc(p)).join('') +
         '</div>' +
+        '<div class="stamp">Signed up ' + when(t.at) + '</div>' +
       '</div>' +
       rowActions(t) +
     '</div>').join('') : '<div class="empty">No teams signed up yet.</div>';
@@ -360,7 +362,8 @@ function render(list) {
     '<div class="row' + (s.status === 'contacted' ? ' done' : '') + '">' +
       '<div class="main">' +
         '<div class="name">' + esc(s.name) + '</div>' +
-        '<div class="meta">' + telLink(s.phone) + '<span class="stamp">' + when(s.at) + '</span></div>' +
+        '<div class="meta">' + telLink(s.phone) + '</div>' +
+        '<div class="stamp">Signed up ' + when(s.at) + '</div>' +
       '</div>' +
       rowActions(s) +
     '</div>').join('') : '<div class="empty">Nobody on the list yet.</div>';
