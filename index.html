@@ -363,7 +363,7 @@ h2.head {
 .date-row.soft .d { color: var(--dim); }
 
 /* ═══ ROOMS ══════════════════════════════════════════════════ */
-.rooms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.rooms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .room {
   border: 1px solid var(--edge); border-radius: var(--radius); overflow: hidden;
   background: var(--night-2);
@@ -485,7 +485,9 @@ a:focus-visible, button:focus-visible {
 /* ═══ NARROW ═════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .cloth-in { padding-top: 62px; padding-bottom: 66px; }
-  .league-pair, .rooms { grid-template-columns: 1fr; }
+  .league-pair { grid-template-columns: 1fr; }
+  /* Four bars won't sit across a tablet; two rows of two do. */
+  .rooms { grid-template-columns: repeat(2, 1fr); }
   .league { padding: 20px; }
   .foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
@@ -500,6 +502,7 @@ a:focus-visible, button:focus-visible {
 }
 @media (max-width: 560px) {
   body { font-size: 16px; }
+  .rooms { grid-template-columns: 1fr; }
   .hero-sub { font-size: 17px; }
   .nextup { max-width: none; }
   .shell { padding-left: 16px; padding-right: 16px; }
@@ -738,7 +741,7 @@ a:focus-visible, button:focus-visible {
       <div class="band-hd">
         <div class="eyebrow">Kemmerer</div>
         <h2 class="head">Where we play</h2>
-        <p class="lede">League nights are played at these three bars.</p>
+        <p class="lede">League nights are played at these four bars.</p>
 
       </div>
 
@@ -765,6 +768,14 @@ a:focus-visible, button:focus-visible {
             <h3>Stock Exchange</h3>
             <div class="addr">712 JC Penny Dr, Kemmerer</div>
             <a class="tel" href="tel:3078773244"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.6a1 1 0 0 1-.25 1l-2.22 2.2Z"/></svg>307-877-3244</a>
+          </div>
+        </article>
+        <article class="room">
+          <figure><img src="images/golf-course.jpg" alt="The Fossil Island Golf Club clubhouse" loading="lazy"></figure>
+          <div class="room-in">
+            <h3>Golf Course</h3>
+            <div class="addr">107 Hwy 233, Kemmerer</div>
+            <a class="tel" href="tel:3074662265"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.6a1 1 0 0 1-.25 1l-2.22 2.2Z"/></svg>307-466-2265</a>
           </div>
         </article>
       </div>
@@ -856,7 +867,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.13</span>
+        <span>v1.14</span>
       </div>
     </div>
   </footer>
