@@ -273,13 +273,22 @@ h2.head {
 
 .league-go { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 .league-hd .league-go { margin-top: 4px; }
+/* Filled, not outlined. A border on its own reads as text that
+   happens to have a box round it; a little light inside it reads as
+   something you press. */
 .league-go a {
   display: inline-flex; align-items: center; gap: 9px;
   text-decoration: none; color: var(--bone); font-size: 14px; font-weight: 600;
   padding: 9px 14px; border: 1px solid var(--edge); border-radius: 4px;
+  background: rgba(244,239,228,.07);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.06);
   transition: border-color .15s, background .15s;
 }
-.league-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.08); }
+.league-go a:hover { border-color: var(--brass); background: rgba(212,161,60,.16); }
+/* The season taking sign-ups gets the brass fill — it's the one
+   thing on the page we're asking people to do. */
+.league.signup .league-go a { background: rgba(212,161,60,.14); border-color: rgba(212,161,60,.42); }
+.league.signup .league-go a:hover { background: rgba(212,161,60,.24); border-color: var(--brass); }
 .league-go a::after { content: '\2192'; color: var(--brass); }
 
 /* Standings gets the full width of the block. The report can send
@@ -414,11 +423,12 @@ h2.head {
 .foot-links a {
   display: flex; align-items: center; gap: 11px;
   padding: 10px 13px; border: 1px solid var(--edge); border-radius: 4px;
-  background: rgba(244,239,228,.025);
+  background: rgba(244,239,228,.07);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.06);
   color: var(--bone); font-size: 15px; font-weight: 600; line-height: 1.35;
   transition: border-color .15s, background .15s;
 }
-.foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.10); }
+.foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.16); }
 .foot-links svg { width: 18px; height: 18px; flex: none; fill: var(--brass); }
 .foot-links span { min-width: 0; overflow-wrap: anywhere; }
 .colophon {
@@ -867,7 +877,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.14</span>
+        <span>v1.15</span>
       </div>
     </div>
   </footer>

@@ -152,11 +152,12 @@ h2.head {
 .hero-jump a {
   display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
   color: var(--bone); font-size: 14px; font-weight: 600;
-  padding: 10px 16px; border: 1px solid rgba(244,239,228,.28); border-radius: 4px;
-  background: rgba(0,0,0,.22);
+  padding: 10px 16px; border: 1px solid rgba(244,239,228,.3); border-radius: 4px;
+  background: rgba(0,0,0,.34);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
   transition: border-color .15s, background .15s;
 }
-.hero-jump a:hover { border-color: var(--brass); background: rgba(212,161,60,.14); }
+.hero-jump a:hover { border-color: var(--brass); background: rgba(212,161,60,.2); }
 .hero-jump a.back::before { content: '\2190'; color: var(--brass); }
 
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
@@ -232,10 +233,10 @@ h2.head {
   font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
   padding: 9px 14px; border-radius: 4px; color: var(--brass);
-  border: 1px dashed rgba(212,161,60,.45); background: none;
+  border: 1px dashed rgba(212,161,60,.45); background: rgba(212,161,60,.07);
   transition: background .15s, border-color .15s;
 }
-.add-btn:hover { background: rgba(212,161,60,.10); border-color: var(--brass); }
+.add-btn:hover { background: rgba(212,161,60,.16); border-color: var(--brass); }
 
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .send-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -243,10 +244,11 @@ h2.head {
   font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
   padding: 11px 20px; border-radius: 4px;
-  border: 1px solid rgba(212,161,60,.55); background: rgba(212,161,60,.12); color: var(--brass);
+  border: 1px solid rgba(212,161,60,.6); background: rgba(212,161,60,.2); color: var(--brass);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
   transition: background .15s, color .15s;
 }
-.send-btn:hover:not(:disabled) { background: rgba(212,161,60,.22); color: var(--bone); }
+.send-btn:hover:not(:disabled) { background: rgba(212,161,60,.3); color: var(--bone); }
 .send-btn:disabled { opacity: .5; cursor: default; }
 .form-status { font-size: 14px; font-weight: 500; }
 
@@ -258,8 +260,14 @@ h2.head {
 /* ═══ FOOTER ═════════════════════════════════════════════════ */
 .foot { border-top: 1px solid var(--edge); margin-top: 20px; padding: 34px 0 40px; background: rgba(0,0,0,.2); }
 .foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
-.foot-links a { color: var(--bone); text-decoration: none; font-size: 15px; }
-.foot-links a:hover { color: var(--brass); }
+.foot-links a {
+  display: inline-flex; align-items: center; color: var(--bone); text-decoration: none;
+  font-size: 15px; font-weight: 600; padding: 9px 14px; border-radius: 4px;
+  border: 1px solid var(--edge); background: rgba(244,239,228,.07);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.06);
+  transition: border-color .15s, background .15s;
+}
+.foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.16); }
 .colophon {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--edge-in);
@@ -477,7 +485,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.02</span>
+        <span>signup v1.03</span>
       </div>
     </div>
   </footer>
