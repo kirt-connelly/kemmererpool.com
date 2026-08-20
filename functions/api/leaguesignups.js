@@ -3,6 +3,7 @@
  *
  *   GET    /api/leaguesignups     list everyone signed up
  *   POST   /api/leaguesignups     { id, status }   mark contacted / new
+ *   PUT    /api/leaguesignups     { id, ...fields } fix a team or a player
  *   DELETE /api/leaguesignups     { id }           remove an entry
  *
  * Every route needs the league password in an X-League-Pass header.
@@ -62,6 +63,37 @@ export async function onRequest({ request, env }) {
   if (!id) return json({ ok: false, error: 'Which entry?' }, 400);
   const key = PREFIX + id;
 
+  // ── Edit ──
+  // Only the fields that came in are touched, so a form that leaves
+  // something out can't blank it by accident.
+  if (request.method === 'PUT') {
+    const record = await kv.get(key, 'json');
+    if (!record) return json({ ok: false, error: 'That entry is gone already.' }, 404);
+
+    const clean = (v, max) => String(v ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
+
+    if (record.kind === 'team') {
+      if (typeof body.team === 'string') record.team = clean(body.team, 80);
+      if (typeof body.bar === 'string') record.bar = clean(body.bar, 60);
+      if (typeof body.captain === 'string') record.captain = clean(body.captain, 80);
+      if (typeof body.captainPhone === 'string') record.captainPhone = clean(body.captainPhone, 40);
+      if (Array.isArray(body.players)) {
+        record.players = body.players.map((p) => clean(p, 80)).filter(Boolean).slice(0, 10);
+      }
+      if (!record.team || !record.captain) {
+        return json({ ok: false, error: 'A team needs a name and a captain.' }, 400);
+      }
+    } else {
+      if (typeof body.name === 'string') record.name = clean(body.name, 80);
+      if (typeof body.phone === 'string') record.phone = clean(body.phone, 40);
+      if (!record.name) return json({ ok: false, error: 'A player needs a name.' }, 400);
+    }
+
+    record.editedAt = Date.now();
+    await kv.put(key, JSON.stringify(record));
+    return json({ ok: true, signup: record });
+  }
+
   // ── Mark contacted / put back to new ──
   if (request.method === 'POST') {
     const record = await kv.get(key, 'json');
@@ -77,5 +109,5 @@ export async function onRequest({ request, env }) {
     return json({ ok: true });
   }
 
-  return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, POST, DELETE' } });
+  return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, PUT, POST, DELETE' } });
 }
