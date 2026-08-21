@@ -278,6 +278,23 @@ h2.head {
 }
 .sanction a.pay:hover { background: rgba(212,161,60,.3); color: var(--bone); }
 .sanction a.pay::after { content: '\2197'; }
+/* Both marks sit on white chips — the Jenkins mark is black ink on
+   white and would vanish straight onto the dark page. */
+.marks { display: flex; gap: 12px; justify-content: center; align-items: center;
+  flex-wrap: wrap; margin-top: 22px; }
+.marks span {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 5px; padding: 9px 14px;
+}
+.marks img { display: block; height: 34px; width: auto; }
+.marks .jenkins img { height: 40px; }
+
+/* The heads-up before they send, so the fee isn't a surprise. */
+.pre-note {
+  font-size: 14px; color: var(--dim); line-height: 1.55;
+  border-left: 2px solid rgba(212,161,60,.45); padding-left: 12px;
+}
+.pre-note b { color: var(--brass); font-weight: 700; }
 
 /* ═══ FOOTER ═════════════════════════════════════════════════ */
 .foot { border-top: 1px solid var(--edge); margin-top: 20px; padding: 34px 0 40px; background: rgba(0,0,0,.2); }
@@ -443,6 +460,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             <input id="tm-website" type="text" tabindex="-1" autocomplete="off">
           </div>
 
+          <p class="pre-note">
+            <b>Reminder:</b> After hitting sign up there will be a link to pay
+            your league sanction dues to Jenkins.
+          </p>
+
           <div class="send-row">
             <button class="send-btn" id="tm-submit" type="button">Send it</button>
             <span class="form-status" id="tm-status"></span>
@@ -488,6 +510,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             <label for="pl-website">Leave this field empty</label>
             <input id="pl-website" type="text" tabindex="-1" autocomplete="off">
           </div>
+
+          <p class="pre-note">
+            <b>Reminder:</b> After hitting sign up there will be a link to pay
+            your league sanction dues to Jenkins.
+          </p>
 
           <div class="send-row">
             <button class="send-btn" id="pl-submit" type="button">Send it</button>
@@ -535,6 +562,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
             <input id="sb-website" type="text" tabindex="-1" autocomplete="off">
           </div>
 
+          <p class="pre-note">
+            <b>Reminder:</b> After hitting sign up there will be a link to pay
+            your league sanction dues to Jenkins.
+          </p>
+
           <div class="send-row">
             <button class="send-btn" id="sb-submit" type="button">Send it</button>
             <span class="form-status" id="sb-status"></span>
@@ -553,7 +585,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.06</span>
+        <span>signup v1.07</span>
       </div>
     </div>
   </footer>
@@ -619,6 +651,10 @@ function sent(bodyId, headline, note, sanction) {
         '<div class="head-line">One more thing</div>' +
         '<p>' + sanction + '</p>' +
         '<a class="pay" href="' + PAY_URL + '" target="_blank" rel="noopener">Pay the sanction fee</a>' +
+        '<div class="marks">' +
+          '<span><img src="images/bca-pool-league.png" alt="BCA Pool League"></span>' +
+          '<span class="jenkins"><img src="images/jenkins-music.png" alt="Jenkins Music of Wyoming"></span>' +
+        '</div>' +
       '</div>' +
     '</div>';
 }
