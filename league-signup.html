@@ -256,6 +256,28 @@ h2.head {
 .sent { padding: 26px 20px; text-align: center; }
 .sent b { display: block; font-size: 19px; margin-bottom: 6px; }
 .sent p { color: var(--dim); font-size: 15px; max-width: 46ch; margin: 0 auto; }
+/* Nobody's official until the sanction fee is paid, so the last thing
+   they see after signing up is where to go pay it. */
+.sanction {
+  margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--edge-in);
+}
+.sanction .head-line {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
+  margin-bottom: 8px;
+}
+.sanction p { color: var(--bone); font-size: 15px; max-width: 46ch; margin: 0 auto; }
+.sanction a.pay {
+  display: inline-flex; align-items: center; gap: 9px; margin-top: 16px;
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; text-decoration: none;
+  padding: 12px 20px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.6); background: rgba(212,161,60,.2); color: var(--brass);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+  transition: background .15s, color .15s;
+}
+.sanction a.pay:hover { background: rgba(212,161,60,.3); color: var(--bone); }
+.sanction a.pay::after { content: '\2197'; }
 
 /* ═══ FOOTER ═════════════════════════════════════════════════ */
 .foot { border-top: 1px solid var(--edge); margin-top: 20px; padding: 34px 0 40px; background: rgba(0,0,0,.2); }
@@ -531,7 +553,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.05</span>
+        <span>signup v1.06</span>
       </div>
     </div>
   </footer>
@@ -587,9 +609,18 @@ function say(statusId, msg, color) {
   s.style.color = color;
 }
 
-function sent(bodyId, headline, note) {
+var PAY_URL = 'https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction';
+
+function sent(bodyId, headline, note, sanction) {
   document.getElementById(bodyId).innerHTML =
-    '<div class="sent"><b>' + headline + '</b><p>' + note + '</p></div>';
+    '<div class="sent">' +
+      '<b>' + headline + '</b><p>' + note + '</p>' +
+      '<div class="sanction">' +
+        '<div class="head-line">One more thing</div>' +
+        '<p>' + sanction + '</p>' +
+        '<a class="pay" href="' + PAY_URL + '" target="_blank" rel="noopener">Pay the sanction fee</a>' +
+      '</div>' +
+    '</div>';
 }
 
 async function post(payload) {
@@ -640,7 +671,8 @@ document.getElementById('tm-submit').addEventListener('click', async function ()
     });
     if (res.ok) {
       sent('team-body', 'Team\u2019s in.',
-           'An officer will get hold of the captain before the season starts.');
+           'An officer will get hold of the captain before the season starts.',
+           'You\u2019re not an official team until every player pays their sanction fee on the Jenkins website. Captains, pass this along to your players.');
       return;
     }
     say('tm-status', res.error || 'Something went wrong. Try again.', '#c0553f');
@@ -678,7 +710,8 @@ document.getElementById('sb-submit').addEventListener('click', async function ()
     });
     if (res.ok) {
       sent('sub-body', 'You\u2019re on the sub list.',
-           'Captains short a player will have your number.');
+           'Captains short a player will have your number.',
+           'You\u2019re not signed up for good until you pay your sanction fee on the Jenkins website.');
       return;
     }
     say('sb-status', res.error || 'Something went wrong. Try again.', '#c0553f');
@@ -716,7 +749,8 @@ document.getElementById('pl-submit').addEventListener('click', async function ()
     });
     if (res.ok) {
       sent('solo-body', 'You\u2019re on the list.',
-           'We\u2019ll pass your name to captains looking for players.');
+           'We\u2019ll pass your name to captains looking for players.',
+           'You\u2019re not signed up for good until you pay your sanction fee on the Jenkins website.');
       return;
     }
     say('pl-status', res.error || 'Something went wrong. Try again.', '#c0553f');
