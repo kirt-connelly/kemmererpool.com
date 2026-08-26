@@ -462,6 +462,23 @@ h2.head {
 /* The buttons sit between the two paragraphs, so the second one
    needs its own room off them. */
 .league.signup .signup-more { margin-top: 16px; }
+/* What came out of the meeting: quieter than the sign-up copy above
+   it, but held together as its own note rather than loose paragraphs. */
+.meet-note {
+  margin-top: 16px; padding-left: 14px;
+  border-left: 1px solid rgba(212,161,60,.35);
+  max-width: 60ch;
+}
+.meet-hd {
+  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
+  margin-bottom: 7px;
+}
+.meet-note ul { list-style: none; margin: 0; padding: 0; }
+.meet-note li { color: var(--dim); font-size: 15px; line-height: 1.55; }
+.meet-note li + li { margin-top: 6px; }
+.meet-note b { color: var(--bone); font-weight: 600; }
+
 /* The date people need to act by, so it doesn't read as body copy. */
 .league.signup .deadline {
   margin-top: 12px; color: var(--brass); font-weight: 600;
@@ -646,6 +663,15 @@ a:focus-visible, button:focus-visible {
               <a href="league-signup.html#sub">Sub List Signup</a>
             </div>
             <p class="signup-more">Check back soon for full 8 ball league details, teams and schedule!</p>
+            <div class="meet-note">
+              <div class="meet-hd">From the 8-Ball meeting, Aug 25</div>
+              <ul>
+                <li>Tentative season start date is <b>October 22nd</b>.</li>
+                <li>We won't be playing Thanksgiving week, but we <b>will</b> be
+                    playing the week of Christmas and New Year's &mdash; players
+                    voted for it at the meeting.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </article>
@@ -912,7 +938,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.20</span>
+        <span>v1.21</span>
       </div>
     </div>
   </footer>
