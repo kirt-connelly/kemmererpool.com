@@ -232,7 +232,9 @@ h2.head {
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
 .band { padding: 62px 0; }
 .band-hd { margin-bottom: 30px; }
-[id] { scroll-margin-top: 76px; }   /* the masthead is sticky */
+/* The masthead is sticky, and it stacks taller on a phone, so the gap
+   is measured at runtime rather than guessed at. */
+[id] { scroll-margin-top: var(--anchor-gap, 76px); }
 
 /* ═══ LEAGUES ════════════════════════════════════════════════
    One block per league. The one that's running carries its own
@@ -997,7 +999,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.36</span>
+        <span>v1.37</span>
       </div>
 
     </div>
@@ -1214,6 +1216,63 @@ async function submitSuggestion() {
 
 loadStandings();
 loadNext();
+
+/* ── Anchors that land where they should ─────────────────────────
+   Standings and Next up arrive after the page does, so a section can
+   grow under you a beat after you jump to it — click Bars early and
+   you end up half in Tournaments. Aim at the section, then check
+   again as the late content settles, and give up the moment the
+   reader takes over by scrolling themselves. */
+(function () {
+  const mast = document.querySelector('.mast');
+  const gap = () => (mast ? mast.offsetHeight : 62) + 14;
+
+  const setGap = () => document.documentElement.style.setProperty('--anchor-gap', gap() + 'px');
+  setGap();
+  addEventListener('resize', setGap);
+
+  let watching = null;
+
+  function aim(el, smooth) {
+    const y = el.getBoundingClientRect().top + scrollY - gap();
+    scrollTo({ top: Math.max(0, y), behavior: smooth ? 'smooth' : 'auto' });
+  }
+
+  function follow(el) {
+    watching = el;
+    [450, 1000, 1800, 2800].forEach(t => setTimeout(() => {
+      if (watching !== el) return;
+      const off = el.getBoundingClientRect().top - gap();
+      if (Math.abs(off) > 4) aim(el, false);      // it moved; put it back
+    }, t));
+  }
+
+  /* The reader taking the wheel always wins. */
+  ['wheel', 'touchstart', 'keydown'].forEach(ev =>
+    addEventListener(ev, () => { watching = null; }, { passive: true }));
+
+  addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href').slice(1);
+    const el = id && document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    history.replaceState(null, '', '#' + id);
+    setGap();
+    aim(el, true);
+    follow(el);
+  });
+
+  /* Arriving from another page with #rooms already on the URL. */
+  addEventListener('load', () => {
+    const el = location.hash && document.getElementById(location.hash.slice(1));
+    if (!el) return;
+    setGap();
+    aim(el, false);
+    follow(el);
+  });
+})();
 </script>
 </body>
 </html>
