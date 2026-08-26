@@ -75,7 +75,7 @@ header {
 .mark b { font-weight: 700; font-size: 15px; letter-spacing: -.01em; color: var(--bone); white-space: nowrap; }
 .mast-nav { margin-left: auto; display: flex; gap: 4px; }
 .mast-nav a {
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
   text-decoration: none; padding: 8px 12px; border-radius: 4px;
 }
@@ -102,8 +102,8 @@ header {
    whole head flush against the edge of the phone. */
 .page-hd { padding-top: 26px; }
 .eyebrow {
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-  letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+  font-family: 'Space Mono', monospace; font-size: 13.5px; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--brass);
 }
 .page-hd h1 {
   font-size: clamp(26px, 4vw, 38px); font-weight: 700;
@@ -114,7 +114,7 @@ header {
 .acts { display: flex; gap: 8px; flex-wrap: wrap; padding: 20px 0 6px; }
 .act {
   display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace;
-  font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
   padding: 10px 15px; border-radius: 4px; text-decoration: none;
   border: 1px solid #33291f; background: transparent; color: var(--dim);
   white-space: nowrap; transition: color .15s, border-color .15s, background .15s;
@@ -133,7 +133,7 @@ main { padding: 22px 0 70px; }
   border-bottom: 1px solid rgba(244,239,228,.12); min-height: 42px;
 }
 .panel-note {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .08em;
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .08em;
   color: var(--dim); text-align: right;
 }
 
@@ -172,12 +172,18 @@ main { padding: 22px 0 70px; }
   white-space: nowrap; grid-column: 2; grid-row: 1; text-align: right;
 }
 .ev .s {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .12em;
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .12em;
   text-transform: uppercase; color: var(--dim);
   grid-column: 2; grid-row: 2; text-align: right;
 }
 .ev .s.set { color: var(--set); }
 .ev.soft .d { color: var(--dim); }
+/* Our own three weekends, warmed up a shade against the road trips. */
+.ev.tri {
+  background: linear-gradient(90deg, rgba(212,161,60,.09), rgba(212,161,60,.02) 60%, transparent);
+  box-shadow: inset 2px 0 0 rgba(212,161,60,.5);
+}
+.ev.tri:hover { background: linear-gradient(90deg, rgba(212,161,60,.14), rgba(212,161,60,.03) 60%, transparent); }
 
 /* Flyers and detail links sit on the right, under the date. */
 .ev .s a, .ev .s button {
@@ -193,7 +199,7 @@ main { padding: 22px 0 70px; }
 .panel-foot p { color: var(--dim); font-size: 15px; line-height: 1.7; margin: 0 0 15px; }
 .out {
   display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase;
   padding: 11px 16px; border-radius: 4px;
   border: 1px solid rgba(212,161,60,.6); background: rgba(212,161,60,.2); color: var(--brass);
@@ -238,9 +244,9 @@ a:focus-visible, button:focus-visible {
              gap: 2px; padding-top: 9px; padding-bottom: 7px; }
   .mark b { font-size: 14px; }
   .mast-nav { margin-left: 0; flex-wrap: wrap; justify-content: center; }
-  .mast-nav a { padding: 6px 8px; letter-spacing: .06em; font-size: 10px; }
+  .mast-nav a { padding: 6px 8px; letter-spacing: .06em; font-size: 11px; }
   .rail-rule { gap: 26px; }
-  .act { flex: 1; justify-content: center; padding: 10px 8px; font-size: 10px; letter-spacing: .08em; }
+  .act { flex: 1; justify-content: center; padding: 10px 8px; font-size: 11px; letter-spacing: .08em; }
   .ev { padding: 13px 14px; gap: 2px 12px; }
   .ev .n { font-size: 16px; }
 }
@@ -323,19 +329,19 @@ a:focus-visible, button:focus-visible {
         <span class="d">Jan 8&ndash;10, 2027</span>
         <span class="s">Expected</span>
       </div>
-      <div class="ev">
+      <div class="ev tri">
         <span class="n">Red Short Memorial Tri City</span>
         <span class="w">Kemmerer, WY</span>
         <span class="d">Jan 16&ndash;17, 2027</span>
         <span class="s set">Dates set</span>
       </div>
-      <div class="ev">
+      <div class="ev tri">
         <span class="n">Evanston Tri City</span>
         <span class="w">Evanston, WY</span>
         <span class="d">Feb 6&ndash;7, 2027</span>
         <span class="s set">Dates set</span>
       </div>
-      <div class="ev">
+      <div class="ev tri">
         <span class="n">Bridger Valley Tri City</span>
         <span class="w">Bridger Valley, WY</span>
         <span class="d">Mar 6&ndash;7, 2027</span>
@@ -415,7 +421,7 @@ a:focus-visible, button:focus-visible {
 </main>
 
 <footer>
-  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.08</div>
+  <div class="wrap"><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.09</div>
 </footer>
 
 <div class="lb" id="lb" onclick="closeFlyer()">

@@ -61,8 +61,8 @@ body {
 .display { font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400; }
 
 .eyebrow {
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-  letter-spacing: .22em; text-transform: uppercase; color: var(--brass);
+  font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--brass);
 }
 h2.head {
   font-size: clamp(28px, 4vw, 40px); font-weight: 700;
@@ -123,7 +123,7 @@ h2.head {
 
 .mast nav { margin-left: auto; display: flex; gap: 4px; }
 .mast nav a {
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
   text-decoration: none; padding: 8px 12px; border-radius: 4px;
 }
@@ -176,7 +176,7 @@ h2.head {
   color: var(--brass); letter-spacing: .1em;
 }
 .panel-note {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .06em;
+  font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .06em;
   color: var(--dim); text-align: right;
 }
 .nextup-body { padding: 6px 0; }
@@ -202,8 +202,8 @@ h2.head {
 }
 .fixture .rm {
   grid-column: 1 / -1; text-align: center; margin-top: 2px;
-  font-family: 'Space Mono', monospace; font-size: 10px;
-  letter-spacing: .12em; text-transform: uppercase; color: var(--brass); opacity: .8;
+  font-family: 'Space Mono', monospace; font-size: 12px;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--brass); opacity: .8;
 }
 .nextup-wait { padding: 18px 16px; color: rgba(244,239,228,.66); font-size: 15px; }
 
@@ -212,8 +212,8 @@ h2.head {
 .panel-more {
   display: block; padding: 12px 15px; text-align: center; text-decoration: none;
   border-top: 1px solid var(--edge-in); background: rgba(0,0,0,.24);
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--brass);
   transition: background .15s, color .15s;
 }
 .panel-more:hover { background: rgba(212,161,60,.12); color: var(--bone); }
@@ -261,8 +261,8 @@ h2.head {
 .league p a { color: var(--brass); text-decoration: none; font-weight: 600; }
 .league p a:hover { text-decoration: underline; }
 .flag {
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  font-family: 'Space Mono', monospace; font-size: 13.5px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
   display: inline-flex; align-items: center; gap: 7px;
 }
 .league.live .flag { color: var(--brass); }
@@ -334,8 +334,8 @@ h2.head {
 .stand { width: 100%; border-collapse: collapse; }
 #standings-frame { overflow-x: auto; }
 .stand thead th {
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--dim);
   text-align: left; padding: 11px 14px; background: var(--night-2);
   border-bottom: 1px solid var(--edge-in); white-space: nowrap;
 }
@@ -365,11 +365,21 @@ h2.head {
 .date-row .n { font-weight: 600; font-size: 17px; }
 .date-row .w { color: var(--dim); font-size: 15px; }
 .date-row .s {
-  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em;
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--dim); text-align: right;
 }
 .date-row .s.set { color: #4fae86; }
 .date-row.soft .d { color: var(--dim); }
+/* Our own three weekends. Not shouted — just warmed up and edged so
+   they pick out of the Jenkins road trips at a glance. */
+.date-row.tri {
+  background: linear-gradient(90deg, rgba(212,161,60,.09), rgba(212,161,60,.02) 60%, transparent);
+  box-shadow: inset 2px 0 0 rgba(212,161,60,.5);
+  /* The bar hangs off to the left so the columns stay lined up with
+     every other row in the list. */
+  margin-left: -12px; padding-left: 16px;
+}
+.date-row.tri .n { color: var(--bone); }
 
 /* ═══ ROOMS ══════════════════════════════════════════════════ */
 .rooms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -414,8 +424,8 @@ h2.head {
 .foot { background: var(--night-2); border-top: 1px solid var(--edge); padding: 46px 0 34px; }
 .foot-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 32px; }
 .foot h4 {
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: 14px;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase; color: var(--dim); margin-bottom: 14px;
 }
 .foot-off {
   display: flex; justify-content: space-between; gap: 14px; padding: 6px 0;
@@ -470,8 +480,8 @@ h2.head {
   max-width: 60ch;
 }
 .meet-hd {
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
+  font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--brass);
   margin-bottom: 7px;
 }
 .meet-note ul { list-style: none; margin: 0; padding: 0; }
@@ -496,8 +506,8 @@ h2.head {
 .suggest-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label {
-  font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase; color: var(--dim);
 }
 .field label i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 400; }
 .field input, .field textarea {
@@ -512,8 +522,8 @@ h2.head {
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .send-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .send-btn {
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; cursor: pointer;
   padding: 11px 20px; border-radius: 4px;
   border: 1px solid rgba(212,161,60,.55); background: rgba(212,161,60,.12); color: var(--brass);
   transition: background .15s, color .15s;
@@ -537,6 +547,7 @@ a:focus-visible, button:focus-visible {
   .league { padding: 20px; }
   .foot-grid { grid-template-columns: 1fr; gap: 26px; }
   .date-row { grid-template-columns: 1fr auto; gap: 3px 14px; padding: 14px 4px; }
+  .date-row.tri { margin-left: -10px; padding-left: 14px; }
   .date-row .d { grid-column: 1; grid-row: 1; }
   .date-row .n { grid-column: 1; grid-row: 2; }
   .date-row .w { grid-column: 1; grid-row: 3; }
@@ -544,7 +555,7 @@ a:focus-visible, button:focus-visible {
   .rail-rule { gap: 26px; }
   .mast-in { gap: 14px; }
   .mast nav { gap: 0; }
-  .mast nav a { padding: 8px 7px; font-size: 10px; }
+  .mast nav a { padding: 8px 7px; font-size: 11px; }
 }
 @media (max-width: 560px) {
   body { font-size: 16px; }
@@ -770,19 +781,19 @@ a:focus-visible, button:focus-visible {
           <span class="w">Pinedale</span>
           <span class="s">Expected</span>
         </div>
-        <div class="date-row">
+        <div class="date-row tri">
           <span class="d">Jan 16&ndash;17, 2027</span>
           <span class="n">Red Short Memorial Tri City</span>
           <span class="w">Kemmerer</span>
           <span class="s set">Dates set</span>
         </div>
-        <div class="date-row">
+        <div class="date-row tri">
           <span class="d">Feb 6&ndash;7, 2027</span>
           <span class="n">Evanston Tri City</span>
           <span class="w">Evanston</span>
           <span class="s set">Dates set</span>
         </div>
-        <div class="date-row">
+        <div class="date-row tri">
           <span class="d">Mar 6&ndash;7, 2027</span>
           <span class="n">Bridger Valley Tri City</span>
           <span class="w">Bridger Valley</span>
@@ -947,7 +958,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.22</span>
+        <span>v1.23</span>
       </div>
     </div>
   </footer>
