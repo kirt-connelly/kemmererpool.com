@@ -163,34 +163,6 @@ h2.head {
   text-shadow: 0 3px 0 rgba(0,0,0,.3), 0 22px 44px rgba(0,0,0,.45);
 }
 .hero-h1 em { font-style: normal; color: var(--brass); }
-/* The two balls we actually play, set into the line at text size.
-   Same turned-under-the-lamp look as the mark in the masthead. */
-.ball-line { display: inline; white-space: normal; }
-.ball {
-  display: inline-grid; place-items: center; vertical-align: -.3em;
-  width: 1.75em; height: 1.75em; border-radius: 50%;
-  box-shadow: inset -2px -3px 6px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
-  margin-right: .14em;
-}
-.ball i {
-  display: grid; place-items: center; font-style: normal;
-  font-family: 'Space Mono', monospace; font-weight: 700;
-  font-size: .58em; letter-spacing: -.07em;
-  width: 1.65em; height: 1.65em; border-radius: 50%;
-  background: var(--bone); color: #14100c;
-}
-/* Eight is a solid; ten is a stripe, so the white band runs across
-   and the color sits top and bottom. */
-.ball.solid {
-  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.5), rgba(255,255,255,0) 42%), #100d0a;
-}
-.ball.stripe.ten {
-  background:
-    radial-gradient(circle at 33% 27%, rgba(255,255,255,.45), rgba(255,255,255,0) 40%),
-    linear-gradient(180deg, #1f4f9c 0 27%, #f4efe4 27% 73%, #1f4f9c 73% 100%);
-}
-.ball.stripe i { box-shadow: 0 0 0 1px rgba(31,79,156,.35); }
-
 .hero-sub {
   margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
   max-width: 40ch; text-wrap: balance;
@@ -584,35 +556,7 @@ a:focus-visible, button:focus-visible {
 @media (max-width: 560px) {
   body { font-size: 16px; }
   .rooms { grid-template-columns: 1fr; }
-  /* The two balls we actually play, set into the line at text size.
-   Same turned-under-the-lamp look as the mark in the masthead. */
-.ball-line { display: inline; white-space: normal; }
-.ball {
-  display: inline-grid; place-items: center; vertical-align: -.3em;
-  width: 1.75em; height: 1.75em; border-radius: 50%;
-  box-shadow: inset -2px -3px 6px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.45);
-  margin-right: .14em;
-}
-.ball i {
-  display: grid; place-items: center; font-style: normal;
-  font-family: 'Space Mono', monospace; font-weight: 700;
-  font-size: .58em; letter-spacing: -.07em;
-  width: 1.65em; height: 1.65em; border-radius: 50%;
-  background: var(--bone); color: #14100c;
-}
-/* Eight is a solid; ten is a stripe, so the white band runs across
-   and the color sits top and bottom. */
-.ball.solid {
-  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.5), rgba(255,255,255,0) 42%), #100d0a;
-}
-.ball.stripe.ten {
-  background:
-    radial-gradient(circle at 33% 27%, rgba(255,255,255,.45), rgba(255,255,255,0) 40%),
-    linear-gradient(180deg, #1f4f9c 0 27%, #f4efe4 27% 73%, #1f4f9c 73% 100%);
-}
-.ball.stripe i { box-shadow: 0 0 0 1px rgba(31,79,156,.35); }
-
-.hero-sub { font-size: 17px; }
+  .hero-sub { font-size: 17px; }
   .nextup { max-width: none; }
   .shell { padding-left: 16px; padding-right: 16px; }
   .cloth-in { padding-top: 66px; padding-bottom: 70px; }
@@ -694,11 +638,8 @@ a:focus-visible, button:focus-visible {
         <div class="eyebrow">Kemmerer, Wyoming</div>
         <h1 class="hero-h1">Rack 'em <em>up.</em></h1>
         <p class="hero-sub">
-          Wednesday nights. Grab a beer, shoot some pool.
-          <span class="ball-line">
-            <span class="ball solid" aria-hidden="true"><i>8</i></span> ball all winter,
-            <span class="ball stripe ten" aria-hidden="true"><i>10</i></span> ball all summer.
-          </span>
+          Wednesday nights. Grab a beer, shoot some pool. 8 ball all winter,
+          10 ball all summer.
         </p>
       </div>
     </div>
@@ -813,7 +754,7 @@ a:focus-visible, button:focus-visible {
         <div class="league-hd">
           <div>
             <span class="flag">Season ended</span>
-            <h3>8-Ball Fall 2025&ndash;26</h3>
+            <h3>8-Ball Fall/Winter 2025&ndash;26</h3>
             <p>Last winter's league.</p>
           </div>
         </div>
@@ -1032,7 +973,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.30</span>
+        <span>v1.31</span>
       </div>
     </div>
   </footer>
