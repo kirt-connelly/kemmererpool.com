@@ -233,8 +233,9 @@ footer {
 /* Who we run under. Kept small rather than dimmed — a faded white
    chip on this background just reads as dirty. */
 .foot-marks {
-  display: flex; align-items: center; justify-content: center; gap: 14px;
-  margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(244,239,228,.08);
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-bottom: 30px;
+  padding-bottom: 24px; border-bottom: 1px solid rgba(244,239,228,.08);
 }
 .foot-marks a {
   display: inline-flex; align-items: center; justify-content: center;
@@ -242,7 +243,7 @@ footer {
   transition: transform .15s;
 }
 .foot-marks a:hover { transform: translateY(-1px); }
-.foot-marks img { display: block; height: 27px; width: auto; }
+.foot-marks img { display: block; height: 44px; width: auto; }
 footer a { color: #b7ab99; text-decoration: none; }
 footer a:hover { color: var(--brass); }
 
@@ -435,7 +436,6 @@ a:focus-visible, button:focus-visible {
 
 <footer>
   <div class="wrap">
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.11</div>
     <div class="foot-marks">
       <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener" title="Jenkins Music of Wyoming">
         <img src="images/jenkins-music.png" alt="Jenkins Music of Wyoming" loading="lazy">
@@ -444,6 +444,7 @@ a:focus-visible, button:focus-visible {
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.12</div>
   </div>
 </footer>
 
