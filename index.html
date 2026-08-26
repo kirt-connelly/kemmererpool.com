@@ -452,8 +452,21 @@ h2.head {
 .foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.16); }
 .foot-links svg { width: 18px; height: 18px; flex: none; fill: var(--brass); }
 .foot-links span { min-width: 0; overflow-wrap: anywhere; }
+/* Who we run under. Both marks are dark ink on white, so they sit on
+   their own small light chips and stay dim until you point at them. */
+.foot-marks { display: flex; align-items: center; gap: 12px; margin-top: 32px; }
+.foot-marks a {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bone); border-radius: 4px; padding: 5px 9px;
+  transition: transform .15s;
+}
+.foot-marks a:hover { transform: translateY(-1px); }
+/* Kept small rather than dimmed — a faded white chip on this
+   background just reads as dirty. */
+.foot-marks img { display: block; height: 19px; width: auto; }
+
 .colophon {
-  margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--edge-in);
+  margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--edge-in);
   display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   font-family: 'Space Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: .06em;
 }
@@ -685,7 +698,7 @@ a:focus-visible, button:focus-visible {
               </div>
               <div class="fact">
                 <span class="k">Season start</span>
-                <span class="v">Tentatively October 22nd</span>
+                <span class="v">Tentatively October 21st</span>
               </div>
               <div class="fact">
                 <span class="k">Holiday Weeks</span>
@@ -971,9 +984,17 @@ a:focus-visible, button:focus-visible {
           </ul>
         </div>
       </div>
+      <div class="foot-marks">
+        <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener" title="Jenkins Music of Wyoming">
+          <img src="images/jenkins-music.png" alt="Jenkins Music of Wyoming" loading="lazy">
+        </a>
+        <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener" title="BCA Pool League">
+          <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
+        </a>
+      </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.31</span>
+        <span>v1.33</span>
       </div>
     </div>
   </footer>
