@@ -454,19 +454,22 @@ h2.head {
 .foot-links span { min-width: 0; overflow-wrap: anywhere; }
 /* Who we run under. Both marks are dark ink on white, so they sit on
    their own small light chips and stay dim until you point at them. */
-.foot-marks { display: flex; align-items: center; gap: 12px; margin-top: 32px; }
+.foot-marks {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(244,239,228,.08);
+}
 .foot-marks a {
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--bone); border-radius: 4px; padding: 5px 9px;
+  background: var(--bone); border-radius: 5px; padding: 7px 12px;
   transition: transform .15s;
 }
 .foot-marks a:hover { transform: translateY(-1px); }
 /* Kept small rather than dimmed — a faded white chip on this
    background just reads as dirty. */
-.foot-marks img { display: block; height: 19px; width: auto; }
+.foot-marks img { display: block; height: 27px; width: auto; }
 
 .colophon {
-  margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--edge-in);
+  margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--edge-in);
   display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   font-family: 'Space Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: .06em;
 }
@@ -984,6 +987,10 @@ a:focus-visible, button:focus-visible {
           </ul>
         </div>
       </div>
+      <div class="colophon">
+        <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
+        <span>v1.34</span>
+      </div>
       <div class="foot-marks">
         <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener" title="Jenkins Music of Wyoming">
           <img src="images/jenkins-music.png" alt="Jenkins Music of Wyoming" loading="lazy">
@@ -992,10 +999,7 @@ a:focus-visible, button:focus-visible {
           <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
         </a>
       </div>
-      <div class="colophon">
-        <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.33</span>
-      </div>
+
     </div>
   </footer>
 
