@@ -462,6 +462,10 @@ h2.head {
 /* The buttons sit between the two paragraphs, so the second one
    needs its own room off them. */
 .league.signup .signup-more { margin-top: 16px; }
+/* The date people need to act by, so it doesn't read as body copy. */
+.league.signup .deadline {
+  margin-top: 12px; color: var(--brass); font-weight: 600;
+}
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
    The one place on the page anyone types. It sits in the same
@@ -635,6 +639,7 @@ a:focus-visible, button:focus-visible {
               your team or if you don't have one, give us your name and we'll
               help you find one.
             </p>
+            <p class="deadline">Deadline to sign up is October 9th.</p>
             <div class="league-go">
               <a href="league-signup.html">Team Signup</a>
               <a href="league-signup.html#solo">Player Signup (No Team)</a>
@@ -708,7 +713,7 @@ a:focus-visible, button:focus-visible {
       <div class="band-hd">
         <div class="eyebrow">2026&ndash;27</div>
         <h2 class="head">Tournaments</h2>
-        <p class="lede">Jenkins tournaments and the state event. Dates not marked confirmed can still change.</p>
+        <p class="lede">Jenkins tournaments, the Tri City weekends and the state event. Tri City details coming soon.</p>
       </div>
 
       <div class="dates">
@@ -729,6 +734,24 @@ a:focus-visible, button:focus-visible {
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Pinedale</span>
           <span class="s">Expected</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Jan 16&ndash;17, 2027</span>
+          <span class="n">Red Short Memorial Tri City</span>
+          <span class="w">Kemmerer</span>
+          <span class="s set">Dates set</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Feb 6&ndash;7, 2027</span>
+          <span class="n">Evanston Tri City</span>
+          <span class="w">Evanston</span>
+          <span class="s set">Dates set</span>
+        </div>
+        <div class="date-row">
+          <span class="d">Mar 6&ndash;7, 2027</span>
+          <span class="n">Bridger Valley Tri City</span>
+          <span class="w">Bridger Valley</span>
+          <span class="s set">Dates set</span>
         </div>
         <div class="date-row">
           <span class="d">Mar 15&ndash;21, 2027</span>
@@ -889,7 +912,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.19</span>
+        <span>v1.20</span>
       </div>
     </div>
   </footer>
