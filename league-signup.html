@@ -165,6 +165,32 @@ h2.head {
 .hero-jump a:hover { border-color: var(--brass); background: rgba(212,161,60,.2); }
 .hero-jump a.back::before { content: '\2190'; color: var(--brass); }
 
+/* ═══ THE PICKER ═════════════════════════════════════════════
+   Three forms on one page had people scrolling past the one they
+   came for and filling in the wrong one. Now you see the one you
+   picked, and switching is a tap. ────────────────────────────── */
+.picker-band { padding-top: 34px; padding-bottom: 0; }
+#team, #solo, #sub { padding-top: 30px; }
+.picker { display: flex; gap: 10px; flex-wrap: wrap; }
+.pick {
+  flex: 1 1 auto;
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; font-weight: 600;
+  color: var(--dim); background: rgba(244,239,228,.05);
+  border: 1px solid var(--edge); border-radius: 5px;
+  padding: 12px 18px; cursor: pointer; text-align: center;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.pick:hover { color: var(--bone); background: rgba(244,239,228,.09); }
+.pick[aria-selected="true"] {
+  color: var(--brass); background: rgba(212,161,60,.16);
+  border-color: rgba(212,161,60,.55);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+}
+@media (max-width: 560px) {
+  .picker { flex-direction: column; }
+  .pick { flex: 1 1 auto; }
+}
+
 /* ═══ SECTION FRAME ══════════════════════════════════════════ */
 .band { padding: 54px 0; }
 .band-hd { margin-bottom: 26px; }
@@ -414,11 +440,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </section>
 
+  <section class="band picker-band">
+    <div class="shell">
+      <div class="picker" role="tablist" aria-label="What are you signing up for?">
+        <button type="button" class="pick" data-panel="team" role="tab" aria-selected="true">Team Signup</button>
+        <button type="button" class="pick" data-panel="solo" role="tab" aria-selected="false">Player Signup (No Team)</button>
+        <button type="button" class="pick" data-panel="sub" role="tab" aria-selected="false">Sub List Signup</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ OPTION 1 — TEAM ═══════════════════════════════════ -->
   <section class="band" id="team">
     <div class="shell">
       <div class="band-hd">
-        <div class="eyebrow">Option 1</div>
         <h2 class="head">Sign up a team</h2>
         <p class="lede">
           One entry per team. Short a player or two? Send it in anyway and
@@ -494,13 +529,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     </div>
   </section>
 
-  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-
   <!-- ═══ OPTION 2 — NO TEAM ════════════════════════════════ -->
   <section class="band" id="solo">
     <div class="shell">
       <div class="band-hd">
-        <div class="eyebrow">Option 2</div>
         <h2 class="head">I want to play, I don't have a team</h2>
         <p class="lede">
           Give us a name and a number. We will do our best to help find
@@ -545,13 +577,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     </div>
   </section>
 
-  <div class="shell"><div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-
   <!-- ═══ OPTION 3 — SUB ════════════════════════════════════ -->
   <section class="band" id="sub">
     <div class="shell">
       <div class="band-hd">
-        <div class="eyebrow">Option 3</div>
         <h2 class="head">Sign up as a sub</h2>
         <p class="lede">
           Don't have time to play on a team but want to play? Sign up as a
@@ -613,7 +642,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.13</span>
+        <span>signup v1.14</span>
       </div>
 
     </div>
@@ -626,6 +655,60 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    Both forms post to /signup-8ball, which mails the officers with
    the same Resend setup the suggestion box uses.
    ═══════════════════════════════════════════════════════════════ */
+
+/* ── One form at a time ──────────────────────────────────────
+   The three buttons on the front page land here with a hash, so
+   whichever one they pressed is the one that opens. ─────────── */
+(function () {
+  var PANELS = ['team', 'solo', 'sub'];
+  var picks = document.querySelectorAll('.pick');
+
+  function open(name) {
+    if (PANELS.indexOf(name) === -1) name = 'team';
+    PANELS.forEach(function (p) {
+      document.getElementById(p).style.display = (p === name) ? '' : 'none';
+    });
+    for (var i = 0; i < picks.length; i++) {
+      picks[i].setAttribute('aria-selected', picks[i].dataset.panel === name ? 'true' : 'false');
+    }
+    return name;
+  }
+
+  for (var i = 0; i < picks.length; i++) {
+    picks[i].addEventListener('click', function () {
+      open(this.dataset.panel);
+    });
+  }
+
+  /* Landing with #solo would otherwise drop the reader partway down
+     the page with the picker hidden behind the masthead. Only one form
+     is on screen now, so start at the top of it every time. */
+  function toTop() {
+    /* The page has smooth scrolling, so the jump the hash kicked off is
+       still animating when this runs — turn it off, snap back, restore. */
+    var root = document.documentElement;
+    var was = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    scrollTo(0, 0);
+    root.style.scrollBehavior = was;
+  }
+
+  /* Read once — the hash gets cleared straight after so the browser
+     stops trying to scroll to it. */
+  var chosen = (location.hash || '').replace('#', '');
+
+  function start() {
+    open(chosen);
+    history.replaceState(null, '', location.pathname);
+    toTop();
+    [0, 80, 260].forEach(function (t) { setTimeout(toTop, t); });
+  }
+  start();
+  addEventListener('load', start);
+  addEventListener('hashchange', function () {
+    open((location.hash || '').replace('#', ''));
+  });
+})();
 
 var ENDPOINT = '/signup-8ball';
 var MAX_ROWS = 6;          /* players 2 through 7 */

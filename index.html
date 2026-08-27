@@ -484,6 +484,11 @@ h2.head {
   background: linear-gradient(180deg, rgba(212,161,60,.10), rgba(244,239,228,.02) 55%, transparent);
   border-color: rgba(212,161,60,.30);
 }
+/* A link inside a season's blurb — underlined so it doesn't just look
+   like a brass word. */
+.league-hd p a { color: var(--brass); text-decoration: none; border-bottom: 1px solid rgba(212,161,60,.4); }
+.league-hd p a:hover { color: var(--bone); border-bottom-color: var(--bone); }
+
 .league.signup .flag { color: var(--brass); }
 .league.signup .flag::before { opacity: 1; box-shadow: 0 0 0 3px rgba(212,161,60,.18); }
 .league.signup p { max-width: 60ch; }
@@ -735,11 +740,12 @@ a:focus-visible, button:focus-visible {
           <div>
             <span class="flag">Playing now</span>
             <h3>10-Ball Summer 2026</h3>
-            <p>Wednesday nights through the summer.</p>
+            <p>Wednesday nights through the summer. Every week of the season is
+              on the <a href="schedule.html?league=10ball">full schedule</a>.</p>
           </div>
           <div class="league-go">
-            <a href="league.html?lg=10ball">Standings &amp; players</a>
-            <a href="schedule.html?league=10ball">Full schedule</a>
+            <a href="league.html?lg=10ball">Full Standings and Stats</a>
+            <a href="schedule.html?league=10ball">Weekly Results</a>
           </div>
         </div>
 
@@ -773,12 +779,13 @@ a:focus-visible, button:focus-visible {
           <div>
             <span class="flag">Season ended</span>
             <h3>8-Ball Fall/Winter 2025&ndash;26</h3>
-            <p>Last winter's league.</p>
+            <p>Last winter's league. Every week of it is still on the
+              <a href="schedule.html?league=8ball">full schedule</a>.</p>
           </div>
         </div>
         <div class="league-go">
-          <a href="league.html?lg=8ball">Final standings</a>
-          <a href="schedule.html?league=8ball">Schedule</a>
+          <a href="league.html?lg=8ball">Full Standings and Stats</a>
+          <a href="schedule.html?league=8ball">Weekly Results</a>
         </div>
       </article>
 
@@ -999,7 +1006,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.37</span>
+        <span>v1.38</span>
       </div>
 
     </div>
