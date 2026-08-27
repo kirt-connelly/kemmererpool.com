@@ -257,7 +257,7 @@ h2.head {
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 22px; flex-wrap: wrap;
 }
-.league.live .league-hd { margin-bottom: 22px; }
+.league.live .league-hd, .league.ended .league-hd { margin-bottom: 22px; }
 .league h3 { font-size: 23px; font-weight: 700; letter-spacing: -.015em; margin: 11px 0 7px; }
 .league p { color: var(--dim); font-size: 15px; max-width: 48ch; }
 .league p a { color: var(--brass); text-decoration: none; font-weight: 600; }
@@ -489,6 +489,7 @@ h2.head {
 /* The season's result, said out loud — brighter than the standing copy
    under it without turning into another badge. */
 .champs { color: var(--bone); }
+.champs b { color: #fff; font-weight: 700; }
 .league-hd p.champs + p { margin-top: 10px; }
 
 .league-hd p a { color: var(--brass); text-decoration: none; border-bottom: 1px solid rgba(212,161,60,.4); }
@@ -739,15 +740,15 @@ a:focus-visible, button:focus-visible {
         </div>
       </article>
 
-      <!-- Running now: carries its own standings and its own next match. -->
-      <article class="league live">
+      <!-- Finished this summer: final standings, no fixtures left to show. -->
+      <article class="league">
         <div class="league-hd">
           <div>
-            <span class="flag">Playing now</span>
+            <span class="flag">Season ended</span>
             <h3>10-Ball Summer 2026</h3>
-            <p class="champs">Congrats to Trevor and Teddy on a great 10 ball season
-              and taking 1st place. Thanks to everyone who came out and played this
-              summer!</p>
+            <p class="champs"><b>Congrats to Teddy and Trevor</b> on a great 10 ball
+              season and taking 1st place. Thanks to everyone who came out and played
+              this summer!</p>
             <p>Wednesday nights throughout the summer. Check out and print the
               <a href="schedule.html?league=10ball">full schedule</a>.</p>
           </div>
@@ -760,23 +761,12 @@ a:focus-visible, button:focus-visible {
         <div class="league-body">
           <div class="panel" id="standings">
             <div class="panel-hd">
-              <span class="eyebrow">Standings</span>
-              <span class="panel-note">Updated weekly</span>
+              <span class="eyebrow">Final standings</span>
+              <span class="panel-note">10-Ball Summer 2026</span>
             </div>
             <div id="standings-frame">
               <div class="quiet-note">Loading the standings&hellip;</div>
             </div>
-          </div>
-
-          <div class="panel cloth-panel">
-            <div class="panel-hd">
-              <span class="eyebrow">Next up</span>
-              <span class="nextup-when" id="next-when"></span>
-            </div>
-            <div class="nextup-body" id="next-body">
-              <div class="nextup-wait">Checking the schedule&hellip;</div>
-            </div>
-            <a class="panel-more" href="schedule.html?league=10ball">Full schedule &rarr;</a>
           </div>
         </div>
       </article>
@@ -1014,7 +1004,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.40</span>
+        <span>v1.41</span>
       </div>
 
     </div>
@@ -1131,6 +1121,8 @@ function parseDate(str) {
 async function loadNext() {
   const when = document.getElementById('next-when');
   const body = document.getElementById('next-body');
+  /* The Next up panel only exists while a season is running. */
+  if (!body) return;
   try {
     const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateDivisionScheduleReport'), {
       method: 'POST',
