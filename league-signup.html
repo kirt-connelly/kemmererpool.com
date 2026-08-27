@@ -247,18 +247,11 @@ h2.head {
   letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
 }
 
-/* Player rows. The captain is number 1 up in the captain block, so
-   the list here starts at 2. Blank rows are ignored on send, so a
-   team that's a player short can still get its entry in. */
-.player-row { display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: end; }
+/* Roster rows. The number lives in the field's own label — as its own
+   column it became a stray line above every input on a phone, with the
+   label under it saying the same thing again. */
 .player-row + .player-row { margin-top: 12px; }
-#players .player-row:first-child { margin-top: 0; }
-.cap-row { grid-template-columns: 26px 1fr 1fr; }
-.player-row .num {
-  font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
-  color: var(--dim); padding-bottom: 11px;
-}
-.cap-row .num { color: var(--brass); }
+
 .add-btn {
   align-self: flex-start;
   font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
@@ -380,8 +373,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .field-row { grid-template-columns: 1fr; }
   /* The number would eat a third of the width next to a stacked
      name and phone, so it goes above the pair as a label. */
-  .player-row, .cap-row { grid-template-columns: 1fr; gap: 10px; }
-  .player-row .num { padding-bottom: 0; letter-spacing: .16em; }
   .form-body { padding: 16px; }
   .mast-in {
     flex-direction: column; justify-content: center;
@@ -488,10 +479,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
           <div class="rule"></div>
           <div class="sub-hd">Captain</div>
 
-          <div class="player-row cap-row">
-            <div class="num">1</div>
+          <div class="field-row">
             <div class="field">
-              <label for="tm-cap">Captain</label>
+              <label for="tm-cap">Player 1 (Captain)</label>
               <input id="tm-cap" type="text" maxlength="80" autocomplete="name" placeholder="Name">
             </div>
             <div class="field">
@@ -642,7 +632,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.14</span>
+        <span>signup v1.16</span>
       </div>
 
     </div>
@@ -724,13 +714,10 @@ function addPlayerRow() {
   var n = players.children.length + 2;
 
   var row = document.createElement('div');
-  row.className = 'player-row';
+  row.className = 'player-row field';
   row.innerHTML =
-    '<div class="num">' + n + '</div>' +
-    '<div class="field">' +
-      '<label for="pn-' + n + '">Player</label>' +
-      '<input id="pn-' + n + '" class="p-name" type="text" maxlength="80" autocomplete="off" placeholder="Name">' +
-    '</div>';
+    '<label for="pn-' + n + '">Player ' + n + '</label>' +
+    '<input id="pn-' + n + '" class="p-name" type="text" maxlength="80" autocomplete="off" placeholder="Name">';
   players.appendChild(row);
 
   if (players.children.length >= MAX_ROWS) {
