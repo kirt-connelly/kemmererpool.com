@@ -258,6 +258,10 @@ h2.head {
   gap: 22px; flex-wrap: wrap;
 }
 .league.live .league-hd, .league.ended .league-hd { margin-bottom: 22px; }
+/* A block that carries panels: the buttons sit under the copy and the
+   panels get their own air, rather than everything running together. */
+.league-body { margin-top: 22px; }
+.league-go + .league-body { margin-top: 18px; }
 .league h3 { font-size: 23px; font-weight: 700; letter-spacing: -.015em; margin: 11px 0 7px; }
 .league p { color: var(--dim); font-size: 15px; max-width: 48ch; }
 .league p a { color: var(--brass); text-decoration: none; font-weight: 600; }
@@ -752,10 +756,10 @@ a:focus-visible, button:focus-visible {
             <p>Wednesday nights throughout the summer. Check out and print the
               <a href="schedule.html?league=10ball">full schedule</a>.</p>
           </div>
-          <div class="league-go">
-            <a href="league.html?lg=10ball">Full Standings and Stats</a>
-            <a href="league.html?lg=10ball&amp;view=schedule">Weekly Results</a>
-          </div>
+        </div>
+        <div class="league-go">
+          <a href="league.html?lg=10ball">Full Standings and Stats</a>
+          <a href="league.html?lg=10ball&amp;view=schedule">Weekly Results</a>
         </div>
 
         <div class="league-body">
@@ -1004,7 +1008,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.41</span>
+        <span>v1.42</span>
       </div>
 
     </div>
