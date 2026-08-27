@@ -572,7 +572,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.13</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.14</div>
   </div>
 </footer>
 
@@ -1722,13 +1722,18 @@ function switchLeague(lg) {
   const pl = document.getElementById('print-link');
   if (pl && isLeague) pl.href = 'schedule.html?league=' + lg;
 
-  try { history.replaceState(null, '', '?lg=' + lg); } catch (e) {}
+  try {
+    history.replaceState(null, '', '?lg=' + lg + (view !== 'teams' ? '&view=' + view : ''));
+  } catch (e) {}
 
   cache = {};
   loadView();
 }
 function switchView(vw) {
   view = vw;
+  try {
+    history.replaceState(null, '', '?lg=' + league + (vw !== 'teams' ? '&view=' + vw : ''));
+  } catch (e) {}
   ['teams','players','byteam','list','schedule'].forEach(k => document.getElementById(`vt-${k}`).classList.toggle('active', k===vw));
   loadView();
 }
@@ -1759,11 +1764,22 @@ function scrollToNextMatch() {
   window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' });
 }
 
-/* Which league to open on comes from the link that got you here. */
+/* Which league to open on, and which view, come from the link that got
+   you here — Weekly Results on the front page lands straight on the
+   schedule, where past weeks carry their result sheets. */
 (function boot() {
-  const want = new URLSearchParams(location.search).get('lg');
+  const q = new URLSearchParams(location.search);
+  const want = q.get('lg');
   /* ?lg=events used to be a tab here. It has its own page now. */
   if (want === 'events') { location.replace('tournaments.html'); return; }
+
+  const wantView = q.get('view');
+  if (['teams', 'players', 'byteam', 'list', 'schedule'].includes(wantView)) {
+    view = wantView;
+    ['teams','players','byteam','list','schedule'].forEach(k =>
+      document.getElementById(`vt-${k}`).classList.toggle('active', k === wantView));
+  }
+
   switchLeague(['10ball', '8ball'].includes(want) ? want : '10ball');
 })();
 
