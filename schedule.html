@@ -337,7 +337,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.13</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.14</div>
   </div>
 </footer>
 
@@ -442,20 +442,32 @@ function fail(msg) {
   document.getElementById('board').innerHTML = `<div class="msg">${esc(msg)}</div>`;
 }
 
+/* The report has a "Group by" control on FargoRate's own page, so the
+   endpoint wants more than a division id — and we don't know which name
+   it expects. Try the likely ones, keep the first that comes back with a
+   schedule in it. */
+const BODIES = [
+  `divisionId=${div.id}&groupBy=date`,
+  `divisionId=${div.id}&groupBy=Date`,
+  `divisionId=${div.id}&scheduleGroupBy=date`,
+  `divisionId=${div.id}&groupby=date`,
+  `divisionId=${div.id}`,
+];
+
 (async function load() {
-  try {
-    const r = await fetch(PROXY + encodeURIComponent(`${BASE}/GenerateDivisionScheduleReport`), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `divisionId=${div.id}`,
-    });
-    if (!r.ok) throw new Error(r.status);
-    const weeks = parseSchedule(await r.text());
-    if (!weeks.length) { fail('No schedule has been posted for this division yet.'); return; }
-    render(weeks);
-  } catch (e) {
-    fail('Could not load the schedule. Try again in a moment.');
+  for (const body of BODIES) {
+    try {
+      const r = await fetch(PROXY + encodeURIComponent(`${BASE}/GenerateDivisionScheduleReport`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      });
+      if (!r.ok) continue;
+      const weeks = parseSchedule(await r.text());
+      if (weeks.length) { render(weeks); return; }
+    } catch (e) { /* try the next shape */ }
   }
+  fail('No schedule has been posted for this division yet.');
 })();
 </script>
 </body>

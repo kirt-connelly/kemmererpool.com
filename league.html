@@ -115,7 +115,7 @@
     /* ── Team section (Players/Team) ── */
     .team-section-hdr { padding: 9px 16px; background: var(--bg3); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--cream); letter-spacing: .05em; text-transform: uppercase; border-left: 3px solid var(--accent); }
 
-    /* ── Schedule ── */
+/* ── Schedule ── */
     .sched-block { margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .sched-date-hdr { padding: 10px 16px; background: var(--bg3); font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
     .sched-block.sched-next { border-color: var(--accent); }
@@ -572,7 +572,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.15</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.17</div>
   </div>
 </footer>
 
@@ -588,10 +588,28 @@ const VIEWS = {
   players:  { url: id => `${BASE}/GeneratePlayerStandingsReport/${id}`,       method: 'GET' },
   byteam:   { url: id => `${BASE}/GeneratePlayerStandingsByTeamReport/${id}`, method: 'GET' },
   list:     { url: id => `${BASE}/GeneratePlayerListReport/${id}`,            method: 'GET' },
-  schedule: { url: ()  => `${BASE}/GenerateDivisionScheduleReport`,           method: 'POST', body: id => `divisionId=${id}` },
+  /* The LMS page has a "Group by: date / team / location" control on the
+     schedule, so the report takes more than a division id. We don't know
+     which name it wants, so try the likely ones and keep the first reply
+     that actually contains a schedule. */
+  schedule: {
+    url: () => `${BASE}/GenerateDivisionScheduleReport`,
+    method: 'POST',
+    bodies: id => [
+      `divisionId=${id}&groupBy=date`,
+      `divisionId=${id}&groupBy=Date`,
+      `divisionId=${id}&scheduleGroupBy=date`,
+      `divisionId=${id}&groupby=date`,
+      `divisionId=${id}`,
+    ],
+  },
 };
 
 let league = '10ball', view = 'teams', cache = {}, isLive = null, inDrillDown = false;
+
+/* Read once at boot: switching tabs rewrites the URL, which would drop
+   ?debug=1 before the schedule ever got a chance to look for it. */
+const DEBUG = new URLSearchParams(location.search).has('debug');
 
 /* One palette now — the light theme went with the redesign. isLightTheme
    stays because winColor() and fargoColor() ask it which way to tint;
@@ -609,30 +627,59 @@ function setStatus(live) {
     `Ratings as of ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
 }
 
+/* Does this reply actually hold a schedule, or just the page shell? */
+function looksLikeSchedule(html) {
+  return /schedule-date|schedule-team-block|schedule-team\b/.test(html);
+}
+
 async function fetchSection(lg, vw) {
   const key = `${lg}__${vw}`;
   if (cache[key]) return cache[key];
   const divId = DIVISIONS[lg].id;
   const v = VIEWS[vw];
   const url = v.url(divId);
-  try {
-    const opts = { method: v.method||'GET', headers: { 'Accept': 'text/html' } };
-    if (v.method === 'POST') {
-      opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      opts.body = v.body(divId);
+
+  /* One body for most reports; a list of candidates for the schedule. */
+  const bodies = v.bodies ? v.bodies(divId) : [v.body ? v.body(divId) : null];
+  const tried = [];
+  let best = null;
+
+  for (const body of bodies) {
+    try {
+      const opts = { method: v.method || 'GET', headers: { 'Accept': 'text/html' } };
+      if (v.method === 'POST') {
+        opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        opts.body = body;
+      }
+      const r = await fetch(PROXY + encodeURIComponent(url), opts);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const html = await r.text();
+      if (!html || html.trim().length < 30) throw new Error('empty');
+
+      tried.push({ body, chars: html.length, schedule: looksLikeSchedule(html) });
+
+      /* Keep the first reply that holds a schedule; otherwise hang on to
+         the longest one so the debug view has something to show. */
+      if (vw !== 'schedule' || looksLikeSchedule(html)) {
+        cache[key] = { html, live: true, body, tried };
+        setStatus(true);
+        return cache[key];
+      }
+      if (!best || html.length > best.html.length) best = { html, body };
+    } catch (e) {
+      tried.push({ body, error: e.message });
     }
-    const r = await fetch(PROXY + encodeURIComponent(url), opts);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const html = await r.text();
-    if (!html || html.trim().length < 30) throw new Error('empty');
-    cache[key] = { html, live: true };
+  }
+
+  if (best) {
+    cache[key] = { html: best.html, live: true, body: best.body, tried };
     setStatus(true);
     return cache[key];
-  } catch(e) {
-    setStatus(false);
-    cache[key] = { html: null, live: false };
-    return cache[key];
   }
+
+  setStatus(false);
+  cache[key] = { html: null, live: false, tried };
+  return cache[key];
 }
 
 function parseTable(html) {
@@ -904,10 +951,64 @@ function renderList(data) {
 }
 
 /* ── Schedule ── */
+/* What came back, in plain terms: how big, what's in it, and the first
+   slice of the markup. Reached with ?debug=1 on the schedule view. */
+function scheduleDebug(html, d, data) {
+  const esc = t => String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const count = sel => d.querySelectorAll(sel).length;
+  const rows = [
+    ['Request body used', (data && data.body) || 'none'],
+    ['Characters returned', html.length],
+    ['.schedule-date', count('.schedule-date')],
+    ['.schedule-team-block', count('.schedule-team-block')],
+    ['.schedule-team', count('.schedule-team')],
+    ['.schedule-location', count('.schedule-location')],
+    ['#schedule-list', count('#schedule-list')],
+    ['table', count('table')],
+    ['tr', count('tr')],
+    ['div', count('div')],
+    ['links with matchId', count('a[href*="matchId"]')],
+  ];
+
+  /* Every class the response uses, most common first — if FargoRate
+     renamed things, it shows up here. */
+  const seen = {};
+  d.querySelectorAll('[class]').forEach(el =>
+    el.classList.forEach(c => { seen[c] = (seen[c] || 0) + 1; }));
+  const classes = Object.entries(seen).sort((a, b) => b[1] - a[1]).slice(0, 30)
+    .map(([c, n]) => `${c} (${n})`).join(', ') || 'none';
+
+  return `<div class="panel" style="padding:18px">
+    <h3 style="margin:0 0 12px">Schedule report — what came back</h3>
+    <table style="border-collapse:collapse;font-size:14px;margin-bottom:16px">
+      ${rows.map(([k, v]) => `<tr>
+        <td style="padding:4px 18px 4px 0;color:var(--text2)">${esc(k)}</td>
+        <td style="padding:4px 0;font-weight:700">${v}</td></tr>`).join('')}
+    </table>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:6px">Every request tried</div>
+    <div style="font-size:13px;margin-bottom:16px">${
+      ((data && data.tried) || []).map(t => esc(
+        `${t.body} → ${t.error ? 'failed: ' + t.error : t.chars + ' chars, schedule: ' + (t.schedule ? 'yes' : 'no')}`
+      )).join('<br>') || 'none recorded'}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:6px">Classes used</div>
+    <div style="font-size:13px;margin-bottom:16px">${esc(classes)}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:6px">First 2000 characters</div>
+    <pre style="white-space:pre-wrap;word-break:break-all;font-size:12px;line-height:1.5;
+      background:rgba(0,0,0,.35);padding:12px;border-radius:6px;max-height:420px;overflow:auto"
+      >${esc(html.slice(0, 2000))}</pre>
+  </div>`;
+}
+
+
 function renderSchedule(data) {
   if (!data.live || !data.html) return notice('Schedule will appear here once live data loads.');
   const d = document.createElement('div');
   d.innerHTML = data.html;
+
+  /* ?debug=1 dumps what FargoRate actually sent, so a report that
+     doesn't parse can be diagnosed without a laptop and DevTools. */
+  if (DEBUG) return scheduleDebug(data.html, d, data);
 
   const today = new Date();
   today.setHours(0,0,0,0);
