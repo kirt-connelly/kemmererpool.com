@@ -337,7 +337,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.14</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.15</div>
   </div>
 </footer>
 
@@ -388,13 +388,39 @@ function parseSchedule(html) {
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue });
     }
   });
+  /* FargoRate's schedule is a table now: a full-width row with the date,
+     then a row per match — Home, Away, Location. The div markup above is
+     kept for older reports. */
+  if (!weeks.length) {
+    cur = null;
+    [...d.querySelectorAll('table tr')].forEach(tr => {
+      const cells = [...tr.children];
+      if (!cells.length) return;
+      const text = tr.textContent.trim();
+
+      if (cells.length === 1 || cells[0].hasAttribute('colspan')) {
+        if (parseDate(text)) { cur = { date: text, matches: [] }; weeks.push(cur); }
+        return;
+      }
+
+      if (!cur || cells.length < 3 || tr.querySelector('th')) return;
+      const home  = cells[0].textContent.trim();
+      const away  = cells[1].textContent.trim();
+      const venue = cells[2].textContent.trim();
+      if (!home || !away || /^home$/i.test(home)) return;
+      cur.matches.push({ home, away, venue });
+    });
+  }
+
   return weeks.filter(w => w.matches.length);
 }
 
 function parseDate(str) {
-  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  const t = String(str || '').trim();
+  const m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
-  const d = new Date(str);
+  /* "WEDNESDAY, MAY 27, 2026" — drop the weekday, keep the rest. */
+  const d = new Date(t.replace(/^[A-Za-z]+,\s*/, ''));
   return isNaN(d) ? null : d;
 }
 
