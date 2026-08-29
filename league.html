@@ -547,7 +547,7 @@
       <button class="vtab"        id="vt-byteam"   onclick="switchView('byteam')">By Team</button>
       <button class="vtab"        id="vt-list"     onclick="switchView('list')">Ratings</button>
       <button class="vtab"        id="vt-schedule" onclick="switchView('schedule')">Schedule</button>
-      <a class="vtab vtab-out" id="print-link" href="schedule.html?league=10ball">Print sheet &rarr;</a>
+      <a class="vtab vtab-out" id="print-link" href="schedule.html?league=10ball">Full schedule &rarr;</a>
     </div>
   </div>
 </div>
@@ -572,7 +572,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.19</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.20</div>
   </div>
 </footer>
 
@@ -1088,29 +1088,50 @@ function renderSchedule(data) {
   });
 
   /* FargoRate now renders the schedule as a table: a full-width row
-     carrying the date, then a row per match with Home, Away, Location
-     and a View button. The div markup above is kept for older reports. */
+     carrying the date, then a row per match. Column order is read from
+     the header rather than assumed, because a division with an extra
+     column would otherwise put the location where a team name goes. */
   if (!blocks.length) {
-    [...d.querySelectorAll('table tr')].forEach(tr => {
+    const rows = [...d.querySelectorAll('table tr')];
+
+    /* Which column is which. Defaults match the common Home/Away/Location. */
+    let col = { home: 0, away: 1, venue: 2 };
+    /* The header is the row that names Home and Away and holds no match
+       data — matched on its own cells, not the row's whole text, so a
+       match row mentioning a team called "Home Team" can't stand in. */
+    const headRow = rows.find(tr => {
+      const labels = [...tr.children].map(c => c.textContent.trim().toLowerCase());
+      return labels.some(l => /^home$/.test(l)) && labels.some(l => /^away$/.test(l));
+    });
+    if (headRow) {
+      const labels = [...headRow.children].map(c => c.textContent.trim().toLowerCase());
+      const at = re => labels.findIndex(l => re.test(l));
+      const h = at(/^home/), a = at(/^away/), v = at(/location|venue|table|room|bar/);
+      if (h >= 0) col.home = h;
+      if (a >= 0) col.away = a;
+      if (v >= 0) col.venue = v;
+    }
+
+    rows.forEach(tr => {
+      if (tr === headRow) return;
       const cells = [...tr.children];
       if (!cells.length) return;
 
-      const text = tr.textContent.trim();
-
-      /* A date row is a single cell (usually spanning the table). */
-      if (cells.length === 1 || (cells.length && cells[0].hasAttribute('colspan'))) {
+      /* A date row carries one filled cell and nothing else — whether it
+         spans the table, sits alone, or leaves its neighbours empty. */
+      const filled = cells.filter(c => c.textContent.trim());
+      if (filled.length === 1) {
+        const text = filled[0].textContent.trim();
         if (parseDate(text)) { cur = { date: text, matches: [] }; blocks.push(cur); }
         return;
       }
 
-      if (!cur || cells.length < 3) return;
-      if (tr.querySelector('th')) return;                       // header row
-
-      const home  = cells[0].textContent.trim();
-      const away  = cells[1].textContent.trim();
-      const venue = cells[2].textContent.trim();
+      if (!cur) return;
+      const home  = (cells[col.home]  || {}).textContent?.trim() || '';
+      const away  = (cells[col.away]  || {}).textContent?.trim() || '';
+      const venue = (cells[col.venue] || {}).textContent?.trim() || '';
       if (!home || !away) return;
-      if (/^home$/i.test(home)) return;                          // header, no th
+      if (/^home$/i.test(home) || /^away$/i.test(away)) return;   // a header row
 
       const link = tr.querySelector('a[href*="matchId"], [data-url*="matchId"]');
       const raw  = link ? (link.getAttribute('href') || link.getAttribute('data-url') || '') : '';
@@ -1121,7 +1142,6 @@ function renderSchedule(data) {
         matchId: mu ? mu[1] : (allMatchLinks[matchLinkIdx++] || null),
       });
     });
-    blocks.forEach(b => { if (!b.matches.length) b.empty = true; });
   }
 
   /* Fall back to the print sheet rather than leaving a dead end. */
@@ -1140,7 +1160,7 @@ function renderSchedule(data) {
       Kemmerer Pool League &mdash; ${DIVISIONS[league].label}
       <span class="print-sub">Printed ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
     </div>
-    <button class="print-btn" onclick="window.print()">Print Schedule</button>
+    <button class="print-btn" onclick="window.print()">Print this page</button>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:10px">
