@@ -572,7 +572,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.14</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.15</div>
   </div>
 </footer>
 
@@ -949,11 +949,14 @@ function renderSchedule(data) {
     if (teams.length >= 2) matchIdMap[`${teams[0]}|${teams[1]}`] = mu[1];
   });
 
-  [...container.children].forEach(node => {
+  /* Walk every date and match block in document order, however deeply
+     FargoRate has nested them. Reading only the container's direct
+     children broke the moment the report wrapped its rows in a div. */
+  [...container.querySelectorAll('.schedule-date, .schedule-team-block')].forEach(node => {
     if (node.classList.contains('schedule-date')) {
       cur = { date: node.textContent.trim(), matches: [] };
       blocks.push(cur);
-    } else if (node.classList.contains('schedule-team-block') && cur) {
+    } else if (cur) {
       const teams = [...node.querySelectorAll('.schedule-team')]
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
       const venue = node.querySelector('.schedule-location')?.textContent.trim() || '';
@@ -974,7 +977,9 @@ function renderSchedule(data) {
     }
   });
 
-  if (!blocks.length) return notice('No schedule data found.');
+  /* Fall back to the print sheet rather than leaving a dead end. */
+  if (!blocks.length) return notice('No schedule data found. Try the ' +
+    `<a href="schedule.html?league=${league}">print sheet</a>.`);
 
   // First block on or after today — the schedule scrolls here on open.
   const nextIdx = blocks.findIndex(b => {
@@ -1690,9 +1695,9 @@ const PAGE_TABS = [];   // every tab here is a league now; Events has its own pa
 
 /* Title, subtitle and the printable-sheet link all follow the tab. */
 const LEAGUE_HD = {
-  '10ball': { title: '10-Ball Summer 2026', eyebrow: 'Playing now',
-              sub: 'Standings, players and the schedule.' },
-  '8ball':  { title: '8-Ball Fall 2025\u201326', eyebrow: 'Season ended',
+  '10ball': { title: '10-Ball Summer 2026', eyebrow: 'Season ended',
+              sub: 'Final standings, players and the schedule.' },
+  '8ball':  { title: '8-Ball Fall/Winter 2025\u201326', eyebrow: 'Season ended',
               sub: 'Last winter\u2019s league, start to finish.' },
 };
 

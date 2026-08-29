@@ -337,7 +337,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.12</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.13</div>
   </div>
 </footer>
 
@@ -374,11 +374,13 @@ function parseSchedule(html) {
   const weeks = [];
   let cur = null;
 
-  [...container.children].forEach(node => {
+  /* Every date and match block in document order, at any depth — the
+     report has wrapped its rows differently between seasons. */
+  [...container.querySelectorAll('.schedule-date, .schedule-team-block')].forEach(node => {
     if (node.classList.contains('schedule-date')) {
       cur = { date: node.textContent.trim(), matches: [] };
       weeks.push(cur);
-    } else if (node.classList.contains('schedule-team-block') && cur) {
+    } else if (cur) {
       const teams = [...node.querySelectorAll('.schedule-team')]
         .map(s => s.textContent.trim().replace(/^\(H\)\s*|\(A\)\s*/g, '').trim());
       const loc = node.querySelector('.schedule-location');
