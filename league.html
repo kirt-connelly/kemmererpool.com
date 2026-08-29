@@ -572,7 +572,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.17</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.19</div>
   </div>
 </footer>
 
@@ -627,9 +627,14 @@ function setStatus(live) {
     `Ratings as of ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
 }
 
-/* Does this reply actually hold a schedule, or just the page shell? */
+/* Does this reply actually hold a schedule, or just the page shell?
+   Either the old div markup, or the table one, which we spot by a row
+   holding a date. */
 function looksLikeSchedule(html) {
-  return /schedule-date|schedule-team-block|schedule-team\b/.test(html);
+  if (/schedule-date|schedule-team-block|schedule-team\b/.test(html)) return true;
+  if (!/<t[rd]\b/i.test(html)) return false;
+  return /\d{1,2}\/\d{1,2}\/\d{4}/.test(html) ||
+         /(mon|tues|wednes|thurs|fri|satur|sun)day/i.test(html);
 }
 
 async function fetchSection(lg, vw) {
@@ -1013,10 +1018,14 @@ function renderSchedule(data) {
   const today = new Date();
   today.setHours(0,0,0,0);
 
-  // Parse date string "M/D/YYYY" into a Date
+  /* "5/27/2026" from the old report, "WEDNESDAY, MAY 27, 2026" from the
+     table one. Take either. */
   function parseDate(str) {
-    try { const p = str.split('/'); return new Date(p[2], p[0]-1, p[1]); }
-    catch(e) { return null; }
+    const t = String(str || '').trim();
+    const m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
+    const dt = new Date(t.replace(/^[A-Za-z]+,\s*/, ''));
+    return isNaN(dt) ? null : dt;
   }
 
   function fmtDate(str) {
@@ -1077,6 +1086,43 @@ function renderSchedule(data) {
       if (teams.length >= 2) cur.matches.push({ home: teams[0], away: teams[1], venue, matchId });
     }
   });
+
+  /* FargoRate now renders the schedule as a table: a full-width row
+     carrying the date, then a row per match with Home, Away, Location
+     and a View button. The div markup above is kept for older reports. */
+  if (!blocks.length) {
+    [...d.querySelectorAll('table tr')].forEach(tr => {
+      const cells = [...tr.children];
+      if (!cells.length) return;
+
+      const text = tr.textContent.trim();
+
+      /* A date row is a single cell (usually spanning the table). */
+      if (cells.length === 1 || (cells.length && cells[0].hasAttribute('colspan'))) {
+        if (parseDate(text)) { cur = { date: text, matches: [] }; blocks.push(cur); }
+        return;
+      }
+
+      if (!cur || cells.length < 3) return;
+      if (tr.querySelector('th')) return;                       // header row
+
+      const home  = cells[0].textContent.trim();
+      const away  = cells[1].textContent.trim();
+      const venue = cells[2].textContent.trim();
+      if (!home || !away) return;
+      if (/^home$/i.test(home)) return;                          // header, no th
+
+      const link = tr.querySelector('a[href*="matchId"], [data-url*="matchId"]');
+      const raw  = link ? (link.getAttribute('href') || link.getAttribute('data-url') || '') : '';
+      const mu   = raw.match(/matchId=([a-f0-9-]{36})/i);
+
+      cur.matches.push({
+        home, away, venue,
+        matchId: mu ? mu[1] : (allMatchLinks[matchLinkIdx++] || null),
+      });
+    });
+    blocks.forEach(b => { if (!b.matches.length) b.empty = true; });
+  }
 
   /* Fall back to the print sheet rather than leaving a dead end. */
   if (!blocks.length) return notice('No schedule data found. Try the ' +
