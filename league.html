@@ -152,6 +152,21 @@
     }
     .venue-label { font-size: 13px; color: var(--text2); text-align: center; font-weight: 500; }
 
+    /* ── Column legend ──
+       Two columns of term and meaning on a desktop, one on a phone. */
+    .legend { margin-top: 14px; }
+    .legend-list { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+    .legend-list > div { display: flex; gap: 12px; align-items: baseline;
+      padding: 11px 16px; background: var(--bg2); }
+    .legend-list dt { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+      letter-spacing: .08em; color: var(--brass); min-width: 62px; flex: none; }
+    .legend-list dd { margin: 0; font-size: 14px; color: var(--text2); line-height: 1.5; }
+    @media (max-width: 640px) {
+      .legend-list { grid-template-columns: 1fr; }
+      .legend-list > div { padding: 10px 12px; }
+      .legend-list dd { font-size: 13px; }
+    }
+
     /* ── Print toolbar ── */
     .sched-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
     .print-title { display: none; }
@@ -572,7 +587,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.20</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.22</div>
   </div>
 </footer>
 
@@ -782,6 +797,30 @@ function renderTeams(data) {
   </div>`;
 }
 
+/* What the short column headings mean. Jenkins put these out on a Chalk
+   Talk; they belong under the table people are reading them in. */
+const ABBR = [
+  ['AVG',     'Average points per week'],
+  ['WIN %',   'Games won out of games played'],
+  ['W/L',     'Games won and lost'],
+  ['PTS F/A', 'Points for and against'],
+  ['WKS',     'Weeks played'],
+  ['WZ',      'Win Zips \u2014 10-0\u2019s'],
+  ['PM',      'Perfect Match \u2014 40\u2019s'],
+  ['BR',      'Break &amp; Run \u2014 ERO\u2019s'],
+  ['CW',      'Consecutive Wins \u2014 the running streak of individual game wins a player accumulates'],
+  ['TR',      'Table Run \u2014 the total times a player runs the remaining table after an opponent\u2019s break'],
+];
+
+function abbrLegend() {
+  return `<div class="card legend">
+    <div class="card-header"><span class="card-title">What the columns mean</span></div>
+    <dl class="legend-list">
+      ${ABBR.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
+    </dl>
+  </div>`;
+}
+
 /* ── Players ── */
 function renderPlayers(data) {
   const t = data.live && data.html ? parseTable(data.html) : null;
@@ -814,7 +853,8 @@ function renderPlayers(data) {
         }).join('')}
       </tr>`).join('')}</tbody>
     </table></div>
-  </div>`;
+  </div>
+  ${abbrLegend()}`;
 }
 
 /* ── Players by Team ── */
@@ -917,7 +957,7 @@ function renderByTeam(data) {
   flushTeam();
 
   html += `</div>`;
-  return html;
+  return html + abbrLegend();
 }
 
 /* ── Player List ── */
@@ -952,7 +992,8 @@ function renderList(data) {
         </tr>`;
       }).join('')}</tbody>
     </table></div>
-  </div>`;
+  </div>
+  ${abbrLegend()}`;
 }
 
 /* ── Schedule ── */
