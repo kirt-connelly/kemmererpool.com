@@ -388,6 +388,21 @@
     color: var(--text3); }
   .table-timer { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
   .table-timer.over { color: var(--loss); }
+  /* The label holds the left; flag, clock and the edit button stack to the
+     right. Margins rather than gap — the bar's TV browser doesn't do gap. */
+  .table-head > :first-child { margin-right: auto; }
+  .table-head > * + * { margin-left: 8px; }
+  .table-head > span { white-space: nowrap; }
+  .tflag { padding: 1px 6px; border-radius: 99px; border: 1px solid var(--border2);
+    color: var(--text3); font-size: 9px; letter-spacing: .06em; }
+  .tbtn { height: 22px; min-width: 0; padding: 0 8px; font-size: 10px; white-space: nowrap;
+    font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  /* A table out of the rotation stays on the board, dimmed and labeled, so it's
+     obvious the night is running on fewer tables rather than one having
+     vanished. */
+  .table-card.shut { opacity: .55; }
+  .seat.gone { justify-content: center; color: var(--text3); font-size: 11px;
+    font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
   .seat { display: flex; align-items: center; justify-content: space-between; gap: 10px;
     width: 100%; padding: 11px; background: none; border: none;
     border-bottom: 1px solid var(--border); font-family: inherit; font-size: 14px;
@@ -410,6 +425,7 @@
 
   @media (max-width: 560px) {
     .seat { padding: 14px 12px; font-size: 15px; }     /* bigger thumb target */
+    .tbtn { height: 30px; padding: 0 11px; }
     /* Name, chips and where they are stay on the first line; the three stats
        drop underneath with their labels, rather than squeezing the name down
        to a couple of letters. */
@@ -445,6 +461,8 @@
     .prow.out .pn { color: #666; }
     .prow.seated { background: transparent; }
     .table-card { break-inside: avoid; }
+    .table-card.shut { opacity: 1; color: #666; }
+    .tbtn { display: none !important; }
   }
 </style>
 </head>
@@ -489,7 +507,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.15</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.16</div>
 </footer>
 
 <script>
@@ -547,19 +565,32 @@ const chipsFor = (rating, list) => {
 const alive = (S) => S.roster.filter(p => p.chips > 0);
 const playerOf = (S, name) => S.roster.find(p => p.name === name);
 
+/* A table can be taken out of the rotation mid-session — it breaks, the bar
+   wants it back, or the field no longer needs it. A closed table is never
+   seated. One already mid-match is left alone to finish; the winner then goes
+   to the front of the queue and picks up the next open table, so being on the
+   table that got pulled doesn't cost anyone their turn. */
+const tableOpen = (S, i) => !(S.closed && S.closed[i]);
+const openTables = (S) => S.tables.map((_, i) => i).filter(i => tableOpen(S, i));
+
 /* Seats waiting players and folds the field onto fewer tables as it shrinks.
    Tables mid-match are never disturbed — only ones with an empty seat. */
 function rebalance(S) {
-  const live = alive(S).length;
-  const wanted = Math.max(1, Math.min(S.tableCount, Math.floor(live / 2)));
+  const open = openTables(S);
+  // Players finishing a game on a closed table aren't part of the sum being
+  // spread across what's left, or their table would be counted twice.
+  const closedBusy = S.tables.filter((t, i) => !tableOpen(S, i) && t[0] && t[1]).length;
+  const live = alive(S).length - closedBusy * 2;
+  const wanted = Math.max(1, Math.min(open.length, Math.floor(live / 2)));
 
   // Tables with two players are mid-match and are never disturbed.
   const busy = S.tables.map(t => !!(t[0] && t[1]));
-  let active = busy.filter(Boolean).length;
+  let active = open.filter(i => busy[i]).length;
 
   // A winner sitting alone keeps their table and takes the next in line —
-  // lowest table number first when several free up at once.
-  for (let t = 0; t < S.tables.length && S.queue.length; t++) {
+  // best table first when several free up at once.
+  for (const t of open) {
+    if (!S.queue.length) break;
     if (busy[t] || active >= wanted) continue;
     const sitting = S.tables[t].filter(Boolean);
     if (sitting.length !== 1) continue;
@@ -567,8 +598,9 @@ function rebalance(S) {
     busy[t] = true; active++;
   }
 
-  // Anyone still on their own has nobody left to play. Close that table and put
-  // them at the front of the queue rather than leaving them stranded there.
+  // Anyone still on their own has nobody left to play — or is sitting at a
+  // table that has just been pulled. Close that table and put them at the front
+  // of the queue rather than leaving them stranded there.
   const stranded = [];
   S.tables.forEach((t, i) => {
     if (busy[i]) return;
@@ -579,9 +611,9 @@ function rebalance(S) {
     S.queue = [...stranded, ...S.queue.filter(n => !stranded.includes(n))];
   }
 
-  // Then seat whole pairs from the front of the queue, lowest table first. This
+  // Then seat whole pairs from the front of the queue, best table first. This
   // is what folds the field onto fewer tables as players are knocked out.
-  for (let t = 0; t < S.tables.length; t++) {
+  for (const t of open) {
     if (busy[t] || active >= wanted || S.queue.length < 2) continue;
     S.tables[t] = [S.queue.shift(), S.queue.shift()];
     busy[t] = true; active++;
@@ -602,7 +634,7 @@ function buildChip(players, tableCount, rand = Math.random) {
              draw: i + 1, wins: 0, losses: 0, run: 0, best: 0, outAt: null };
   });
   const S = { tableCount, roster, tables: Array.from({ length: tableCount }, () => [null, null]),
-              queue: [...names], outOrder: [], log: [] };
+              queue: [...names], outOrder: [], log: [], closed: {} };
   return rebalance(S);
 }
 
@@ -683,6 +715,7 @@ function sessionStats(S) {
     playersLeft: live.length,
     matches: S.log.length,
     inPlay: S.tables.filter(t => t[0] && t[1]).length,
+    tablesOut: S.tables.filter((t, i) => !tableOpen(S, i)).length,
     waiting: S.queue.length,
   };
 }
@@ -1358,7 +1391,7 @@ const UNDO_DEPTH = 10;
 
 const cloneState = () => JSON.stringify({
   roster: S.roster, tables: S.tables, queue: S.queue,
-  outOrder: S.outOrder, log: S.log, tableStarts: S.tableStarts,
+  outOrder: S.outOrder, log: S.log, tableStarts: S.tableStarts, closed: S.closed,
 });
 
 function pushUndo(label) {
@@ -1389,6 +1422,45 @@ let editing = false;
 let swapFrom = null;
 
 function toggleEdit() { editing = !editing; swapFrom = null; render(); }
+
+/* Table labels are needed outside render() too — the log and the notes name
+   the table the way it's painted on the rail, not by its position. */
+const tableLabel = (i) =>
+  (S && S.tableList && S.tableList[i]) ? S.tableList[i].label : String(i + 1);
+
+/* ── Taking a table out of the rotation ──
+   A table goes down mid-session and the night has to carry on without it. The
+   table keeps its label and its place in priority order, so putting it back
+   later leaves everything where it was. A game already on it is left to
+   finish — nobody's match gets voided because a table went away. */
+function toggleTable(i) {
+  if (readOnly || !S) return;
+  S.closed = S.closed || {};
+  const label = tableLabel(i);
+  const shutting = tableOpen(S, i);
+  const midMatch = !!(S.tables[i] && S.tables[i][0] && S.tables[i][1]);
+
+  if (shutting && openTables(S).length <= 1) {
+    note('That is the last table in the rotation — the night needs one.', true);
+    return;
+  }
+
+  pushUndo(shutting ? `took table ${label} out` : `put table ${label} back in`);
+  if (shutting) S.closed[i] = true; else delete S.closed[i];
+
+  logNote(shutting
+    ? (midMatch ? `Table ${label} comes out of the rotation after this game`
+                : `Table ${label} taken out of the rotation`)
+    : `Table ${label} back in the rotation`);
+
+  rebalance(S);
+  note(shutting
+    ? (midMatch ? `Table ${label} comes out as soon as that game is done.`
+                : `Table ${label} is out of the rotation.`)
+    : `Table ${label} is back in.`);
+  render();
+  queuePush();
+}
 
 function adjustChips(name, delta) {
   if (readOnly || !S) return;
@@ -1489,10 +1561,14 @@ function render() {
   // ── Right: the tables ──
   const tables = S.tables.map((seat, i) => {
     const live = seat[0] && seat[1];
+    const shut = !tableOpen(S, i);
     const started = S.tableStarts[i];
     const el = started ? now - started : null;
     const over = el !== null && el > 4 * 60 * 1000;
-    const seats = [0, 1].map(k => {
+    // A closed table with nobody on it says so instead of showing two open
+    // seats, which would read as a table waiting for players.
+    const seats = (shut && !live) ? `<div class="seat gone">Out of rotation</div>`
+      : [0, 1].map(k => {
       const n = seat[k];
       if (!n) return `<div class="seat empty">Open</div>`;
       const p = S.roster.find(x => x.name === n);
@@ -1501,9 +1577,13 @@ function render() {
         ${live && scoring ? 'onclick="winFrom(this)"' : 'disabled'}>
         <span class="sn">${esc(disp(n))}</span>${chipDots(p)}</button>`;
     }).join('');
-    return `<div class="table-card${live ? '' : ' idle'}">
+    return `<div class="table-card${live ? '' : ' idle'}${shut ? ' shut' : ''}">
       <div class="table-head"><span>Table ${esc(tLabel(i))}</span>
+        ${shut ? `<span class="tflag">${live ? 'Closing' : 'Out'}</span>` : ''}
         ${live && el !== null ? `<span class="table-timer${over ? ' over' : ''}">${fmtClock(el)}</span>` : ''}
+        ${editing ? `<button class="adj tbtn" onclick="toggleTable(${i})"
+            title="${shut ? 'Put this table back in the rotation' : 'Take this table out of the rotation'}"
+          >${shut ? 'Put back' : 'Take out'}</button>` : ''}
       </div>${seats}</div>`;
   }).join('');
 
@@ -1602,7 +1682,7 @@ function render() {
         <div class="card">
           <div class="card-header">
             <span class="card-title">Tables</span>
-            <span class="card-meta">${st.inPlay} on &middot; ${st.waiting} waiting</span>
+            <span class="card-meta">${st.inPlay} on &middot; ${st.waiting} waiting${st.tablesOut ? ` &middot; ${st.tablesOut} out` : ''}</span>
           </div>
           <div class="pad tables-pad">${tables}</div>
         </div>
@@ -1670,6 +1750,7 @@ function applyServer(d) {
     roster: d.roster || [], tables: d.tables || [], queue: d.queue || [],
     outOrder: d.outOrder || [], log: d.log || [],
     tableStarts: d.tableStarts || {},
+    closed: d.closed || {},
     chipBands: d.chipBands || null,
     tableList: d.tableList || null,
     payoutSpec: d.payoutSpec || null, payoutsManual: d.payoutsManual || null,
@@ -1691,6 +1772,7 @@ function snapshot() {
     tableList: S.tableList || null,
     roster: S.roster, tables: S.tables, queue: S.queue,
     outOrder: S.outOrder, log: S.log.slice(0, 200), tableStarts: S.tableStarts,
+    closed: S.closed || {},
     bySeed: Object.fromEntries(S.roster.map(p => [p.draw, p.name])),
     progress: { played: st.matches, total: st.distributed },
     champion: champion(S),
