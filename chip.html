@@ -313,11 +313,14 @@
   }
 
   .plist { max-height: none; }
-  .prow { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  .prow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px;
     border-bottom: 1px solid var(--border); font-size: 14px; }
   .prow:last-child { border-bottom: none; }
   .prow.out { opacity: .5; }
-  .prow .pn { flex: 1; min-width: 0; color: var(--cream); font-weight: 600;
+  /* The name asks for 6.5em rather than nothing, so in a column too narrow to
+     hold the whole row — a print sheet, a split pane — the stats wrap to a
+     second line instead of squeezing the name out of existence. */
+  .prow .pn { flex: 1 1 6.5em; min-width: 0; color: var(--cream); font-weight: 600;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .prow.out .pn { text-decoration: line-through; font-weight: 400; }
   /* Record, win %, best run — fixed widths so the three columns line up down
@@ -410,7 +413,7 @@
     /* Name, chips and where they are stay on the first line; the three stats
        drop underneath with their labels, rather than squeezing the name down
        to a couple of letters. */
-    .prow { flex-wrap: wrap; row-gap: 5px; }
+    .prow { row-gap: 5px; }
     .prow .pstats { flex-basis: 100%; order: 9; justify-content: flex-start; gap: 14px; }
     .prow .rowctl { order: 8; }
     .pstats > span, .prow .pw, .prow .ppc, .prow .pst { width: auto; text-align: left; }
@@ -419,9 +422,29 @@
     .stat-legend { display: none; }
   }
   @media print {
-    .split { grid-template-columns: 1fr 300px; }
+    /* Players first — the roster is what the sheet is for. Without this the
+       phone rule that puts tables first is still in force on the page. */
+    .col-tables { order: 0; }
+    .split { grid-template-columns: minmax(0,1fr) 34%; gap: 14px; }
     .seat.playable { cursor: default; }
     .th-actions { display: none !important; }
+    /* Live-only furniture: the scoring prompt, the running clocks, the last
+       result and the edit hint all mean nothing once it's on paper. */
+    .ro-banner, .table-timer, .ticker, .edit-note, .rowctl { display: none !important; }
+    .prow { padding: 5px 10px; row-gap: 3px; font-size: 11px; }
+    .prow .pn { font-size: 11.5px; }
+    .chip { width: 9px; height: 9px; }
+    .stat-legend { padding: 4px 10px 4px 0; color: #000; }
+    /* Chips are the whole point of the sheet, and browsers drop backgrounds by
+       default — without this every chip prints as an empty circle and you
+       can't tell who has any left. */
+    .chip { -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      background: #000 !important; border-color: #000 !important; }
+    .chip.spent { background: #fff !important; border-color: #999 !important; }
+    .prow.out { opacity: 1; color: #666; }
+    .prow.out .pn { color: #666; }
+    .prow.seated { background: transparent; }
+    .table-card { break-inside: avoid; }
   }
 </style>
 </head>
@@ -466,7 +489,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.14</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.15</div>
 </footer>
 
 <script>
