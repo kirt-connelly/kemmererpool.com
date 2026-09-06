@@ -507,7 +507,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.18</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.19</div>
 </footer>
 
 <script>
@@ -1523,6 +1523,11 @@ function pickSwap(name) {
   queuePush();
 }
 
+/* The queue is drawn in reverse — whoever is up next sits at the bottom of the
+   list, right above the tables they're about to feed. So the arrow buttons move
+   a row the way the screen reads: up the list is one place further from the
+   tables, which is a later turn, and down is sooner. `dir` here is the change
+   in queue position, so dir of +1 is the up arrow. */
 function moveInQueue(name, dir) {
   if (readOnly || !S) return;
   const i = S.queue.indexOf(name);
@@ -1530,7 +1535,7 @@ function moveInQueue(name, dir) {
   if (i < 0 || j < 0 || j >= S.queue.length) return;
   pushUndo(`moved ${name} in the queue`);
   [S.queue[i], S.queue[j]] = [S.queue[j], S.queue[i]];
-  logNote(`${name} moved ${dir < 0 ? 'up' : 'down'} the queue`);
+  logNote(`${name} moved ${dir < 0 ? 'earlier' : 'later'} in line`);
   render();
   queuePush();
 }
@@ -1635,10 +1640,11 @@ function render() {
         ${p.chips > 0 ? `<button class="adj${swapFrom === p.name ? ' armed' : ''}"
             title="${swapFrom ? esc('Swap with ' + swapFrom) : 'Swap this player with another'}"
             data-n="${esc(p.name)}" onclick="swapFrom_(this)">&#8646;</button>` : ''}
-        ${inQueue ? `<button class="adj" title="Move up" ${upNext === 0 ? 'disabled' : ''}
-            data-n="${esc(p.name)}" data-d="-1" onclick="moveFrom(this)">&uarr;</button>
-          <button class="adj" title="Move down" ${upNext === S.queue.length - 1 ? 'disabled' : ''}
-            data-n="${esc(p.name)}" data-d="1" onclick="moveFrom(this)">&darr;</button>` : ''}
+        ${inQueue ? `<button class="adj" title="Move up — waits longer"
+            ${upNext === S.queue.length - 1 ? 'disabled' : ''}
+            data-n="${esc(p.name)}" data-d="1" onclick="moveFrom(this)">&uarr;</button>
+          <button class="adj" title="Move down — plays sooner" ${upNext === 0 ? 'disabled' : ''}
+            data-n="${esc(p.name)}" data-d="-1" onclick="moveFrom(this)">&darr;</button>` : ''}
       </span>` : '';
     return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}${newTable ? ' table-start' : ''}${swapFrom === p.name ? ' armed' : ''}">
       ${champ ? `<span class="pl">${p.place}</span>` : ''}
