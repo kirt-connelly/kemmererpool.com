@@ -507,7 +507,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.17</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.18</div>
 </footer>
 
 <script>
@@ -1659,7 +1659,7 @@ function render() {
       </div>
       <div class="th-actions">
         ${scoring ? `<button class="act" onclick="undo()" ${undoStack.length ? '' : 'disabled'}
-                       title="${undoStack.length ? 'Undo ' + undoStack[undoStack.length-1].label : 'Nothing to undo'}">Undo</button>
+                       title="${undoStack.length ? esc('Undo ' + undoStack[undoStack.length-1].label) : 'Nothing to undo'}">Undo</button>
                      <button class="act${editing ? ' primary' : ''}" onclick="toggleEdit()">${editing ? 'Done editing' : 'Edit'}</button>
                      <button class="act" onclick="addLatePlayer()">Add late player</button>
                      <button class="act" onclick="copyViewLink()">Copy view link</button>` : ''}
