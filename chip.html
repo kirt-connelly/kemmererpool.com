@@ -507,7 +507,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.16</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.17</div>
 </footer>
 
 <script>
@@ -1540,6 +1540,12 @@ function moveInQueue(name, dir) {
    break the attribute and the button would silently do nothing. */
 function winFrom(el) { win(Number(el.dataset.t), el.dataset.n); }
 
+/* Same reason as winFrom: the edit-mode buttons hand their player over through
+   data attributes rather than through the onclick text. */
+function chipFrom(el) { adjustChips(el.dataset.n, Number(el.dataset.d)); }
+function swapFrom_(el) { pickSwap(el.dataset.n); }
+function moveFrom(el) { moveInQueue(el.dataset.n, Number(el.dataset.d)); }
+
 function render() {
   if (!S) return;
   DISPLAY = buildDisplayNames(S.roster.map(p => p.name));
@@ -1617,17 +1623,22 @@ function render() {
     // A rule above each table's first player keeps the two together as a pair.
     const newTable = row.table && (i === 0 || order[i - 1].table !== row.table);
     const inQueue = upNext >= 0;
+    // The name goes in a data attribute, never inside the onclick. Built into
+    // the handler it arrives wrapped in its own double quotes, which ends the
+    // attribute early and leaves a button that looks right and does nothing.
     const controls = editing ? `
       <span class="rowctl">
-        <button class="adj" title="Take a chip" onclick="adjustChips(${JSON.stringify(p.name)},-1)">&minus;</button>
-        <button class="adj" title="Give a chip" onclick="adjustChips(${JSON.stringify(p.name)},1)">+</button>
+        <button class="adj" title="Take a chip" data-n="${esc(p.name)}" data-d="-1"
+          onclick="chipFrom(this)">&minus;</button>
+        <button class="adj" title="Give a chip" data-n="${esc(p.name)}" data-d="1"
+          onclick="chipFrom(this)">+</button>
         ${p.chips > 0 ? `<button class="adj${swapFrom === p.name ? ' armed' : ''}"
-            title="${swapFrom ? 'Swap with ' + swapFrom : 'Swap this player with another'}"
-            onclick="pickSwap(${JSON.stringify(p.name)})">&#8646;</button>` : ''}
+            title="${swapFrom ? esc('Swap with ' + swapFrom) : 'Swap this player with another'}"
+            data-n="${esc(p.name)}" onclick="swapFrom_(this)">&#8646;</button>` : ''}
         ${inQueue ? `<button class="adj" title="Move up" ${upNext === 0 ? 'disabled' : ''}
-            onclick="moveInQueue(${JSON.stringify(p.name)},-1)">&uarr;</button>
+            data-n="${esc(p.name)}" data-d="-1" onclick="moveFrom(this)">&uarr;</button>
           <button class="adj" title="Move down" ${upNext === S.queue.length - 1 ? 'disabled' : ''}
-            onclick="moveInQueue(${JSON.stringify(p.name)},1)">&darr;</button>` : ''}
+            data-n="${esc(p.name)}" data-d="1" onclick="moveFrom(this)">&darr;</button>` : ''}
       </span>` : '';
     return `<div class="prow${p.chips === 0 ? ' out' : ''}${at ? ' seated' : ''}${newTable ? ' table-start' : ''}${swapFrom === p.name ? ' armed' : ''}">
       ${champ ? `<span class="pl">${p.place}</span>` : ''}
