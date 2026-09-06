@@ -320,8 +320,26 @@
   .prow .pn { flex: 1; min-width: 0; color: var(--cream); font-weight: 600;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .prow.out .pn { text-decoration: line-through; font-weight: 400; }
-  .prow .pw { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums;
-    white-space: nowrap; width: 34px; text-align: right; }
+  /* Record, win %, best run — fixed widths so the three columns line up down
+     the list and match the legend above them. */
+  .pstats { display: inline-flex; align-items: center; gap: 8px; flex: none;
+    font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums;
+    white-space: nowrap; }
+  .pstats > span { display: inline-block; text-align: right; }
+  .prow .pw { width: 34px; }
+  .prow .ppc { width: 38px; }
+  .prow .pst { width: 24px; }
+  .prow .pst.hot { color: var(--green2); font-weight: 700; }
+  .prow.out .pst.hot { font-weight: 600; }
+  .sl { display: none; }                       /* label shows on phones only */
+  /* The legend sits over the three columns and is padded to clear the tag and
+     the edit controls, so the headings sit above the numbers they name. */
+  .stat-legend { display: flex; justify-content: flex-end; gap: 8px;
+    padding: 6px 16px 6px 0; font-size: 10px; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--text3); border-bottom: 1px solid var(--border);
+    white-space: nowrap; }
+  .stat-legend span { display: inline-block; text-align: right; }
+  .stat-legend .l1 { width: 34px; } .stat-legend .l2 { width: 38px; } .stat-legend .l3 { width: 24px; }
   .prow .pl { width: 22px; font-size: 12px; font-weight: 700; color: var(--text3);
     font-variant-numeric: tabular-nums; }
   .prow .tag { width: 82px; text-align: center; }
@@ -389,6 +407,16 @@
 
   @media (max-width: 560px) {
     .seat { padding: 14px 12px; font-size: 15px; }     /* bigger thumb target */
+    /* Name, chips and where they are stay on the first line; the three stats
+       drop underneath with their labels, rather than squeezing the name down
+       to a couple of letters. */
+    .prow { flex-wrap: wrap; row-gap: 5px; }
+    .prow .pstats { flex-basis: 100%; order: 9; justify-content: flex-start; gap: 14px; }
+    .prow .rowctl { order: 8; }
+    .pstats > span, .prow .pw, .prow .ppc, .prow .pst { width: auto; text-align: left; }
+    .sl { display: inline; font-style: normal; font-size: 10px; font-weight: 700;
+      letter-spacing: .05em; text-transform: uppercase; opacity: .75; margin-right: 5px; }
+    .stat-legend { display: none; }
   }
   @media print {
     .split { grid-template-columns: 1fr 300px; }
@@ -438,7 +466,7 @@
 </main>
 
 <footer>
-  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.13</div>
+  <div class="wrap">Kemmerer Pool League &nbsp;·&nbsp; Chip Tournament &nbsp;·&nbsp; v1.14</div>
 </footer>
 
 <script>
@@ -470,7 +498,9 @@ const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
    rather than leaving one sitting idle.
 
    State shape:
-     roster    [{ name, rating, chips, start, draw, wins, losses, outAt }]
+     roster    [{ name, rating, chips, start, draw, wins, losses, run, best, outAt }]
+               run  = games won in a row right now, reset to zero on a loss
+               best = longest run reached at any point tonight, never goes down
      tables    [[nameOrNull, nameOrNull], ...]   index = table number - 1
      queue     [name, ...]                       front of the queue is index 0
      outOrder  [name, ...]                       knocked out, earliest first
@@ -546,7 +576,7 @@ function buildChip(players, tableCount, rand = Math.random) {
     const src = players.find(p => p.name === name) || {};
     const c = chipsFor(src.rating);
     return { name, rating: src.rating || 0, chips: c, start: c,
-             draw: i + 1, wins: 0, losses: 0, outAt: null };
+             draw: i + 1, wins: 0, losses: 0, run: 0, best: 0, outAt: null };
   });
   const S = { tableCount, roster, tables: Array.from({ length: tableCount }, () => [null, null]),
               queue: [...names], outOrder: [], log: [] };
@@ -562,6 +592,11 @@ function reportWin(S, tableIdx, winnerName) {
   const loserName = seat[0] === winnerName ? seat[1] : seat[0];
   const w = playerOf(S, winnerName), l = playerOf(S, loserName);
   w.wins++; l.losses++;
+  // The run is the winner's current stay at the table; best is the high-water
+  // mark for the whole session, so it stands even after they lose the table.
+  w.run = (w.run || 0) + 1;
+  if (w.run > (w.best || 0)) w.best = w.run;
+  l.run = 0;
   l.chips--;                                          // the winner never gains one
 
   S.log.unshift({ winner: winnerName, loser: loserName, table: tableIdx + 1, at: Date.now() });
@@ -585,6 +620,30 @@ function standings(S) {
   const order = [...left.sort((a, b) => playerOf(S, b).chips - playerOf(S, a).chips),
                  ...[...S.outOrder].reverse()];
   return order.map((name, i) => ({ place: i + 1, ...playerOf(S, name) }));
+}
+
+/* Win percentage is of games played, not of the field — a player who has not
+   been to the table yet has no percentage rather than a zero. */
+function winPct(p) {
+  const played = (p.wins || 0) + (p.losses || 0);
+  return played ? Math.round((p.wins / played) * 100) : null;
+}
+
+/* A tournament started on an older version has no run/best on its players.
+   The result log carries every game in order, so the streaks can be replayed
+   out of it. The log is trimmed at 200 entries, so on a very long night this
+   is a floor rather than gospel — from here on the numbers are kept live. */
+function backfillStreaks(S) {
+  if (!S || !S.roster || !S.roster.length) return S;
+  if (S.roster.every(p => p.best !== undefined && p.run !== undefined)) return S;
+  S.roster.forEach(p => { p.run = 0; p.best = 0; });
+  const games = [...(S.log || [])].filter(e => !e.manual && e.winner).reverse();
+  for (const g of games) {
+    const w = playerOf(S, g.winner), l = playerOf(S, g.loser);
+    if (w) { w.run++; if (w.run > w.best) w.best = w.run; }
+    if (l) l.run = 0;
+  }
+  return S;
 }
 
 const isOver = (S) => alive(S).length <= 1;
@@ -781,6 +840,21 @@ function chipDots(p) {
   let out = '';
   for (let i = 0; i < p.start; i++) out += `<span class="chip${i < spent ? ' spent' : ''}"></span>`;
   return `<span class="chips" title="${p.chips} of ${p.start} chips left">${out}</span>`;
+}
+
+/* Three numbers per player: record, win percentage, and the longest run of
+   games they won without leaving the table tonight. The labels are markup so a
+   phone can show them beside the numbers, where the header legend is too far
+   away to read against. */
+function statCells(p) {
+  const pct = winPct(p);
+  const best = p.best || 0;
+  const played = (p.wins || 0) + (p.losses || 0);
+  return `<span class="pstats">
+    <span class="pw" title="${p.wins} won, ${p.losses} lost"><i class="sl">W&ndash;L</i>${p.wins}&ndash;${p.losses}</span>
+    <span class="ppc" title="${played ? pct + '% of games won' : 'Not to the table yet'}"><i class="sl">Win %</i>${pct === null ? '&ndash;' : pct + '%'}</span>
+    <span class="pst${best >= 3 ? ' hot' : ''}" title="${best ? 'Longest run tonight — ' + best + ' game' + (best === 1 ? '' : 's') : 'No run yet'}"><i class="sl">Best run</i>${best || '&ndash;'}</span>
+  </span>`;
 }
 
 /* Reporting a winner: one press on the name of whoever won. */
@@ -1240,7 +1314,7 @@ function placeLatePlayer(name, rating) {
   const chips = chipsWithPenalty(rating);
   pushUndo(`added ${name}`);
   S.roster.push({ name, rating, chips, start: chips,
-                  draw: S.roster.length + 1, wins: 0, losses: 0, outAt: null });
+                  draw: S.roster.length + 1, wins: 0, losses: 0, run: 0, best: 0, outAt: null });
   S.queue.push(name);
   logNote(`${name} joined late with ${chips} chip${chips === 1 ? '' : 's'}`);
   rebalance(S);
@@ -1457,7 +1531,7 @@ function render() {
       <span class="pn">${esc(disp(p.name))}</span>
       ${chipDots(p)}
       ${where}
-      <span class="pw">${p.wins}&ndash;${p.losses}</span>
+      ${statCells(p)}
       ${controls}
     </div>`;
   }).join('');
@@ -1494,6 +1568,9 @@ function render() {
           ${S.log.length ? `<div class="ticker">${S.log[0].manual
               ? esc(S.log[0].text)
               : `<strong>${esc(disp(S.log[0].winner))}</strong> beat ${esc(disp(S.log[0].loser))} on table ${esc(tLabel(S.log[0].table - 1))}`}</div>` : ''}
+          ${editing ? '' : `<div class="stat-legend">
+            <span class="l1">W&ndash;L</span><span class="l2">Win %</span><span class="l3">Run</span>
+          </div>`}
           <div class="plist">${players}</div>
         </div>
       </div>
@@ -1574,6 +1651,7 @@ function applyServer(d) {
     tableList: d.tableList || null,
     payoutSpec: d.payoutSpec || null, payoutsManual: d.payoutsManual || null,
   };
+  backfillStreaks(S);
   document.getElementById('code-entry').style.display = 'none';
   document.body.classList.toggle('read-only', readOnly);
   render();
