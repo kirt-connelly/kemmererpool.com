@@ -133,6 +133,16 @@
   .tally .l { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
     color: var(--text3); margin-top: 3px; }
 
+  /* ── Off the top ── */
+  .off-top { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap; padding: 16px 18px; border-bottom: 1px solid var(--border);
+    background: var(--bg); }
+  .off-name { font-size: 16px; font-weight: 700; color: var(--gold); }
+  .off-note { font-size: 13px; color: var(--text3); margin-top: 2px; }
+  .off-amt { font-size: 22px; font-weight: 700; color: var(--cream);
+    font-variant-numeric: tabular-nums; }
+  .tally .n.gold { color: var(--gold); }
+
   /* ── Payouts ── */
   .pay-set { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 18px; }
   @media (max-width: 700px) { .pay-set { grid-template-columns: 1fr; } }
@@ -247,6 +257,7 @@
       <span class="card-title">Payouts</span>
       <span class="card-meta" id="pay-meta"></span>
     </div>
+    <div id="off-top"></div>
     <div class="pay-set" id="payouts"></div>
     <div class="btn-row">
       <span class="msg" id="pay-msg"></span>
@@ -257,7 +268,7 @@
 </main>
 
 <footer>
-  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; calcutta v1.00
+  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; calcutta v1.01
 </footer>
 
 <script>
@@ -274,7 +285,8 @@
 const STORE = 'kpl-calcutta';
 
 let bids = [];                                    /* {id, team, bidder, amount, paid, split} */
-let pct  = { 1: 50, 2: 30, 3: 20 };               /* payout split, editable */
+let second = 10;                                  /* off the top for the Second Chance */
+let pct  = { 1: 50, 2: 30, 3: 20 };               /* split of what's left, editable */
 let places = { 1: '', 2: '', 3: '' };             /* winning team ids */
 
 /* ── Theme ── */
@@ -294,7 +306,7 @@ function toggleTheme() {
 
 /* ── Storage ── */
 function save() {
-  try { localStorage.setItem(STORE, JSON.stringify({ bids, pct, places })); } catch (e) {}
+  try { localStorage.setItem(STORE, JSON.stringify({ bids, pct, places, second })); } catch (e) {}
 }
 function load() {
   try {
@@ -304,6 +316,7 @@ function load() {
     if (Array.isArray(d.bids)) bids = d.bids;
     if (d.pct) pct = Object.assign(pct, d.pct);
     if (d.places) places = Object.assign(places, d.places);
+    if (typeof d.second === 'number') second = d.second;
   } catch (e) {}
 }
 
@@ -395,6 +408,11 @@ function clearAll() {
 }
 
 /* ── Payout settings ── */
+function setSecond(value) {
+  second = Math.max(0, Math.min(100, Math.round(parseFloat(value) || 0)));
+  save();
+  render();
+}
 function setPct(place, value) {
   pct[place] = Math.max(0, Math.min(100, Math.round(parseFloat(value) || 0)));
   save();
@@ -408,13 +426,20 @@ function setPlace(place, id) {
   render();
 }
 
-/* The pot never divides evenly, so round each place down to the dollar
-   and hand the remainder to first — better than paying out a cent more
+/* The Second Chance comes off the top, and the three places split what
+   is left. Nothing divides evenly, so each place rounds down to the
+   dollar and first takes the remainder — better than paying out more
    than was taken in. */
+function secondChance(pot) { return Math.floor(pot * second / 100); }
+
 function payouts(pot) {
-  const raw = { 1: pot * pct[1] / 100, 2: pot * pct[2] / 100, 3: pot * pct[3] / 100 };
-  const out = { 1: Math.floor(raw[1]), 2: Math.floor(raw[2]), 3: Math.floor(raw[3]) };
-  const allotted = Math.floor(pot * (pct[1] + pct[2] + pct[3]) / 100);
+  const left = pot - secondChance(pot);
+  const out = {
+    1: Math.floor(left * pct[1] / 100),
+    2: Math.floor(left * pct[2] / 100),
+    3: Math.floor(left * pct[3] / 100),
+  };
+  const allotted = Math.floor(left * (pct[1] + pct[2] + pct[3]) / 100);
   out[1] += allotted - (out[1] + out[2] + out[3]);
   return out;
 }
@@ -427,10 +452,15 @@ function render() {
   const unpaid  = bids.filter(b => !b.paid).length;
 
   /* ── Totals ── */
+  const sc   = secondChance(pot);
+  const left = pot - sc;
+
   document.getElementById('tally').innerHTML =
     `<div><div class="n">${money(pot)}</div><div class="l">Total pot</div></div>` +
     `<div><div class="n in">${money(inHand)}</div><div class="l">Collected</div></div>` +
     `<div><div class="n${owed ? ' owed' : ''}">${money(owed)}</div><div class="l">Still owed</div></div>` +
+    `<div><div class="n gold">${money(sc)}</div><div class="l">Second Chance</div></div>` +
+    `<div><div class="n">${money(left)}</div><div class="l">Left to pay out</div></div>` +
     `<div><div class="n">${bids.length}</div><div class="l">Teams sold</div></div>`;
 
   document.getElementById('pot-meta').textContent =
@@ -467,6 +497,20 @@ function render() {
   const total = pct[1] + pct[2] + pct[3];
   const names = { 1: '1st place', 2: '2nd place', 3: '3rd place' };
 
+  document.getElementById('off-top').innerHTML = `
+    <div class="off-top">
+      <div>
+        <div class="off-name">Second Chance tournament</div>
+        <div class="off-note">Comes off the top. The places below split what's left.</div>
+      </div>
+      <div class="pct-row">
+        <input class="inp" type="number" min="0" max="100" step="1" value="${second}"
+               onchange="setSecond(this.value)">
+        <span>% &rarr;</span>
+        <span class="off-amt">${money(secondChance(pot))}</span>
+      </div>
+    </div>`;
+
   document.getElementById('payouts').innerHTML = [1, 2, 3].map(p => {
     const id  = places[p];
     const b   = bids.find(x => x.id === id);
@@ -496,19 +540,23 @@ function render() {
       <div class="pct-row">
         <input class="inp" type="number" min="0" max="100" step="1" value="${pct[p]}"
                onchange="setPct(${p}, this.value)">
-        <span>% of the pot</span>
+        <span>% of what's left</span>
       </div>
       <div class="who">${who}</div>
     </div>`;
   }).join('');
 
-  document.getElementById('pay-meta').textContent = `${total}% of ${money(pot)} paid out`;
+  document.getElementById('pay-meta').textContent =
+    `${second}% off the top, then ${total}% of ${money(left)}`;
+
   const pm = document.getElementById('pay-msg');
   if (total !== 100) {
-    pm.textContent = `The three places add up to ${total}%, not 100%.`;
+    pm.textContent = `The three places add up to ${total}%, not 100% of what's left.`;
     pm.className = 'msg bad';
   } else {
-    pm.textContent = bids.length ? `Paying out ${money(pay[1] + pay[2] + pay[3])} of the ${money(pot)} pot.` : '';
+    pm.textContent = bids.length
+      ? `${money(pot)} pot \u2014 ${money(sc)} to the Second Chance, ${money(pay[1] + pay[2] + pay[3])} to the top three.`
+      : '';
     pm.className = 'msg';
   }
 }
@@ -528,6 +576,8 @@ function exportCsv() {
   lines.push('');
   lines.push([q('Total pot'), q(pot)].join(','));
   lines.push([q('Collected'), q(bids.filter(b => b.paid).reduce((n, b) => n + b.amount, 0))].join(','));
+  lines.push([q(`Second Chance (${second}%)`), q(secondChance(pot))].join(','));
+  lines.push([q('Left to pay out'), q(pot - secondChance(pot))].join(','));
   [1, 2, 3].forEach(p => {
     const b = bids.find(x => x.id === places[p]);
     lines.push([q(`${p} place payout (${pct[p]}%)`), q(pay[p]), q(b ? b.team : '')].join(','));
