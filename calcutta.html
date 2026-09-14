@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Calcutta Tracker — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #141414; --bg2: #1e1e1e; --bg3: #262626; --bg4: #2e2e2e;
+    --border: #363636; --border2: #464646;
+    --text: #ffffff; --text2: #b0a898; --text3: #666058;
+    --accent: #27855a; --green2: #32a870; --cream: #e8ddd0;
+    --loss: #cc4444; --gold: #d4a13c;
+    --on-accent: #ffffff;
+    --radius: 8px; --radius-sm: 5px;
+  }
+  html[data-theme="light"] {
+    --bg: #f5f3ef; --bg2: #ffffff; --bg3: #eae6df; --bg4: #ddd8ce;
+    --border: #d6d0c5; --border2: #bcb4a6;
+    --text: #1a1714; --text2: #5a5348; --text3: #8b8376;
+    --accent: #1f6b48; --green2: #1a7a4e; --cream: #2b2419;
+    --loss: #b23636; --gold: #9a7420;
+  }
+
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .header-felt { height: 6px; background: repeating-linear-gradient(90deg,#1a5c32 0,#154d28 4px,#1a5c32 8px); opacity: .5; }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 12px; }
+  h1 { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .sub { font-size: 10px; color: var(--text3); letter-spacing: .07em; text-transform: uppercase; margin-top: 2px; }
+  .head-right { display: flex; align-items: center; gap: 8px; }
+  .theme-btn { width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    cursor: pointer; font-size: 13px; padding: 0; }
+  .theme-btn:hover { background: var(--bg4); color: var(--text); }
+
+  main { padding: 22px 0 80px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+  .card-title { font-size: 16px; font-weight: 600; }
+  .card-meta { font-size: 13px; color: var(--text3); }
+  .pad { padding: 18px; }
+
+  .act { display: inline-flex; align-items: center; justify-content: center;
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    padding: 10px 18px; border-radius: var(--radius-sm); cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+    text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
+  .act:hover { background: var(--bg4); color: var(--text); }
+  .act.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .act.primary:hover { opacity: .88; }
+  .act.small { padding: 6px 12px; font-size: 13px; }
+  .act:disabled { opacity: .45; cursor: default; }
+  .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 14px 18px; border-top: 1px solid var(--border); }
+  .linkish { background: none; border: none; font-family: inherit; font-size: 13px;
+    color: var(--text3); cursor: pointer; text-decoration: underline; padding: 0; }
+  .linkish:hover { color: var(--loss); }
+  .msg { font-size: 13px; color: var(--text3); }
+  .msg.bad { color: var(--loss); }
+
+  /* ── Entry form ── */
+  .lbl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .inp { width: 100%; font-family: inherit; font-size: 15px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; }
+  .inp:focus { outline: none; border-color: var(--accent); }
+  .inp.bad { border-color: var(--loss); }
+  .add-grid { display: grid; grid-template-columns: 2fr 2fr 1fr auto auto; gap: 12px; align-items: end; }
+  .check { display: inline-flex; align-items: center; gap: 7px; font-size: 14px;
+    color: var(--text2); white-space: nowrap; padding-bottom: 9px; cursor: pointer; }
+  .check input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+  @media (max-width: 760px) {
+    .add-grid { grid-template-columns: 1fr 1fr; }
+    .add-grid .span { grid-column: 1 / -1; }
+    .check { padding-bottom: 0; }
+  }
+
+  /* ── Bid table ── */
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--text3);
+    background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .tbl td { padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 15px;
+    color: var(--text2); vertical-align: middle; }
+  .tbl tbody tr:last-child td { border-bottom: none; }
+  .tbl tbody tr:hover td { background: var(--bg3); }
+  .tbl .team { font-weight: 700; color: var(--text); font-size: 16px; }
+  .tbl .amt { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--cream);
+    text-align: right; white-space: nowrap; }
+  .tbl .mid { text-align: center; }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border2); color: var(--text3);
+    cursor: pointer; background: none; font-family: inherit; }
+  .tag.yes { border-color: var(--accent); color: var(--green2); }
+  .row-acts { text-align: right; white-space: nowrap; }
+  .empty { padding: 26px 18px; color: var(--text3); font-size: 14px; }
+
+  /* Each row collapses to a block on a phone — six columns of auction
+     data will not fit, and a sideways scroll is no good at a bar. */
+  @media (max-width: 700px) {
+    .tbl thead { display: none; }
+    .tbl, .tbl tbody, .tbl tr, .tbl td { display: block; width: 100%; }
+    .tbl tr { border-bottom: 1px solid var(--border); padding: 12px 16px; }
+    .tbl tbody tr:last-child { border-bottom: none; }
+    .tbl td { border: none; padding: 2px 0; }
+    .tbl td[data-k]::before { content: attr(data-k) " "; font-size: 11px;
+      letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .tbl .amt { text-align: left; }
+    .tbl .mid { text-align: left; }
+    .row-acts { text-align: left; padding-top: 8px !important; }
+  }
+
+  /* ── Totals ── */
+  .tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); }
+  .tally div { background: var(--bg2); padding: 15px 18px; }
+  .tally .n { font-size: 26px; font-weight: 700; color: var(--cream); line-height: 1.1;
+    font-variant-numeric: tabular-nums; }
+  .tally .n.owed { color: var(--loss); }
+  .tally .n.in { color: var(--green2); }
+  .tally .l { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text3); margin-top: 3px; }
+
+  /* ── Payouts ── */
+  .pay-set { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 18px; }
+  @media (max-width: 700px) { .pay-set { grid-template-columns: 1fr; } }
+  .place { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); padding: 14px; }
+  .place.p1 { border-color: var(--gold); }
+  .place-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .place-name { font-size: 13px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+  .place.p1 .place-name { color: var(--gold); }
+  .place-amt { font-size: 24px; font-weight: 700; color: var(--cream); font-variant-numeric: tabular-nums; }
+  .pct-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .pct-row .inp { width: 74px; text-align: right; }
+  .pct-row span { font-size: 13px; color: var(--text3); }
+  .who { margin-top: 10px; font-size: 14px; color: var(--text2); line-height: 1.6; }
+  .who b { color: var(--text); }
+  .who .none { color: var(--text3); }
+
+  footer { border-top: 1px solid var(--border); padding: 18px 0; text-align: center;
+    font-size: 11px; color: var(--text3); letter-spacing: .05em; }
+  footer a { color: var(--text3); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 16px; } }
+
+  @media print {
+    header, .btn-row, .add-card, .theme-btn, .row-acts, .tag, footer { display: none !important; }
+    body { background: #fff; color: #000; font-size: 11pt; }
+    .card { border-color: #999; break-inside: avoid; }
+    .card-header { background: #f2f2f2; }
+    .tbl td, .tbl th { color: #000; }
+    .tally .n, .place-amt, .tbl .team, .tbl .amt { color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-felt"></div>
+  <div class="wrap">
+    <div class="header-inner">
+      <div>
+        <h1>Calcutta Tracker</h1>
+        <div class="sub" id="sub-line">Auction, payments and payouts</div>
+      </div>
+      <div class="head-right">
+        <button class="act small" onclick="window.print()">Print</button>
+        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark">🌙</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <!-- ── Add a bid ── -->
+  <div class="card add-card">
+    <div class="card-header">
+      <span class="card-title">Add a team</span>
+      <span class="card-meta">Entered as they sell</span>
+    </div>
+    <div class="pad">
+      <div class="add-grid">
+        <div class="span">
+          <label class="lbl" for="f-team">Team</label>
+          <input id="f-team" class="inp" type="text" maxlength="60" autocomplete="off" placeholder="Team name"
+                 onkeydown="if(event.key==='Enter')addBid()">
+        </div>
+        <div class="span">
+          <label class="lbl" for="f-bidder">High bidder</label>
+          <input id="f-bidder" class="inp" type="text" maxlength="60" autocomplete="off" placeholder="Who bought it"
+                 onkeydown="if(event.key==='Enter')addBid()">
+        </div>
+        <div>
+          <label class="lbl" for="f-amt">Bid</label>
+          <input id="f-amt" class="inp" type="number" min="0" step="1" inputmode="numeric" placeholder="0"
+                 onkeydown="if(event.key==='Enter')addBid()">
+        </div>
+        <label class="check"><input id="f-paid" type="checkbox"> Paid</label>
+        <label class="check"><input id="f-split" type="checkbox"> Split</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="act primary" onclick="addBid()">Add team</button>
+      <span class="msg" id="add-msg"></span>
+    </div>
+  </div>
+
+  <!-- ── The pot ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">The pot</span>
+      <span class="card-meta" id="pot-meta"></span>
+    </div>
+    <div class="tally" id="tally"></div>
+  </div>
+
+  <!-- ── Bids ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Teams sold</span>
+      <span class="card-meta" id="bid-count"></span>
+    </div>
+    <div id="bids"></div>
+    <div class="btn-row">
+      <button class="act" onclick="exportCsv()">Download CSV</button>
+      <button class="linkish" onclick="clearAll()">Clear everything</button>
+    </div>
+  </div>
+
+  <!-- ── Payouts ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Payouts</span>
+      <span class="card-meta" id="pay-meta"></span>
+    </div>
+    <div class="pay-set" id="payouts"></div>
+    <div class="btn-row">
+      <span class="msg" id="pay-msg"></span>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<footer>
+  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; calcutta v1.00
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   A calcutta tracker for a tournament night: who bought which team,
+   for how much, whether they've paid, and whether the team bought
+   half of itself back. Then the pot, and what the top three pay.
+
+   Everything is kept in this browser, so the laptop running the
+   auction keeps its numbers if the page reloads or the wifi drops.
+   Nothing goes to a server.
+   ═══════════════════════════════════════════════════════════════ */
+
+const STORE = 'kpl-calcutta';
+
+let bids = [];                                    /* {id, team, bidder, amount, paid, split} */
+let pct  = { 1: 50, 2: 30, 3: 20 };               /* payout split, editable */
+let places = { 1: '', 2: '', 3: '' };             /* winning team ids */
+
+/* ── Theme ── */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-btn').textContent = t === 'light' ? '☀️' : '🌙';
+  try { localStorage.setItem('kpl-theme', t); } catch (e) {}
+}
+function toggleTheme() {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+}
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem('kpl-theme'); } catch (e) {}
+  applyTheme(saved || 'dark');
+})();
+
+/* ── Storage ── */
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify({ bids, pct, places })); } catch (e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (Array.isArray(d.bids)) bids = d.bids;
+    if (d.pct) pct = Object.assign(pct, d.pct);
+    if (d.places) places = Object.assign(places, d.places);
+  } catch (e) {}
+}
+
+/* ── Helpers ── */
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const money = n => '$' + Math.round(n).toLocaleString('en-US');
+
+function val(id) { return document.getElementById(id).value.trim(); }
+
+/* ── Add ── */
+function addBid() {
+  const team   = val('f-team');
+  const bidder = val('f-bidder');
+  const amount = Math.max(0, Math.round(parseFloat(val('f-amt')) || 0));
+  const msg    = document.getElementById('add-msg');
+
+  document.getElementById('f-team').classList.toggle('bad', !team);
+  document.getElementById('f-amt').classList.toggle('bad', !amount);
+
+  if (!team || !amount) {
+    msg.textContent = 'A team and a bid amount, at least.';
+    msg.className = 'msg bad';
+    document.getElementById(team ? 'f-amt' : 'f-team').focus();
+    return;
+  }
+
+  bids.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    team, bidder,
+    amount,
+    paid:  document.getElementById('f-paid').checked,
+    split: document.getElementById('f-split').checked,
+  });
+
+  ['f-team', 'f-bidder', 'f-amt'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-paid').checked = false;
+  document.getElementById('f-split').checked = false;
+  msg.textContent = '';
+  document.getElementById('f-team').focus();
+
+  save();
+  render();
+}
+
+/* ── Row edits ── */
+function toggle(id, field) {
+  const b = bids.find(x => x.id === id);
+  if (!b) return;
+  b[field] = !b[field];
+  save();
+  render();
+}
+
+function editRow(id) {
+  const b = bids.find(x => x.id === id);
+  if (!b) return;
+  const team = prompt('Team name:', b.team);
+  if (team === null) return;
+  const bidder = prompt('High bidder:', b.bidder);
+  if (bidder === null) return;
+  const amount = prompt('Bid amount:', b.amount);
+  if (amount === null) return;
+  b.team   = team.trim() || b.team;
+  b.bidder = bidder.trim();
+  b.amount = Math.max(0, Math.round(parseFloat(amount) || 0));
+  save();
+  render();
+}
+
+function removeRow(id) {
+  const b = bids.find(x => x.id === id);
+  if (!b) return;
+  if (!confirm(`Remove ${b.team}? This can't be undone.`)) return;
+  bids = bids.filter(x => x.id !== id);
+  Object.keys(places).forEach(k => { if (places[k] === id) places[k] = ''; });
+  save();
+  render();
+}
+
+function clearAll() {
+  if (!bids.length) return;
+  if (!confirm('Clear every team, bid and payout? This cannot be undone.')) return;
+  bids = [];
+  places = { 1: '', 2: '', 3: '' };
+  save();
+  render();
+}
+
+/* ── Payout settings ── */
+function setPct(place, value) {
+  pct[place] = Math.max(0, Math.min(100, Math.round(parseFloat(value) || 0)));
+  save();
+  render();
+}
+function setPlace(place, id) {
+  /* A team can only finish in one spot. */
+  Object.keys(places).forEach(k => { if (places[k] === id && k !== String(place)) places[k] = ''; });
+  places[place] = id;
+  save();
+  render();
+}
+
+/* The pot never divides evenly, so round each place down to the dollar
+   and hand the remainder to first — better than paying out a cent more
+   than was taken in. */
+function payouts(pot) {
+  const raw = { 1: pot * pct[1] / 100, 2: pot * pct[2] / 100, 3: pot * pct[3] / 100 };
+  const out = { 1: Math.floor(raw[1]), 2: Math.floor(raw[2]), 3: Math.floor(raw[3]) };
+  const allotted = Math.floor(pot * (pct[1] + pct[2] + pct[3]) / 100);
+  out[1] += allotted - (out[1] + out[2] + out[3]);
+  return out;
+}
+
+/* ── Render ── */
+function render() {
+  const pot     = bids.reduce((n, b) => n + b.amount, 0);
+  const inHand  = bids.filter(b => b.paid).reduce((n, b) => n + b.amount, 0);
+  const owed    = pot - inHand;
+  const unpaid  = bids.filter(b => !b.paid).length;
+
+  /* ── Totals ── */
+  document.getElementById('tally').innerHTML =
+    `<div><div class="n">${money(pot)}</div><div class="l">Total pot</div></div>` +
+    `<div><div class="n in">${money(inHand)}</div><div class="l">Collected</div></div>` +
+    `<div><div class="n${owed ? ' owed' : ''}">${money(owed)}</div><div class="l">Still owed</div></div>` +
+    `<div><div class="n">${bids.length}</div><div class="l">Teams sold</div></div>`;
+
+  document.getElementById('pot-meta').textContent =
+    unpaid ? `${unpaid} still to collect` : (bids.length ? 'All paid up' : '');
+  document.getElementById('bid-count').textContent =
+    bids.length + (bids.length === 1 ? ' team' : ' teams');
+
+  /* ── Bids ── */
+  document.getElementById('bids').innerHTML = bids.length ? `
+    <div style="overflow-x:auto"><table class="tbl">
+      <thead><tr>
+        <th>Team</th><th>High bidder</th><th style="text-align:center">Paid</th>
+        <th style="text-align:center">Split</th><th style="text-align:right">Bid</th><th></th>
+      </tr></thead>
+      <tbody>${bids.map(b => `<tr>
+        <td class="team" data-k="Team">${esc(b.team)}</td>
+        <td data-k="Bidder">${b.bidder ? esc(b.bidder) : '<span style="color:var(--text3)">—</span>'}</td>
+        <td class="mid" data-k="Paid">
+          <button class="tag${b.paid ? ' yes' : ''}" onclick="toggle('${b.id}','paid')">${b.paid ? 'Paid' : 'Unpaid'}</button>
+        </td>
+        <td class="mid" data-k="Split">
+          <button class="tag${b.split ? ' yes' : ''}" onclick="toggle('${b.id}','split')">${b.split ? 'Split' : 'No split'}</button>
+        </td>
+        <td class="amt" data-k="Bid">${money(b.amount)}</td>
+        <td class="row-acts">
+          <button class="act small" onclick="editRow('${b.id}')">Edit</button>
+          <button class="linkish" style="margin-left:10px" onclick="removeRow('${b.id}')">Remove</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '<div class="empty">No teams sold yet. Add the first one above.</div>';
+
+  /* ── Payouts ── */
+  const pay   = payouts(pot);
+  const total = pct[1] + pct[2] + pct[3];
+  const names = { 1: '1st place', 2: '2nd place', 3: '3rd place' };
+
+  document.getElementById('payouts').innerHTML = [1, 2, 3].map(p => {
+    const id  = places[p];
+    const b   = bids.find(x => x.id === id);
+    const amt = pay[p];
+
+    let who;
+    if (!b) {
+      who = '<span class="none">Pick the team that finished here.</span>';
+    } else if (b.split) {
+      const half  = Math.floor(amt / 2);
+      const other = amt - half;
+      who = `<b>${esc(b.bidder || 'High bidder')}</b> ${money(other)}<br>` +
+            `<b>${esc(b.team)}</b> ${money(half)} <span class="none">(split)</span>`;
+    } else {
+      who = `<b>${esc(b.bidder || 'High bidder')}</b> takes all ${money(amt)}`;
+    }
+
+    return `<div class="place p${p}">
+      <div class="place-hd">
+        <span class="place-name">${names[p]}</span>
+        <span class="place-amt">${money(amt)}</span>
+      </div>
+      <select class="inp" onchange="setPlace(${p}, this.value)">
+        <option value="">Which team?</option>
+        ${bids.map(x => `<option value="${x.id}"${x.id === id ? ' selected' : ''}>${esc(x.team)}</option>`).join('')}
+      </select>
+      <div class="pct-row">
+        <input class="inp" type="number" min="0" max="100" step="1" value="${pct[p]}"
+               onchange="setPct(${p}, this.value)">
+        <span>% of the pot</span>
+      </div>
+      <div class="who">${who}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('pay-meta').textContent = `${total}% of ${money(pot)} paid out`;
+  const pm = document.getElementById('pay-msg');
+  if (total !== 100) {
+    pm.textContent = `The three places add up to ${total}%, not 100%.`;
+    pm.className = 'msg bad';
+  } else {
+    pm.textContent = bids.length ? `Paying out ${money(pay[1] + pay[2] + pay[3])} of the ${money(pot)} pot.` : '';
+    pm.className = 'msg';
+  }
+}
+
+/* ── CSV ── */
+function exportCsv() {
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const pot = bids.reduce((n, b) => n + b.amount, 0);
+  const pay = payouts(pot);
+  const placeOf = id => [1, 2, 3].find(p => places[p] === id) || '';
+
+  const lines = [['Team', 'High bidder', 'Bid', 'Paid', 'Split with team', 'Finished'].map(q).join(',')];
+  bids.forEach(b => lines.push([
+    b.team, b.bidder, b.amount, b.paid ? 'Yes' : 'No', b.split ? 'Yes' : 'No', placeOf(b.id),
+  ].map(q).join(',')));
+
+  lines.push('');
+  lines.push([q('Total pot'), q(pot)].join(','));
+  lines.push([q('Collected'), q(bids.filter(b => b.paid).reduce((n, b) => n + b.amount, 0))].join(','));
+  [1, 2, 3].forEach(p => {
+    const b = bids.find(x => x.id === places[p]);
+    lines.push([q(`${p} place payout (${pct[p]}%)`), q(pay[p]), q(b ? b.team : '')].join(','));
+  });
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'calcutta.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+load();
+render();
+</script>
+</body>
+</html>
