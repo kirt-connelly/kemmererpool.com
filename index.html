@@ -386,6 +386,40 @@ h2.head {
   margin-left: -12px; padding-left: 16px;
 }
 .date-row.tri .n { color: var(--bone); }
+/* A row with a flyer or a signup gets its own line beneath rather than
+   squeezing into the 112px status column. */
+.date-row .lnks {
+  grid-column: 1 / -1; text-align: right; margin-top: 5px;
+  font-family: 'Space Mono', monospace; font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase;
+}
+.date-row .lnks a, .date-row .lnks button {
+  font: inherit; letter-spacing: inherit; text-transform: inherit;
+  color: var(--brass); background: none; border: none; padding: 0;
+  cursor: pointer; text-decoration: none;
+}
+.date-row .lnks a:hover, .date-row .lnks button:hover {
+  color: var(--bone); text-decoration: underline;
+}
+.date-row .sep { color: var(--dim); opacity: .55; margin: 0 5px 0 3px; }
+
+/* ═══ FLYER LIGHTBOX ═════════════════════════════════════════
+   Same behaviour as the tournaments page, so a flyer opens the
+   same way wherever it's linked from. */
+.lb {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10,7,4,.92); align-items: center; justify-content: center; cursor: pointer;
+}
+.lb.open { display: flex; }
+.lb img {
+  max-width: 92vw; max-height: 92vh; border-radius: 5px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.7); cursor: default;
+}
+.lb-x {
+  position: fixed; top: 16px; right: 20px; font-size: 30px; line-height: 1;
+  color: var(--bone); cursor: pointer; opacity: .8; z-index: 1001;
+}
+.lb-x:hover { opacity: 1; }
 
 /* ═══ ROOMS ══════════════════════════════════════════════════ */
 .rooms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -581,6 +615,7 @@ a:focus-visible, button:focus-visible {
   .date-row .n { grid-column: 1; grid-row: 2; }
   .date-row .w { grid-column: 1; grid-row: 3; }
   .date-row .s { grid-column: 2; grid-row: 1; }
+  .date-row .lnks { grid-column: 1 / -1; grid-row: 4; text-align: left; }
   .rail-rule { gap: 26px; }
   .mast-in { gap: 14px; }
   .mast nav { gap: 0; }
@@ -810,6 +845,7 @@ a:focus-visible, button:focus-visible {
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Rock Springs</span>
           <span class="s set">Confirmed</span>
+          <span class="lnks"><button type="button" onclick="openFlyer('images/courtney-ellifritz-2026.jpg','Courtney Ellifritz Memorial 8-Ball Singles Tournament flyer')">Flyer &nearr;</button><span class="sep">&middot;</span><a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener">Sign up &nearr;</a></span>
         </div>
         <div class="date-row">
           <span class="d">Dec 4&ndash;6, 2026</span>
@@ -1008,7 +1044,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.44</span>
+        <span>v1.45</span>
       </div>
 
     </div>
@@ -1284,6 +1320,30 @@ loadNext();
     follow(el);
   });
 })();
+</script>
+
+<div class="lb" id="lb" onclick="closeFlyer()">
+  <span class="lb-x" onclick="closeFlyer()">&#10005;</span>
+  <img id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
+<script>
+/* Flyers open full size here the same way they do on the tournaments
+   page — they're photos of paper taped up in the bars. */
+function openFlyer(src, alt) {
+  var img = document.getElementById('lb-img');
+  img.src = src;
+  img.alt = alt || 'Tournament flyer';
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFlyer() {
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeFlyer();
+});
 </script>
 </body>
 </html>
