@@ -191,6 +191,8 @@ main { padding: 22px 0 70px; }
   padding: 0; cursor: pointer; text-decoration: none; letter-spacing: .12em;
 }
 .ev .s a:hover, .ev .s button:hover { color: var(--bone); text-decoration: underline; }
+/* A row with both a verdict and a flyer needs something between them. */
+.ev .s .sep { color: var(--dim); opacity: .55; margin: 0 5px 0 3px; }
 
 .panel-foot {
   padding: 17px 16px; border-top: 1px solid rgba(244,239,228,.1);
@@ -328,7 +330,7 @@ a:focus-visible, button:focus-visible {
         <span class="n">Jenkins Cup Tournament</span>
         <span class="w">Rock Springs, WY</span>
         <span class="d">Nov 6&ndash;8, 2026</span>
-        <span class="s set">Confirmed</span>
+        <span class="s set">Confirmed<span class="sep">&middot;</span><button type="button" onclick="openFlyer('images/courtney-ellifritz-2026.jpg','Courtney Ellifritz Memorial 8-Ball Singles Tournament flyer')">Flyer &nearr;</button><span class="sep">&middot;</span><a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener">Sign up &nearr;</a></span>
       </div>
       <div class="ev">
         <span class="n">Jenkins Cup Tournament</span>
@@ -387,7 +389,7 @@ a:focus-visible, button:focus-visible {
           not listed, ask Jenkins.
         </p>
         <a class="out" href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener">
-          Jenkins Music &amp; Vending &nearr;
+          Sign up at Jenkinsmusic.net &nearr;
         </a>
       </div>
     </section>
@@ -414,19 +416,19 @@ a:focus-visible, button:focus-visible {
         <span class="n">Bridger Valley Tri City</span>
         <span class="w">Bridger Valley, WY</span>
         <span class="d">Feb 28 &ndash; Mar 1, 2026</span>
-        <span class="s"><button type="button" onclick="openFlyer('bridgervalley.jpg','Bridger Valley Tri City flyer')">Flyer &nearr;</button></span>
+        <span class="s"><button type="button" onclick="openFlyer('images/bridgervalley.jpg','Bridger Valley Tri City flyer')">Flyer &nearr;</button></span>
       </div>
       <div class="ev">
         <span class="n">Red Short Memorial Tri City</span>
         <span class="w">Kemmerer, WY</span>
         <span class="d">Jan 31 &ndash; Feb 1, 2026</span>
-        <span class="s"><button type="button" onclick="openFlyer('kemmerer.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button></span>
+        <span class="s"><button type="button" onclick="openFlyer('images/kemmerer.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button></span>
       </div>
       <div class="ev">
         <span class="n">Evanston Tri City</span>
         <span class="w">Evanston, WY</span>
         <span class="d">Jan 3&ndash;4, 2026</span>
-        <span class="s"><button type="button" onclick="openFlyer('evanston.jpg','Evanston Tri City flyer')">Flyer &nearr;</button></span>
+        <span class="s"><button type="button" onclick="openFlyer('images/evanston.jpg','Evanston Tri City flyer')">Flyer &nearr;</button></span>
       </div>
     </section>
   </div>
@@ -442,7 +444,7 @@ a:focus-visible, button:focus-visible {
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.14</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.17</div>
   </div>
 </footer>
 
