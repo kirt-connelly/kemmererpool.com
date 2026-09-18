@@ -363,7 +363,7 @@ h2.head {
 /* ═══ DATES ══════════════════════════════════════════════════ */
 .dates { border-top: 1px solid var(--edge-in); }
 .date-row {
-  display: grid; grid-template-columns: 172px 1fr 180px 112px;
+  display: grid; grid-template-columns: 172px 1fr 180px 160px;
   gap: 16px; align-items: baseline; padding: 15px 4px;
   border-bottom: 1px solid var(--edge-in);
 }
@@ -386,10 +386,11 @@ h2.head {
   margin-left: -12px; padding-left: 16px;
 }
 .date-row.tri .n { color: var(--bone); }
-/* A row with a flyer or a signup gets its own line beneath rather than
-   squeezing into the 112px status column. */
+/* Once an event is set, the flyer and the signup replace the status
+   word — they say the same thing and give you somewhere to go. So the
+   links sit in the status column, not on a line of their own. */
 .date-row .lnks {
-  grid-column: 1 / -1; text-align: right; margin-top: 5px;
+  grid-column: 4; grid-row: 1; text-align: right; white-space: nowrap;
   font-family: 'Space Mono', monospace; font-size: 12px;
   letter-spacing: .1em; text-transform: uppercase;
 }
@@ -615,7 +616,7 @@ a:focus-visible, button:focus-visible {
   .date-row .n { grid-column: 1; grid-row: 2; }
   .date-row .w { grid-column: 1; grid-row: 3; }
   .date-row .s { grid-column: 2; grid-row: 1; }
-  .date-row .lnks { grid-column: 1 / -1; grid-row: 4; text-align: left; }
+  .date-row .lnks { grid-column: 1 / -1; grid-row: 4; text-align: left; white-space: normal; }
   .rail-rule { gap: 26px; }
   .mast-in { gap: 14px; }
   .mast nav { gap: 0; }
@@ -844,7 +845,6 @@ a:focus-visible, button:focus-visible {
           <span class="d">Nov 6&ndash;8, 2026</span>
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Rock Springs</span>
-          <span class="s set">Confirmed</span>
           <span class="lnks"><button type="button" onclick="openFlyer('images/courtney-ellifritz-2026.jpg','Courtney Ellifritz Memorial 8-Ball Singles Tournament flyer')">Flyer &nearr;</button><span class="sep">&middot;</span><a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener">Sign up &nearr;</a></span>
         </div>
         <div class="date-row">
@@ -1044,7 +1044,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.45</span>
+        <span>v1.46</span>
       </div>
 
     </div>
