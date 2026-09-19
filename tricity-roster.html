@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Tri City Roster — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Tri City roster — one sheet per team, made to be printed and
+   taped up at the tournament. On screen it's the same sheet on the
+   league's dark background, with a bar of buttons above it.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --night: #14100c; --night-2: #1d1712;
+  --brass: #d4a13c; --bone: #f4efe4; --dim: #9d9282;
+  --ink: #17120d; --ink-2: #5b5145; --rule: #d9d1c2; --paper: #fffdf8;
+  --brass-ink: #8a6418;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--night); color: var(--bone); font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* ── Screen toolbar ── */
+.bar { position: sticky; top: 0; z-index: 40; background: rgba(20,16,12,.92);
+  border-bottom: 1px solid rgba(212,161,60,.15); }
+.bar-in { max-width: 8.5in; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center;
+  gap: 10px; flex-wrap: wrap; }
+.bar-in .t { margin-right: auto; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--brass); }
+.btn { display: inline-flex; align-items: center; font-family: 'Space Mono', monospace; font-size: 12px;
+  font-weight: 700; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; cursor: pointer;
+  padding: 9px 14px; border-radius: 4px; color: var(--bone); background: rgba(244,239,228,.07);
+  border: 1px solid rgba(244,239,228,.16); }
+.btn:hover { border-color: var(--brass); }
+.btn.primary { color: var(--brass); background: rgba(212,161,60,.2); border-color: rgba(212,161,60,.6); }
+.msg { max-width: 8.5in; margin: 60px auto; padding: 0 16px; text-align: center; color: var(--dim); }
+
+/* ── The sheet ── */
+.sheets { padding: 22px 16px 60px; }
+.sheet { width: 100%; max-width: 8.5in; margin: 0 auto 26px; background: var(--paper); color: var(--ink);
+  border-radius: 4px; box-shadow: 0 18px 50px rgba(0,0,0,.5);
+  padding: .55in .6in .5in; display: flex; flex-direction: column; min-height: 10.2in; }
+
+.ev { font-family: 'Space Mono', monospace; font-size: 11.5px; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--brass-ink); text-align: center; }
+.team { font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400; text-align: center;
+  line-height: 1.02; letter-spacing: -.01em; margin: 14px 0 6px; font-size: 64px;
+  overflow-wrap: anywhere; }
+.rule { height: 3px; background: var(--ink); margin: 16px 0 0; }
+.rule.thin { height: 1px; background: var(--rule); margin: 0; }
+
+table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.ros th { font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-2); text-align: left; padding: 10px 8px 8px;
+  border-bottom: 1px solid var(--ink); }
+.ros td { padding: 11px 8px; border-bottom: 1px solid var(--rule); font-size: 20px; vertical-align: middle; }
+.ros .rk { width: 44px; font-family: 'Space Mono', monospace; font-size: 15px; color: var(--ink-2); }
+.ros .nm { font-weight: 600; }
+.ros .cap { font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--brass-ink); margin-left: 8px; white-space: nowrap; }
+.ros .fr { width: 110px; text-align: right; font-family: 'Space Mono', monospace; font-weight: 700; }
+.ros .ct { width: 110px; text-align: right; font-family: 'Space Mono', monospace; font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.ros tr.out td { color: #9a9083; }
+.ros tr.out .nm { font-weight: 500; }
+.ros .none { font-weight: 400; font-size: 13px; color: #b0412c; }
+
+.total { display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  margin-top: 18px; padding: 16px 20px; border: 3px solid var(--ink); border-radius: 4px; }
+.total .l { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase; }
+.total .s { font-size: 14px; color: var(--ink-2); margin-top: 2px; }
+.total .n { font-family: 'Space Mono', monospace; font-size: 50px; font-weight: 700; line-height: 1; }
+
+.qrs { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: auto; padding-top: 26px; }
+.qr { border: 1px solid var(--rule); border-radius: 6px; padding: 16px 16px 14px; text-align: center; }
+.qr .code { width: 1.85in; height: 1.85in; margin: 0 auto; }
+.qr .code svg { width: 100%; height: 100%; display: block; }
+.qr .h { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; margin-top: 12px; }
+.qr .d { font-size: 14px; color: var(--ink-2); margin-top: 3px; line-height: 1.35; }
+
+.fine { margin-top: 18px; text-align: center; font-size: 13px; color: var(--ink-2); }
+.fine b { color: var(--ink); }
+
+@media (max-width: 700px) {
+  .sheet { padding: 26px 20px; min-height: 0; }
+  .team { font-size: 40px; }
+  .ros td { font-size: 17px; }
+  .ros .ct { display: none; }
+  .total .n { font-size: 36px; }
+  .qrs { grid-template-columns: 1fr; }
+}
+
+@media print {
+  @page { size: letter; margin: .35in; }
+  body { background: #fff; }
+  .bar, .msg { display: none !important; }
+  .sheets { padding: 0; }
+  .sheet { max-width: none; box-shadow: none; border-radius: 0; margin: 0; padding: .1in .15in 0;
+    min-height: 10.2in; break-after: page; page-break-after: always; background: #fff; }
+  .sheet:last-child { break-after: auto; page-break-after: auto; }
+  .ros .ct { display: table-cell; }
+  .qrs { grid-template-columns: 1fr 1fr; }
+  .team { font-size: 64px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <span class="t" id="bar-title">Tri City roster</span>
+    <span id="bar-links"></span>
+    <button class="btn primary" onclick="window.print()">Print</button>
+  </div>
+</div>
+
+<div class="msg" id="msg">Loading the roster&hellip;</div>
+<div class="sheets" id="sheets"></div>
+
+<script src="qrcode.js"></script>
+<script src="tricity.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   tricity-roster.html?e=kemmerer&t=<team id>   one team
+   tricity-roster.html?e=kemmerer               every team, a page each
+   tricity-roster v1.00
+   ═══════════════════════════════════════════════════════════════ */
+
+const E = tcEventKey();
+const EV = tcEvent();
+const ONE = new URLSearchParams(location.search).get('t');
+
+function qrSvg(text) {
+  const q = qrcode(0, 'M');
+  q.addData(text);
+  q.make();
+  return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+
+function sheet(t) {
+  const ranked = tcRanked(t.players);
+  const captain = t.players[0] && t.players[0].name;
+  const total = tcTeamRating(t.players);
+  const top = ranked.slice(0, TC_RULES.countTop);
+  const short = top.length < TC_RULES.countTop || top.some(p => !p.rating);
+
+  const rows = ranked.map((p, i) => {
+    const counts = i < TC_RULES.countTop;
+    return `<tr class="${counts ? '' : 'out'}">
+      <td class="rk">${i + 1}</td>
+      <td class="nm">${esc(p.name)}${p.name === captain ? '<span class="cap">Captain</span>' : ''}</td>
+      <td class="fr">${p.rating ? p.rating : '<span class="none">no rating</span>'}</td>
+      <td class="ct">${counts ? 'Counts' : 'Not counted'}</td>
+    </tr>`;
+  }).join('');
+
+  const winUrl = tcUrl('tricity-win.html', { e: E, t: t.id });
+  const hcUrl  = tcUrl('tricity-match.html', { e: E, t: t.id });
+
+  return `<section class="sheet">
+    <div class="ev">${esc(EV.name)}${EV.when ? ' &middot; ' + esc(EV.when) : ''}</div>
+    <h1 class="team">${esc(t.team)}</h1>
+    <div class="rule"></div>
+
+    <table class="ros">
+      <thead><tr><th>#</th><th>Player</th><th style="text-align:right">Fargo</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <div class="total">
+      <div>
+        <div class="l">Team handicap</div>
+        <div class="s">Total of the top ${TC_RULES.countTop} Fargo ratings${short ? ' &mdash; short a rated player, see an officer' : ''}</div>
+      </div>
+      <div class="n">${total.toLocaleString('en-US')}</div>
+    </div>
+
+    <div class="qrs">
+      <div class="qr">
+        <div class="code">${qrSvg(winUrl)}</div>
+        <div class="h">Report a win</div>
+        <div class="d">Won a match? Scan this and pick the team you beat.</div>
+      </div>
+      <div class="qr">
+        <div class="code">${qrSvg(hcUrl)}</div>
+        <div class="h">Handicap</div>
+        <div class="d">Scan this and pick your opponent to see the spot.</div>
+      </div>
+    </div>
+
+    <div class="fine"><b>${esc(TC_RULES.ruleText.split(':')[0])}:</b>${esc(TC_RULES.ruleText.slice(TC_RULES.ruleText.indexOf(':') + 1))}</div>
+  </section>`;
+}
+
+/* Long names shrink until they fit on two lines at most. */
+function fitNames() {
+  document.querySelectorAll('.team').forEach(h => {
+    let size = parseFloat(getComputedStyle(h).fontSize);
+    const line = () => parseFloat(getComputedStyle(h).lineHeight) || size * 1.02;
+    while (h.scrollHeight > line() * 2.2 && size > 24) {
+      size -= 2;
+      h.style.fontSize = size + 'px';
+    }
+  });
+}
+
+tcGet(E).then(d => {
+  let teams = d.teams;
+  if (ONE) teams = teams.filter(t => t.id === ONE);
+  else teams = teams.slice().sort((a, b) => a.team.localeCompare(b.team));
+
+  const msg = document.getElementById('msg');
+  if (!teams.length) {
+    msg.textContent = ONE ? 'That team isn’t on the list.' : 'No teams have signed up yet.';
+    return;
+  }
+  msg.style.display = 'none';
+
+  if (ONE) {
+    document.title = teams[0].team + ' — ' + EV.name;
+    document.getElementById('bar-title').textContent = EV.where + ' Tri City';
+    document.getElementById('bar-links').innerHTML =
+      `<a class="btn" href="tricity-match.html?e=${E}&t=${encodeURIComponent(ONE)}">Handicap</a> ` +
+      `<a class="btn" href="tricity-win.html?e=${E}&t=${encodeURIComponent(ONE)}">Report a win</a>`;
+  } else {
+    document.title = 'All rosters — ' + EV.name;
+    document.getElementById('bar-title').textContent = teams.length + ' rosters · ' + EV.where;
+  }
+
+  document.getElementById('sheets').innerHTML = teams.map(sheet).join('');
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(fitNames);
+}).catch(err => {
+  document.getElementById('msg').textContent = err.message || 'Could not load the roster.';
+});
+
+/* The print layout is wider than a phone screen, so fit again for it. */
+addEventListener('beforeprint', () => {
+  document.querySelectorAll('.team').forEach(h => h.style.fontSize = '');
+  fitNames();
+});
+addEventListener('afterprint', () => {
+  document.querySelectorAll('.team').forEach(h => h.style.fontSize = '');
+  fitNames();
+});
+</script>
+</body>
+</html>

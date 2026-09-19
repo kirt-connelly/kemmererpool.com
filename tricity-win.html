@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>Tri City Report a Win — Kemmerer Pool League</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #14100c; --night-2: #1d1712; --felt: #1c5142; --felt-lo: #102e26; --rail: #3a2318;
+  --brass: #d4a13c; --bone: #f4efe4; --dim: #9d9282;
+  --edge: rgba(244,239,228,.13); --edge-in: rgba(244,239,228,.10);
+  --good: #5fb98a; --bad: #d0694f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--night); color: var(--bone); font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+.lamp { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%); }
+.page { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 0 16px 50px; }
+
+.mast { display: flex; align-items: center; gap: 11px; padding: 16px 0 6px; text-decoration: none; color: inherit; }
+.mast .eight { width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; flex: none;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+  box-shadow: inset -3px -4px 7px rgba(0,0,0,.6); }
+.mast .eight span { width: 11px; height: 11px; border-radius: 50%; background: var(--bone);
+  font: 700 7px/11px 'Space Mono', monospace; color: #100d0a; text-align: center; }
+.mast b { font-size: 14px; font-weight: 700; }
+
+.eyebrow { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--brass); margin-top: 22px; }
+h1 { font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400; font-size: 40px; line-height: 1.02;
+  letter-spacing: -.02em; margin: 8px 0 0; }
+h1 em { font-style: normal; color: var(--brass); }
+.lede { color: var(--dim); margin-top: 8px; }
+
+.panel { margin-top: 22px; border: 1px solid var(--edge); border-radius: 6px; background: rgba(0,0,0,.2); overflow: hidden; }
+.panel-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.field label i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 400; }
+select, input[type=text] {
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 18px; color: var(--bone);
+  background: rgba(0,0,0,.35); border: 1px solid var(--edge); border-radius: 4px;
+  padding: 12px 14px; width: 100%; }
+select { appearance: none; -webkit-appearance: none; padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--dim) 50%), linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position: calc(100% - 19px) 52%, calc(100% - 14px) 52%;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+select option { background: var(--night-2); color: var(--bone); }
+select:focus, input:focus { outline: none; border-color: var(--brass); }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.go-btn { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; cursor: pointer; width: 100%; padding: 16px 18px; border-radius: 5px;
+  border: 1px solid rgba(212,161,60,.7); background: rgba(212,161,60,.24); color: var(--brass);
+  line-height: 1.35; }
+.go-btn:hover:not(:disabled) { background: rgba(212,161,60,.34); color: var(--bone); }
+.go-btn:disabled { opacity: .45; cursor: default; }
+.status { font-size: 15px; text-align: center; min-height: 1.2em; }
+
+.links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 22px; }
+.links a { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--bone); text-decoration: none; padding: 10px 14px; border-radius: 4px;
+  border: 1px solid var(--edge); background: rgba(244,239,228,.06); }
+.links a:hover { border-color: var(--brass); }
+.rule-text { margin-top: 22px; text-align: center; font-size: 14px; color: var(--dim); }
+.rule-text b { color: var(--bone); font-weight: 600; }
+.foot { margin-top: 34px; text-align: center; font-family: 'Space Mono', monospace; font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--dim); opacity: .7; }
+
+.done { text-align: center; padding: 26px 18px 22px; }
+.done .tick { width: 58px; height: 58px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center;
+  font-size: 30px; color: var(--night); background: var(--good); }
+.done .line { font-size: 22px; font-weight: 700; margin-top: 16px; line-height: 1.3; }
+.done .line em { font-style: normal; color: var(--brass); }
+.done .line span { color: var(--dim); font-weight: 500; }
+.done .when { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-top: 10px; }
+.done p { color: var(--dim); font-size: 15px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="lamp" aria-hidden="true"></div>
+<div class="page">
+  <a class="mast" href="index.html"><span class="eight" aria-hidden="true"><span>8</span></span><b>Kemmerer Pool League</b></a>
+
+  <div class="eyebrow" id="eyebrow">Tri City</div>
+  <h1>Report a <em>win.</em></h1>
+  <p class="lede">Only the winning team needs to send this.</p>
+
+  <div class="panel">
+    <div class="panel-body" id="body">
+      <div class="field">
+        <label for="me">Your team</label>
+        <select id="me"><option value="">Loading teams&hellip;</option></select>
+      </div>
+      <div class="field">
+        <label for="them">Who did you beat?</label>
+        <select id="them"><option value="">Pick a team</option></select>
+      </div>
+      <div class="field">
+        <label for="who">Your name <i>(optional)</i></label>
+        <input id="who" type="text" maxlength="60" autocomplete="name" placeholder="Name">
+      </div>
+      <div class="hp" aria-hidden="true">
+        <label for="website">Leave this field empty</label>
+        <input id="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <button class="go-btn" id="send" type="button" disabled>Pick both teams</button>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <div class="links" id="links"></div>
+  <div class="foot">tricity-win v1.00</div>
+</div>
+
+<script src="tricity.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   The "report a win" QR on a team's roster lands here with that
+   team already picked. The result goes to /api/tricity and shows up
+   on tricityadmin.html for whoever is running the board. The same
+   pair reported twice inside half an hour is only kept once.
+   ═══════════════════════════════════════════════════════════════ */
+
+const E = tcEventKey();
+const EV = tcEvent();
+const q = new URLSearchParams(location.search);
+let TEAMS = [];
+
+document.getElementById('eyebrow').textContent = EV.name;
+const byId = id => TEAMS.find(t => t.id === id);
+
+function options(sel, exclude, keep) {
+  sel.innerHTML = '<option value="">Pick a team</option>' + TEAMS
+    .filter(t => t.id !== exclude)
+    .map(t => `<option value="${esc(t.id)}"${t.id === keep ? ' selected' : ''}>${esc(t.team)}</option>`)
+    .join('');
+}
+
+/* The button says exactly what is about to be sent, so a wrong
+   pick gets noticed before it goes. */
+function update() {
+  const me = document.getElementById('me').value;
+  const them = document.getElementById('them').value;
+  options(document.getElementById('them'), me, them);
+  const a = byId(me), b = byId(them);
+  const btn = document.getElementById('send');
+  btn.disabled = !(a && b && a !== b);
+  btn.textContent = btn.disabled ? 'Pick both teams' : a.team + ' beat ' + b.team;
+  document.getElementById('links').innerHTML = me
+    ? `<a href="tricity-match.html?e=${E}&t=${encodeURIComponent(me)}">Handicap</a>` +
+      `<a href="tricity-roster.html?e=${E}&t=${encodeURIComponent(me)}">Your roster</a>`
+    : '';
+}
+document.getElementById('me').addEventListener('change', update);
+document.getElementById('them').addEventListener('change', update);
+
+document.getElementById('send').addEventListener('click', async function () {
+  const me = document.getElementById('me').value;
+  const them = document.getElementById('them').value;
+  const st = document.getElementById('status');
+  this.disabled = true;
+  st.style.color = 'var(--dim)';
+  st.textContent = 'Sending…';
+  try {
+    const r = await tcSend('POST', {
+      action: 'win', e: E, winner: me, loser: them,
+      reporter: document.getElementById('who').value.trim(),
+      website: document.getElementById('website').value,
+    });
+    if (r.ok) {
+      const at = new Date(r.at || Date.now()).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      document.getElementById('body').innerHTML = `
+        <div class="done">
+          <div class="tick">&#10003;</div>
+          <div class="line"><em>${esc(r.winnerName)}</em> <span>beat</span> ${esc(r.loserName)}</div>
+          <div class="when">${r.duplicate ? 'Already reported at ' : 'Reported at '}${at}</div>
+          <p>${r.duplicate ? 'Someone on your team already sent this one. Nothing more to do.' : 'Got it.'}</p>
+        </div>`;
+      return;
+    }
+    st.style.color = 'var(--bad)';
+    st.textContent = r.error || 'That didn’t go through. Try again.';
+  } catch (e) {
+    st.style.color = 'var(--bad)';
+    st.textContent = 'Couldn’t connect. Try again.';
+  }
+  this.disabled = false;
+});
+
+tcGet(E).then(d => {
+  TEAMS = d.teams.slice().sort((x, y) => x.team.localeCompare(y.team));
+  const me = byId(q.get('t')) ? q.get('t') : '';
+  options(document.getElementById('me'), null, me);
+  options(document.getElementById('them'), me, '');
+  update();
+  if (!TEAMS.length) document.getElementById('status').textContent = 'No teams have signed up yet.';
+}).catch(err => {
+  document.getElementById('status').textContent = err.message || 'Could not load the teams.';
+});
+</script>
+</body>
+</html>

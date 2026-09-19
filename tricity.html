@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tri City Signup — Kemmerer Pool League</title>
+<meta name="description" content="Sign up a team for the Tri City pool tournament." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Kemmerer Pool League — Tri City team signup
+
+   Same room as the front page: tungsten on green cloth, brass,
+   bone, warm brown dark. This page is the front page's palette,
+   not the tournament tools' charcoal.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --night:   #14100c;
+  --night-2: #1d1712;
+  --felt:    #1c5142;
+  --felt-lo: #102e26;
+  --rail:    #3a2318;
+  --brass:   #d4a13c;
+  --bone:    #f4efe4;
+  --dim:     #9d9282;
+  --edge:    rgba(244,239,228,.13);
+  --edge-in: rgba(244,239,228,.10);
+  --radius:  6px;
+  --shell:   1080px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--bone);
+  font-family: 'Barlow', system-ui, sans-serif;
+  font-size: 17px; line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell { width: 100%; max-width: var(--shell); margin: 0 auto; padding: 0 24px; }
+
+.eyebrow {
+  font-family: 'Space Mono', monospace; font-size: 13.5px; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--brass);
+}
+h2.head {
+  font-size: clamp(28px, 4vw, 40px); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.1; margin: 10px 0 0;
+}
+.lede { color: var(--dim); max-width: 56ch; margin-top: 12px; }
+
+/* ── Rail diamonds ─────────────────────────────────────────── */
+.rail-rule {
+  display: flex; align-items: center; justify-content: center; gap: 46px;
+  height: 26px; position: relative;
+}
+.rail-rule::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,161,60,.22) 12%,
+              rgba(212,161,60,.22) 88%, transparent);
+}
+.rail-rule i {
+  width: 7px; height: 7px; background: var(--brass); opacity: .5;
+  transform: rotate(45deg); position: relative; flex: none;
+}
+
+/* ── The lamp ──────────────────────────────────────────────── */
+.lamp {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(120vw 70vh at 50% -18vh, rgba(212,161,60,.16), transparent 62%),
+    radial-gradient(70vw 46vh at 50% -6vh, rgba(212,161,60,.10), transparent 60%);
+}
+.page { position: relative; z-index: 1; }
+
+/* ═══ MASTHEAD ═══════════════════════════════════════════════ */
+.mast {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(20,16,12,.84);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid rgba(212,161,60,.15);
+}
+.mast-in { display: flex; align-items: center; gap: 24px; height: 62px; }
+.mark { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
+.mark .eight {
+  width: 27px; height: 27px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: radial-gradient(circle at 33% 27%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%), #100d0a;
+  box-shadow: inset -3px -4px 7px rgba(0,0,0,.6);
+}
+.mark .eight span {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--bone);
+  font: 700 8px/12px 'Space Mono', monospace; color: #100d0a; text-align: center;
+}
+.mark b {
+  font-weight: 700; font-size: 15px;
+  letter-spacing: -.01em; color: var(--bone); white-space: nowrap;
+}
+.mast nav { margin-left: auto; display: flex; gap: 4px; }
+.mast nav a {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  text-decoration: none; padding: 8px 12px; border-radius: 4px;
+}
+.mast nav a:hover { color: var(--bone); background: rgba(244,239,228,.06); }
+
+/* ═══ HERO ═══════════════════════════════════════════════════ */
+.cloth {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 50% -10%, rgba(255,255,255,.09), transparent 55%),
+    linear-gradient(180deg, var(--felt) 0%, var(--felt-lo) 100%);
+  border-top: 3px solid var(--rail);
+  border-bottom: 3px solid var(--rail);
+}
+.cloth::after {                     /* the nap of the cloth */
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+}
+/* Longhand on purpose — this element carries .shell too, and .shell's
+   `padding: 0 24px` shorthand is redefined in the 560px query. A
+   `padding:` shorthand here gets wiped by it and the hero loses all
+   its vertical room on a phone. */
+.cloth-in {
+  position: relative; z-index: 2;
+  padding-top: 62px; padding-bottom: 66px; text-align: center;
+}
+.hero-h1 {
+  font-family: 'Alfa Slab One', Georgia, serif; font-weight: 400;
+  font-size: clamp(42px, 8vw, 84px); line-height: .96;
+  letter-spacing: -.025em; margin: 14px 0 0;
+  text-shadow: 0 3px 0 rgba(0,0,0,.3), 0 22px 44px rgba(0,0,0,.45);
+}
+.hero-h1 em { font-style: normal; color: var(--brass); }
+.hero-sub {
+  margin: 18px auto 0; font-size: 19px; color: rgba(244,239,228,.88);
+  max-width: 44ch; text-wrap: balance;
+}
+/* One way out of the page, back where they came from. Both forms are
+   already below, so there's nothing to jump to. */
+.hero-deadline {
+  margin: 14px auto 0; font-family: 'Space Mono', monospace;
+  font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--brass);
+}
+.hero-jump { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+.hero-jump a {
+  display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+  color: var(--bone); font-size: 14px; font-weight: 600;
+  padding: 10px 16px; border: 1px solid rgba(244,239,228,.3); border-radius: 4px;
+  background: rgba(0,0,0,.34);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+  transition: border-color .15s, background .15s;
+}
+.hero-jump a:hover { border-color: var(--brass); background: rgba(212,161,60,.2); }
+.hero-jump a.back::before { content: '\2190'; color: var(--brass); }
+
+/* ═══ THE PICKER ═════════════════════════════════════════════
+   Three forms on one page had people scrolling past the one they
+   came for and filling in the wrong one. Now you see the one you
+   picked, and switching is a tap. ────────────────────────────── */
+.picker-band { padding-top: 34px; padding-bottom: 0; }
+#team, #solo, #sub { padding-top: 30px; }
+.picker { display: flex; gap: 10px; flex-wrap: wrap; }
+.pick {
+  flex: 1 1 auto;
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; font-weight: 600;
+  color: var(--dim); background: rgba(244,239,228,.05);
+  border: 1px solid var(--edge); border-radius: 5px;
+  padding: 12px 18px; cursor: pointer; text-align: center;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.pick:hover { color: var(--bone); background: rgba(244,239,228,.09); }
+.pick[aria-selected="true"] {
+  color: var(--brass); background: rgba(212,161,60,.16);
+  border-color: rgba(212,161,60,.55);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+}
+@media (max-width: 560px) {
+  .picker { flex-direction: column; }
+  .pick { flex: 1 1 auto; }
+}
+
+/* ═══ SECTION FRAME ══════════════════════════════════════════ */
+.band { padding: 54px 0; }
+.band-hd { margin-bottom: 26px; }
+[id] { scroll-margin-top: 76px; }   /* the masthead is sticky */
+
+/* ═══ PANELS & FORM ══════════════════════════════════════════
+   Same panel the standings and the suggestion box use, so the
+   forms read as part of the league rather than bolted on. ──── */
+.panel {
+  border: 1px solid var(--edge); border-radius: var(--radius);
+  overflow: hidden; background: rgba(0,0,0,.18);
+}
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 15px; background: rgba(0,0,0,.28);
+  border-bottom: 1px solid var(--edge-in); min-height: 40px;
+}
+.panel-note {
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .06em;
+  color: var(--dim); text-align: right;
+}
+.form-panel { max-width: 760px; }
+.form-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+.form-note { color: var(--dim); font-size: 15px; margin: 0; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.field label i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 400; }
+.field input, .field textarea, .field select {
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; color: var(--bone);
+  background: rgba(0,0,0,.3); border: 1px solid var(--edge);
+  border-radius: 4px; padding: 10px 12px; width: 100%; transition: border-color .15s;
+}
+.field select { appearance: none; -webkit-appearance: none; padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--dim) 50%),
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 52%, calc(100% - 12px) 52%;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.field select option { background: var(--night-2); color: var(--bone); }
+.field input::placeholder, .field textarea::placeholder { color: #6e6558; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--brass); }
+.field input.bad, .field select.bad { border-color: #c0553f; }
+.field textarea { resize: vertical; min-height: 92px; line-height: 1.6; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.rule { height: 1px; background: var(--edge-in); margin: 4px 0; }
+.sub-hd {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
+}
+
+/* Roster rows. The number lives in the field's own label — as its own
+   column it became a stray line above every input on a phone, with the
+   label under it saying the same thing again. */
+.player-row + .player-row { margin-top: 12px; }
+
+.add-btn {
+  align-self: flex-start;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  padding: 9px 14px; border-radius: 4px; color: var(--brass);
+  border: 1px dashed rgba(212,161,60,.45); background: rgba(212,161,60,.07);
+  transition: background .15s, border-color .15s;
+}
+.add-btn:hover { background: rgba(212,161,60,.16); border-color: var(--brass); }
+
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.send-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.send-btn {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  padding: 11px 20px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.6); background: rgba(212,161,60,.2); color: var(--brass);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+  transition: background .15s, color .15s;
+}
+.send-btn:hover:not(:disabled) { background: rgba(212,161,60,.3); color: var(--bone); }
+.send-btn:disabled { opacity: .5; cursor: default; }
+.form-status { font-size: 14px; font-weight: 500; }
+
+/* What's left after a form is sent: the panel body swaps for this. */
+.sent { padding: 26px 20px; text-align: center; }
+.sent b { display: block; font-size: 19px; margin-bottom: 6px; }
+.sent p { color: var(--dim); font-size: 15px; max-width: 46ch; margin: 0 auto; }
+/* Nobody's official until the sanction fee is paid, so the last thing
+   they see after signing up is where to go pay it. */
+.sanction {
+  margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--edge-in);
+}
+.sanction .head-line {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--brass);
+  margin-bottom: 8px;
+}
+.sanction p { color: var(--bone); font-size: 15px; max-width: 46ch; margin: 0 auto; }
+.sanction a.pay {
+  display: inline-flex; align-items: center; gap: 9px; margin-top: 16px;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; text-decoration: none;
+  padding: 12px 20px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.6); background: rgba(212,161,60,.2); color: var(--brass);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+  transition: background .15s, color .15s;
+}
+.sanction a.pay:hover { background: rgba(212,161,60,.3); color: var(--bone); }
+.sanction a.pay::after { content: '\2197'; }
+/* Both marks sit on white chips — the Jenkins mark is black ink on
+   white and would vanish straight onto the dark page. */
+.marks { display: flex; gap: 12px; justify-content: center; align-items: center;
+  flex-wrap: wrap; margin-top: 22px; }
+.marks span {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 5px; padding: 9px 14px;
+}
+.marks img { display: block; height: 34px; width: auto; }
+.marks .jenkins img { height: 40px; }
+
+/* The heads-up before they send, so the fee isn't a surprise. */
+.pre-note {
+  font-size: 14px; color: var(--dim); line-height: 1.55;
+  border-left: 2px solid rgba(212,161,60,.45); padding-left: 12px;
+}
+.pre-note b { color: var(--brass); font-weight: 700; }
+
+/* ═══ FOOTER ═════════════════════════════════════════════════ */
+.foot { border-top: 1px solid var(--edge); margin-top: 20px; padding: 34px 0 40px; background: rgba(0,0,0,.2); }
+.foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.foot-links a {
+  display: inline-flex; align-items: center; color: var(--bone); text-decoration: none;
+  font-size: 15px; font-weight: 600; padding: 9px 14px; border-radius: 4px;
+  border: 1px solid var(--edge); background: rgba(244,239,228,.07);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.06);
+  transition: border-color .15s, background .15s;
+}
+.foot-links a:hover { border-color: var(--brass); background: rgba(212,161,60,.16); }
+/* Who we run under. Kept small rather than dimmed — a faded white
+   chip on this background just reads as dirty. */
+.foot-marks {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-top: 34px;
+}
+.foot-marks a {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #f4efe4; border-radius: 4px; padding: 5px 9px;
+  transition: transform .15s;
+}
+.foot-marks a:hover { transform: translateY(-1px); }
+.foot-marks img { display: block; height: 44px; width: auto; }
+
+.colophon {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--edge-in);
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim);
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 3px;
+}
+
+/* ═══ NARROW ═════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .cloth-in { padding-top: 54px; padding-bottom: 58px; }
+  .rail-rule { gap: 26px; }
+  .mast-in { gap: 14px; }
+  .mast nav { gap: 0; }
+  .mast nav a { padding: 8px 7px; font-size: 11px; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .shell { padding-left: 16px; padding-right: 16px; }
+  .cloth-in { padding-top: 50px; padding-bottom: 54px; }
+  .hero-sub { font-size: 17px; }
+  .band { padding: 44px 0; }
+  .field-row { grid-template-columns: 1fr; }
+  /* The number would eat a third of the width next to a stacked
+     name and phone, so it goes above the pair as a label. */
+  .form-body { padding: 16px; }
+  .mast-in {
+    flex-direction: column; justify-content: center;
+    gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px;
+  }
+  .mark { gap: 9px; }
+  .mark b { font-size: 14px; }
+  .mast nav { margin-left: 0; flex-wrap: wrap; justify-content: center; }
+  .mast nav a { padding: 6px 9px; letter-spacing: .08em; }
+}
+@media (max-width: 360px) {
+  .mark b { font-size: 13px; }
+  .mast nav a { padding: 6px 6px; font-size: 9.5px; letter-spacing: .05em; }
+}
+
+/* ═══ TRI CITY ADDITIONS ═════════════════════════════════════ */
+.hero-facts { margin: 16px auto 0; display: flex; gap: 8px 22px; justify-content: center; flex-wrap: wrap;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--brass); }
+
+/* The panel clips its corners with overflow:hidden, which would also
+   clip the lookup list under the last player. */
+.form-panel { overflow: visible; }
+.form-panel .panel-hd { border-radius: var(--radius) var(--radius) 0 0; }
+
+/* One roster spot: a search box that becomes the picked player. */
+.pl { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.pl > label {
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim);
+}
+.pl + .pl { margin-top: 12px; }
+.pl-input {
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 15px; color: var(--bone);
+  background: rgba(0,0,0,.3); border: 1px solid var(--edge);
+  border-radius: 4px; padding: 10px 12px; width: 100%; transition: border-color .15s;
+}
+.pl-input::placeholder { color: #6e6558; }
+.pl-input:focus { outline: none; border-color: var(--brass); }
+.pl-input.bad { border-color: #c0553f; }
+.pl-results {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin-top: 4px;
+  background: var(--night-2); border: 1px solid rgba(212,161,60,.35); border-radius: 5px;
+  overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,.55);
+}
+.pl-wait { padding: 12px 14px; font-size: 14px; color: var(--dim); }
+.pl-hit {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; background: none; border: none; border-bottom: 1px solid var(--edge-in);
+  color: var(--bone); font-family: inherit; font-size: 15px; text-align: left; cursor: pointer;
+}
+.pl-hit:last-child { border-bottom: none; }
+.pl-hit:hover, .pl-hit.sel { background: rgba(212,161,60,.14); }
+.pl-hn { font-weight: 600; margin-right: 9px; }
+.pl-hd { display: inline-block; font-size: 12px; color: var(--dim); }
+.pl-hr { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--brass); }
+.pl-typed .pl-hn { font-weight: 500; color: var(--dim); }
+.pl-typed .pl-hd { display: block; }
+
+.pl-picked {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid rgba(212,161,60,.45); background: rgba(212,161,60,.07);
+  border-radius: 4px; padding: 8px 10px 8px 12px; min-height: 46px;
+}
+.pl-who { flex: 1; min-width: 0; }
+.pl-name { display: block; font-weight: 600; line-height: 1.3; }
+.pl-div { display: block; font-size: 12px; color: var(--dim); line-height: 1.35; }
+.pl-rating { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: var(--brass); }
+.pl-rate {
+  width: 84px; font-family: 'Space Mono', monospace; font-size: 15px; color: var(--bone);
+  background: rgba(0,0,0,.3); border: 1px solid var(--edge); border-radius: 4px; padding: 7px 8px; text-align: right;
+}
+.pl-rate:focus { outline: none; border-color: var(--brass); }
+.pl-change {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--dim); background: none; border: 1px solid var(--edge);
+  border-radius: 4px; padding: 6px 9px; cursor: pointer;
+}
+.pl-change:hover { color: var(--bone); border-color: var(--brass); }
+.look-status { font-size: 13px; color: var(--dim); min-height: 1em; }
+
+/* The team's number, live as players are picked. */
+.hc {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border: 1px solid var(--edge); border-radius: 5px; background: rgba(0,0,0,.25); padding: 14px 16px;
+}
+.hc .l { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.hc .note { font-size: 13px; color: var(--dim); margin-top: 3px; }
+.hc .n { font-family: 'Space Mono', monospace; font-size: 30px; font-weight: 700; color: var(--brass); line-height: 1; }
+
+.sent .big { font-family: 'Space Mono', monospace; font-size: 34px; font-weight: 700; color: var(--brass); margin: 12px 0 2px; }
+.sent .small { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.sent .go { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.sent .go a, .link-btn {
+  display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+  font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: 11px 18px; border-radius: 4px;
+  border: 1px solid rgba(212,161,60,.6); background: rgba(212,161,60,.2); color: var(--brass);
+}
+.sent .go a.quiet { border-color: var(--edge); background: rgba(244,239,228,.06); color: var(--bone); }
+.sent .go a:hover { background: rgba(212,161,60,.3); color: var(--bone); }
+</style>
+</head>
+<body>
+
+<div class="lamp" aria-hidden="true"></div>
+
+<div class="page">
+
+  <header class="mast">
+    <div class="shell mast-in">
+      <a class="mark" href="index.html">
+        <span class="eight" aria-hidden="true"><span>8</span></span>
+        <b>Kemmerer Pool League</b>
+      </a>
+      <nav>
+        <a href="index.html#leagues">Leagues</a>
+        <a href="tournaments.html">Tournaments</a>
+        <a href="index.html#rooms">Bars</a>
+        <a href="index.html#officers">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="top">
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="cloth">
+      <div class="shell cloth-in">
+        <div class="eyebrow" id="h-eyebrow">Tri City Tournament</div>
+        <h1 class="hero-h1" id="h-title">Tri City</h1>
+        <p class="hero-sub" id="h-sub">Team signup</p>
+        <div class="hero-facts" id="h-facts"></div>
+        <div class="hero-jump">
+          <a class="back" href="index.html">Back to the league</a>
+        </div>
+      </div>
+    </div>
+    <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </section>
+
+  <section class="band">
+    <div class="shell">
+      <div class="band-hd">
+        <h2 class="head">Sign up a team</h2>
+        <p class="lede">
+          Find each player by name and their Fargo rating comes with them.
+          Up to six players.
+        </p>
+      </div>
+
+      <div class="panel form-panel">
+        <div class="panel-hd">
+          <span class="eyebrow">Team Entry</span>
+          <span class="panel-note" id="count-note"></span>
+        </div>
+
+        <div class="form-body" id="team-body">
+          <div class="field">
+            <label for="tm-name">Team name</label>
+            <input id="tm-name" type="text" maxlength="60" autocomplete="off" placeholder="What you're calling yourselves">
+          </div>
+
+          <div class="rule"></div>
+          <div class="sub-hd">Captain</div>
+
+          <div class="field-row">
+            <div class="pl" id="slot-0"></div>
+            <div class="field">
+              <label for="tm-phone">Captain's number</label>
+              <input id="tm-phone" type="tel" maxlength="40" autocomplete="tel" placeholder="307-555-0100">
+            </div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="sub-hd">Players</div>
+
+          <div id="slots"></div>
+          <button class="add-btn" id="add-player" type="button">+ Add a player</button>
+          <div class="look-status" id="look-status"></div>
+
+          <div class="hc">
+            <div>
+              <div class="l">Team handicap</div>
+              <div class="note" id="hc-note">Total of your top 4 players' Fargo ratings.</div>
+            </div>
+            <div class="n" id="hc-n">0</div>
+          </div>
+          <p class="pre-note" id="rule-note"></p>
+
+          <div class="hp" aria-hidden="true">
+            <label for="tm-website">Leave this field empty</label>
+            <input id="tm-website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="send-row">
+            <button class="send-btn" id="tm-submit" type="button">Send it</button>
+            <span class="form-status" id="tm-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="shell">
+      <div class="foot-links">
+        <a href="index.html">Back to the league</a>
+        <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
+        <a href="https://www.facebook.com/groups/1121754421195590" target="_blank" rel="noopener">Facebook group</a>
+      </div>
+      <div class="foot-marks">
+        <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener" title="Jenkins Music of Wyoming">
+          <img src="images/jenkins-music.png" alt="Jenkins Music of Wyoming" loading="lazy">
+        </a>
+        <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener" title="BCA Pool League">
+          <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
+        </a>
+      </div>
+      <div class="colophon">
+        <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
+        <span>tricity v1.00</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="tricity.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Tri City team signup. tricity.html is the Kemmerer one;
+   ?e=evanston or ?e=bridgervalley opens the others when their turn
+   comes. Posts to /api/tricity, which keeps the team and mails the
+   officers.
+   ═══════════════════════════════════════════════════════════════ */
+
+const E = tcEventKey();
+const EV = tcEvent();
+
+/* ── The top of the page ── */
+document.title = EV.name + ' Signup — Kemmerer Pool League';
+document.getElementById('h-eyebrow').textContent = 'Tri City Tournament' + (EV.when ? ' · ' + EV.when : '');
+document.getElementById('h-title').innerHTML = esc(EV.where) + ' <em>Tri City.</em>';
+document.getElementById('h-sub').textContent = EV.name + ' — team signup';
+document.getElementById('h-facts').innerHTML = [
+  EV.deadline && 'Sign up deadline is ' + EV.deadline,
+  EV.fee,
+  EV.checkin,
+].filter(Boolean).map(f => '<span>' + esc(f) + '</span>').join('');
+document.getElementById('rule-note').innerHTML =
+  '<b>Handicap:</b> ' + esc(TC_RULES.ruleText.replace(/^Fargo Rate Handicap:\s*/, '')) +
+  '. Your team’s number is the total of its top ' + TC_RULES.countTop +
+  ' Fargo ratings, no matter what order they signed up in.';
+
+/* ── The roster ── */
+tcStatusHook = (msg, bad) => {
+  const el = document.getElementById('look-status');
+  el.textContent = /^Loading/.test(msg || '') ? msg : '';
+  el.style.color = bad ? '#c0553f' : '';
+};
+
+const slots = [];
+const slotBox = document.getElementById('slots');
+
+function addSlot() {
+  if (slots.length >= TC_RULES.maxPlayers) return;
+  const n = slots.length + 1;
+  let root;
+  if (n === 1) {
+    root = document.getElementById('slot-0');
+  } else {
+    root = document.createElement('div');
+    root.className = 'pl';
+    slotBox.appendChild(root);
+  }
+  slots.push(new PlayerSlot(root, n === 1 ? 'Player 1 (Captain)' : 'Player ' + n, updateTotal));
+  document.getElementById('add-player').style.display = slots.length >= TC_RULES.maxPlayers ? 'none' : '';
+}
+for (let i = 0; i < TC_RULES.shownAtStart; i++) addSlot();
+document.getElementById('add-player').addEventListener('click', () => {
+  addSlot();
+  const last = slots[slots.length - 1].root.querySelector('.pl-input');
+  if (last) last.focus();
+});
+
+function picked() { return slots.map(s => s.value).filter(Boolean); }
+
+function updateTotal() {
+  const list = picked();
+  document.getElementById('hc-n').textContent = tcTeamRating(list).toLocaleString('en-US');
+  const unrated = list.filter(p => !p.rating).length;
+  let note = 'Total of your top ' + TC_RULES.countTop + ' players’ Fargo ratings.';
+  if (list.length > TC_RULES.countTop) note = 'Top ' + TC_RULES.countTop + ' of ' + list.length + ' players.';
+  if (unrated) note += ' ' + unrated + (unrated === 1 ? ' player has' : ' players have') + ' no rating yet.';
+  document.getElementById('hc-note').textContent = note;
+}
+
+/* Warm the player index while they type the team name. */
+loadIndex().catch(() => {});
+
+/* ── Open or closed, and how many are in ── */
+const pass = (() => { try { return sessionStorage.getItem('kpl-league-pass') || ''; } catch (e) { return ''; } })();
+
+tcGet(E).then(d => {
+  document.getElementById('count-note').textContent =
+    d.teams.length + (d.teams.length === 1 ? ' team' : ' teams') + ' in' +
+    (EV.maxTeams ? ' of ' + EV.maxTeams : '');
+  if (d.closed && !pass) {
+    document.getElementById('team-body').innerHTML =
+      '<div class="sent"><b>Signups are closed.</b><p>Talk to an officer if you still want in.</p></div>';
+  }
+}).catch(() => {});
+
+/* ── Send ── */
+function say(msg, bad) {
+  const s = document.getElementById('tm-status');
+  s.textContent = msg;
+  s.style.color = bad ? '#c0553f' : 'var(--dim)';
+}
+
+document.getElementById('tm-submit').addEventListener('click', async function () {
+  const team = document.getElementById('tm-name').value.trim();
+  const phone = document.getElementById('tm-phone').value.trim();
+  document.getElementById('tm-name').classList.toggle('bad', !team);
+  document.getElementById('tm-phone').classList.toggle('bad', !phone);
+
+  /* A name typed but never picked would be lost without a word. */
+  const loose = slots.find(s => !s.value && s.typed());
+  slots.forEach(s => { const i = s.root.querySelector('.pl-input'); if (i) i.classList.remove('bad'); });
+  if (loose) {
+    loose.root.querySelector('.pl-input').classList.add('bad');
+    say('Pick ' + loose.typed() + ' from the list, or choose “use as typed”.', true);
+    loose.root.querySelector('.pl-input').focus();
+    loose.search();
+    return;
+  }
+  const capIn = slots[0].root.querySelector('.pl-input');
+  if (capIn) capIn.classList.toggle('bad', !slots[0].value);
+
+  if (!team || !phone || !slots[0].value) {
+    say('Team name, captain and captain’s number, please.', true);
+    return;
+  }
+
+  const players = picked();
+  const btn = this;
+  btn.disabled = true;
+  say('Sending…');
+
+  try {
+    const res = await tcSend('POST', {
+      action: 'signup', e: E, team, captainPhone: phone,
+      players: players.map(p => ({ name: p.name, rating: p.rating || 0, division: p.division })),
+      website: document.getElementById('tm-website').value,
+    }, pass);
+
+    if (res.ok) {
+      const roster = 'tricity-roster.html?e=' + E + '&t=' + encodeURIComponent(res.id);
+      document.getElementById('team-body').innerHTML =
+        '<div class="sent">' +
+          '<b>' + esc(team) + ' is in.</b>' +
+          '<p>' + esc(EV.name) + '. An officer will be in touch with the captain.</p>' +
+          '<div class="big">' + tcTeamRating(players).toLocaleString('en-US') + '</div>' +
+          '<div class="small">Team handicap &middot; top ' + TC_RULES.countTop + ' Fargo</div>' +
+          '<div class="go">' +
+            '<a href="' + roster + '">See your roster</a>' +
+            '<a class="quiet" href="tricity.html?e=' + E + '">Sign up another team</a>' +
+          '</div>' +
+        '</div>';
+      scrollTo({ top: document.getElementById('team-body').getBoundingClientRect().top + scrollY - 120 });
+      return;
+    }
+    say(res.error || 'Something went wrong. Try again.', true);
+  } catch (e) {
+    say('Couldn’t connect. Try again.', true);
+  }
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
