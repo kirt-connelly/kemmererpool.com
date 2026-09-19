@@ -10,6 +10,7 @@
  *   GET    /api/tricity?e=kemmerer                teams WITH phones, plus reported wins
  *   PUT    /api/tricity  { e, id, ...fields }     fix a team (name, phone, players, paid)
  *   PUT    /api/tricity  { e, settings:{closed} } open or close signups
+ *   PUT    /api/tricity  { e, settings:{ratingsAt} } when ratings were last refreshed
  *   DELETE /api/tricity  { e, kind:'team'|'win', id }
  *
  * Storage is the TOURNAMENTS KV namespace the other tools already use:
@@ -135,12 +136,12 @@ export async function onRequest({ request, env }) {
     const teams = (await listPrefix(kv, `tc:${e}:`)).sort((a, b) => (a.at || 0) - (b.at || 0));
     if (!officer) {
       return json({
-        ok: true, event: e, closed: !!cfg.closed,
+        ok: true, event: e, closed: !!cfg.closed, ratingsAt: cfg.ratingsAt || null,
         teams: teams.map((t) => ({ id: t.id, team: t.team, players: t.players.map((p) => ({ name: p.name, rating: p.rating })) })),
       });
     }
     const wins = (await listPrefix(kv, `tw:${e}:`)).sort((a, b) => (b.at || 0) - (a.at || 0));
-    return json({ ok: true, event: e, closed: !!cfg.closed, officer: true, teams, wins });
+    return json({ ok: true, event: e, closed: !!cfg.closed, ratingsAt: cfg.ratingsAt || null, officer: true, teams, wins });
   }
 
   // ── Public posts ──
@@ -219,8 +220,9 @@ export async function onRequest({ request, env }) {
     if (body.settings) {
       const cfg = await settings(kv, e);
       if (typeof body.settings.closed === 'boolean') cfg.closed = body.settings.closed;
+      if (typeof body.settings.ratingsAt === 'number') cfg.ratingsAt = body.settings.ratingsAt;
       await kv.put(`tcfg:${e}`, JSON.stringify(cfg));
-      return json({ ok: true, closed: cfg.closed });
+      return json({ ok: true, closed: cfg.closed, ratingsAt: cfg.ratingsAt || null });
     }
 
     const id = safeId(body.id);

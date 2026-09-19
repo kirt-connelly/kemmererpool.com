@@ -5,7 +5,7 @@
    Everything that changes from one Tri City to the next lives in
    TC_EVENTS at the top. The server keeps its own short list of the
    same keys in functions/api/tricity.js — add an event in both.
-   tricity.js v1.00
+   tricity.js v1.01
    ═══════════════════════════════════════════════════════════════ */
 
 /* Leave a field as '' and the page simply doesn't show it. */
@@ -243,7 +243,7 @@ async function fetchDivisions() {
 /* Ratings move once a week, so a day-old index is fine and saves rebuilding it
    on every visit. */
 const INDEX_CACHE = 'kpl-fargo-index-v3';
-const CACHE_HOURS = 24;
+const CACHE_HOURS = 3;
 
 function readCache() {
   try {
@@ -290,55 +290,92 @@ function parsePlayerList(html, divLabel) {
   return out;
 }
 
-async function loadIndex() {
-  if (playerIndex) return playerIndex;
-  if (indexLoading) return indexLoading;
+let indexAt = 0;             // when FargoRate was last read for the index in use
 
-  const cached = readCache();
-  if (cached) {
-    playerIndex = cached.players;
-    setStatus(`${playerIndex.length} players (saved earlier today)`);
-    return playerIndex;
+/* The index now comes from the server, built once for everybody
+   (functions/api/fargo-index.js). The first time ever, the server builds
+   it in pieces and this keeps asking until it's done. `fresh` (officers
+   only) makes the server read FargoRate again right now. */
+async function serverIndex(fresh, pass) {
+  for (let tries = 0; tries < 12; tries++) {
+    const r = await fetch('/api/fargo-index' + (fresh ? '?fresh=1' : ''),
+      pass ? { headers: { 'X-League-Pass': pass } } : undefined);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || 'index ' + r.status);
+    if (Array.isArray(j.players) && j.players.length) return j;
+    if (!j.building) throw new Error('empty');
+    setStatus(j.total
+      ? `Getting ratings from FargoRate… ${j.done} of ${j.total} divisions`
+      : 'Getting ratings from FargoRate…');
+    await new Promise(res => setTimeout(res, 700));
   }
-
-  setStatus('Loading player lists from FargoRate…');
-  indexLoading = (async () => {
-    const divisions = await fetchDivisions();
-    const all = [];
-    let failed = 0, done = 0;
-
-    // Ninety-odd divisions at once would hammer the proxy, so go in small
-    // batches and say how far along we are — it takes a moment the first time.
-    const BATCH = 6;
-    for (let i = 0; i < divisions.length; i += BATCH) {
-      await Promise.all(divisions.slice(i, i + BATCH).map(async ([id, label]) => {
-        try {
-          const r = await fetch(PROXY + encodeURIComponent(`${LMS}/GeneratePlayerListReport/${id}`));
-          if (!r.ok) throw new Error(r.status);
-          all.push(...parsePlayerList(await r.text(), label));
-        } catch (e) { failed++; }
-        done++;
-        setStatus(`Loading players… ${done} of ${divisions.length} divisions`);
-      }));
-    }
-
-    // Same player can appear in several divisions — keep the highest rating.
-    const byKey = {};
-    all.forEach(p => {
-      const k = p.name.toLowerCase();
-      if (!byKey[k] || p.rating > byKey[k].rating) byKey[k] = p;
-    });
-    playerIndex = Object.values(byKey).sort((a, b) => a.name.localeCompare(b.name));
-    if (playerIndex.length) writeCache(playerIndex, divisions.map(d => d[1]));
-
-    setStatus(playerIndex.length
-      ? `${playerIndex.length} players from ${divisions.length} divisions${failed ? ` · ${failed} unavailable` : ''}`
-      : 'No players came back — check the proxy, or add players by hand.');
-    return playerIndex;
-  })();
-  return indexLoading;
+  throw new Error('still building');
 }
 
+/* The old way — every division through /proxy, from this browser. Only
+   used if the server can't answer. */
+async function browserIndex() {
+  setStatus('Loading player lists from FargoRate…');
+  const divisions = await fetchDivisions();
+  const all = [];
+  let failed = 0, done = 0;
+  const BATCH = 6;
+  for (let i = 0; i < divisions.length; i += BATCH) {
+    await Promise.all(divisions.slice(i, i + BATCH).map(async ([id, label]) => {
+      try {
+        const r = await fetch(PROXY + encodeURIComponent(`${LMS}/GeneratePlayerListReport/${id}`));
+        if (!r.ok) throw new Error(r.status);
+        all.push(...parsePlayerList(await r.text(), label));
+      } catch (e) { failed++; }
+      done++;
+      setStatus(`Loading players… ${done} of ${divisions.length} divisions`);
+    }));
+  }
+  const byKey = {};
+  all.forEach(p => {
+    const k = p.name.toLowerCase();
+    if (!byKey[k] || p.rating > byKey[k].rating) byKey[k] = p;
+  });
+  return { at: Date.now(), players: Object.values(byKey).sort((a, b) => a.name.localeCompare(b.name)), divisions: divisions.length, failed };
+}
+
+/* loadIndex()                       whatever is quickest: memory, this
+                                     browser's copy, then the server
+   loadIndex({ fresh: true, pass })  officers: straight from FargoRate */
+async function loadIndex(opts) {
+  const fresh = !!(opts && opts.fresh);
+  if (playerIndex && !fresh) return playerIndex;
+  if (indexLoading && !fresh) return indexLoading;
+
+  if (!fresh) {
+    const cached = readCache();
+    if (cached) {
+      playerIndex = cached.players;
+      indexAt = cached.fargoAt || cached.at;
+      setStatus('');
+      return playerIndex;
+    }
+  }
+
+  indexLoading = (async () => {
+    let got;
+    try { got = await serverIndex(fresh, opts && opts.pass); }
+    catch (e) { got = await browserIndex(); }
+
+    playerIndex = got.players;
+    indexAt = got.at;
+    if (playerIndex.length) {
+      try {
+        localStorage.setItem(INDEX_CACHE, JSON.stringify({ at: Date.now(), fargoAt: got.at, players: playerIndex }));
+      } catch (e) { /* storage full or blocked — fine */ }
+    }
+    setStatus(playerIndex.length ? '' : 'No players came back — add players by hand.', !playerIndex.length);
+    return playerIndex;
+  })();
+
+  try { return await indexLoading; }
+  finally { indexLoading = null; }
+}
 
 /* ═══ One roster spot with its own lookup ═══════════════════════
    Type a name, pick them from the list, and their rating comes with

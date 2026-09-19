@@ -130,7 +130,7 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
 /* ═══════════════════════════════════════════════════════════════
    tricity-roster.html?e=kemmerer&t=<team id>   one team
    tricity-roster.html?e=kemmerer               every team, a page each
-   tricity-roster v1.00
+   tricity-roster v1.01
    ═══════════════════════════════════════════════════════════════ */
 
 const E = tcEventKey();
@@ -142,6 +142,13 @@ function qrSvg(text) {
   q.addData(text);
   q.make();
   return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+
+let RATINGS_AT = null;
+
+function asOf() {
+  if (!RATINGS_AT) return '';
+  return ' &middot; ratings as of ' + new Date(RATINGS_AT).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function sheet(t) {
@@ -177,7 +184,7 @@ function sheet(t) {
     <div class="total">
       <div>
         <div class="l">Team handicap</div>
-        <div class="s">Total of the top ${TC_RULES.countTop} Fargo ratings${short ? ' &mdash; short a rated player, see an officer' : ''}</div>
+        <div class="s">Total of the top ${TC_RULES.countTop} Fargo ratings${asOf()}${short ? ' &mdash; short a rated player, see an officer' : ''}</div>
       </div>
       <div class="n">${total.toLocaleString('en-US')}</div>
     </div>
@@ -212,6 +219,7 @@ function fitNames() {
 }
 
 tcGet(E).then(d => {
+  RATINGS_AT = d.ratingsAt;
   let teams = d.teams;
   if (ONE) teams = teams.filter(t => t.id === ONE);
   else teams = teams.slice().sort((a, b) => a.team.localeCompare(b.team));

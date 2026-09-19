@@ -159,6 +159,20 @@
   .win .w span { color: var(--text3); }
   .win .t { font-size: 13px; color: var(--text3); font-variant-numeric: tabular-nums; }
   .state { font-size: 13px; font-weight: 600; }
+  .rf-team { background: var(--bg2); padding: 14px 18px; }
+  .rf-team .hd { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .rf-team .nm { font-size: 16px; font-weight: 700; }
+  .rf-team .tot { font-size: 14px; color: var(--text2); font-variant-numeric: tabular-nums; }
+  .rf-team .tot b { color: var(--cream); font-size: 16px; }
+  .rf-ch { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--text2); margin-top: 7px; cursor: pointer; }
+  .rf-ch input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex: none; }
+  .rf-ch .n { color: var(--text); font-weight: 600; }
+  .rf-ch .v { font-variant-numeric: tabular-nums; }
+  .rf-ch .up { color: var(--green2); font-weight: 700; }
+  .rf-ch .dn { color: var(--loss); font-weight: 700; }
+  .rf-ch .hand { font-size: 12px; color: var(--loss); }
+  .rf-note { background: var(--bg2); padding: 12px 18px; font-size: 14px; color: var(--text2); line-height: 1.6; }
+  .rf-note b { color: var(--text); }
   .state.open { color: var(--green2); }
   .state.closed { color: var(--loss); }
 </style>
@@ -209,11 +223,25 @@
       <div class="tally" id="tally"></div>
       <div class="btn-row">
         <button class="act" onclick="load()">Refresh</button>
+        <button class="act primary" id="rf-btn" onclick="refreshRatings()">Refresh all ratings</button>
         <a class="act" id="print-all" href="#" target="_blank">Print all rosters</a>
         <a class="act" id="open-signup" href="#" target="_blank">Signup page</a>
         <button class="act" onclick="exportCsv()">Download CSV</button>
         <button class="act" id="toggle-open" onclick="toggleOpen()">Close signups</button>
         <span class="msg" id="top-msg"></span>
+      </div>
+    </div>
+
+    <div class="card" id="rf-card" style="display:none">
+      <div class="card-header">
+        <span class="card-title">Rating refresh</span>
+        <span class="card-meta" id="rf-meta"></span>
+      </div>
+      <div class="rows" id="rf-rows"></div>
+      <div class="btn-row">
+        <button class="act primary" id="rf-save" onclick="saveRefresh()">Save</button>
+        <button class="act" onclick="cancelRefresh()">Cancel</button>
+        <span class="msg" id="rf-msg"></span>
       </div>
     </div>
 
@@ -239,7 +267,7 @@
 </main>
 
 <footer>
-  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; <a href="leagueadmin.html">League signups</a> &nbsp;&middot;&nbsp; tricityadmin v1.00
+  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; <a href="leagueadmin.html">League signups</a> &nbsp;&middot;&nbsp; tricityadmin v1.01
 </footer>
 
 <script src="tricity.js"></script>
@@ -257,6 +285,7 @@ const pass = () => { try { return sessionStorage.getItem(PASS_STORE) || ''; } ca
 let E = tcEventKey();
 let DATA = { teams: [], wins: [], closed: false };
 let EDITING = null;
+let PENDING = null;          /* a rating refresh waiting to be saved */
 
 /* ── Theme ── */
 function applyTheme(t) {
@@ -364,7 +393,8 @@ function render(d) {
   document.getElementById('print-all').href = 'tricity-roster.html?e=' + E;
   document.getElementById('open-signup').href = 'tricity.html?e=' + E;
   document.getElementById('updated').textContent = 'As of ' + when(Date.now());
-  document.getElementById('team-count').textContent = teams.length + (teams.length === 1 ? ' team' : ' teams') + ' · in signup order';
+  document.getElementById('team-count').textContent = teams.length + (teams.length === 1 ? ' team' : ' teams') + ' · in signup order · ' +
+    (d.ratingsAt ? 'ratings as of ' + when(d.ratingsAt) : 'ratings from signup');
   document.getElementById('win-count').textContent = wins.length ? 'Newest first · refreshes every 30 seconds' : '';
 
   /* Which teams each player appears on, for the double-roster check. */
@@ -543,9 +573,150 @@ function exportCsv() {
   URL.revokeObjectURL(a.href);
 }
 
+
+/* ═══ Refresh all ratings ═══════════════════════════════════════
+   Reads FargoRate fresh, matches every player by name, and shows each
+   change with a tick box before anything is saved. Players nobody can
+   find (usually the ones entered by hand) are left as they are and
+   listed so their rating can be typed in. Saving also stamps the date
+   that prints on the rosters as "ratings as of".
+   ═══════════════════════════════════════════════════════════════ */
+
+async function refreshRatings() {
+  const btn = document.getElementById('rf-btn');
+  const msg = document.getElementById('top-msg');
+  btn.disabled = true;
+  msg.className = 'msg';
+  msg.textContent = 'Getting current ratings from FargoRate…';
+  tcStatusHook = m => { if (m) msg.textContent = m; };
+
+  let idx;
+  try { idx = await loadIndex({ fresh: true, pass: pass() }); }
+  catch (e) { idx = null; }
+  btn.disabled = false;
+  if (!idx || !idx.length) {
+    msg.textContent = 'Could not get ratings from FargoRate. Try again in a minute.';
+    msg.className = 'msg bad';
+    return;
+  }
+  msg.textContent = '';
+
+  const byName = {};
+  idx.forEach(p => { byName[p.name.toLowerCase()] = p; });
+
+  const teams = [], missing = [];
+  DATA.teams.forEach(t => {
+    const changes = [];
+    t.players.forEach((p, i) => {
+      const hit = byName[p.name.toLowerCase()];
+      if (!hit) { missing.push({ team: t.team, name: p.name, rating: p.rating }); return; }
+      if (hit.rating !== p.rating) changes.push({ i, name: p.name, from: p.rating || 0, to: hit.rating, division: hit.division, hand: !p.division });
+    });
+    if (changes.length) teams.push({ id: t.id, team: t.team, players: t.players, changes });
+  });
+
+  PENDING = { teams, missing, at: indexAt || Date.now() };
+  showRefresh();
+}
+
+function refreshTotal(t, onlyTicked) {
+  const list = t.players.map((p, i) => {
+    const c = t.changes.find(x => x.i === i);
+    const use = c && (!onlyTicked || c.on !== false);
+    return { name: p.name, rating: use ? c.to : p.rating };
+  });
+  return tcTeamRating(list);
+}
+
+function showRefresh() {
+  const P = PENDING;
+  const n = P.teams.reduce((k, t) => k + t.changes.length, 0);
+  document.getElementById('rf-card').style.display = '';
+  document.getElementById('rf-meta').textContent = 'FargoRate read ' + when(P.at);
+
+  let html = '';
+  if (!n) html += '<div class="rf-note"><b>No changes.</b> Every player found on FargoRate already has their current rating.</div>';
+
+  html += P.teams.map((t, ti) => {
+    const before = tcTeamRating(t.players), after = refreshTotal(t, true);
+    return `<div class="rf-team">
+      <div class="hd">
+        <span class="nm">${esc(t.team)}</span>
+        <span class="tot">Handicap ${fmt(before)} &rarr; <b>${fmt(after)}</b></span>
+      </div>
+      ${t.changes.map((c, ci) => `
+        <label class="rf-ch">
+          <input type="checkbox" data-t="${ti}" data-c="${ci}"${c.on === false ? '' : ' checked'}>
+          <span class="n">${esc(c.name)}</span>
+          <span class="v">${c.from || '—'} &rarr; <span class="${c.to > c.from ? 'up' : 'dn'}">${c.to}</span></span>
+          ${c.hand ? '<span class="hand">was entered by hand — check it’s the same person</span>' : ''}
+        </label>`).join('')}
+    </div>`;
+  }).join('');
+
+  if (P.missing.length) {
+    html += '<div class="rf-note"><b>Not found on FargoRate, left as they are:</b> ' +
+      P.missing.map(m => esc(m.name) + ' (' + esc(m.team) + ', ' + (m.rating || 'no rating') + ')').join(' &middot; ') +
+      '<br>Fix these with Edit on the team.</div>';
+  }
+  document.getElementById('rf-rows').innerHTML = html;
+
+  document.querySelectorAll('#rf-rows input[type=checkbox]').forEach(box => box.onchange = () => {
+    P.teams[+box.dataset.t].changes[+box.dataset.c].on = box.checked;
+    showRefresh();
+  });
+
+  const ticked = P.teams.reduce((k, t) => k + t.changes.filter(c => c.on !== false).length, 0);
+  document.getElementById('rf-save').textContent = ticked
+    ? 'Save ' + ticked + (ticked === 1 ? ' change' : ' changes')
+    : 'Save — mark ratings as of ' + new Date(P.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  document.getElementById('rf-msg').textContent = '';
+  document.getElementById('rf-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelRefresh() {
+  PENDING = null;
+  document.getElementById('rf-card').style.display = 'none';
+}
+
+async function saveRefresh() {
+  const P = PENDING;
+  const msg = document.getElementById('rf-msg');
+  const btn = document.getElementById('rf-save');
+  btn.disabled = true;
+  let done = 0, failed = [];
+
+  for (const t of P.teams) {
+    const ticked = t.changes.filter(c => c.on !== false);
+    if (!ticked.length) continue;
+    const players = t.players.map((p, i) => {
+      const c = ticked.find(x => x.i === i);
+      return c ? { name: p.name, rating: c.to, division: c.division } : p;
+    });
+    msg.className = 'msg';
+    msg.textContent = 'Saving ' + t.team + '…';
+    const r = await tcSend('PUT', { e: E, id: t.id, players }, pass()).catch(() => ({}));
+    if (r.ok) done++; else failed.push(t.team);
+  }
+
+  await tcSend('PUT', { e: E, settings: { ratingsAt: P.at } }, pass()).catch(() => ({}));
+  btn.disabled = false;
+
+  if (failed.length) {
+    msg.textContent = 'These did not save: ' + failed.join(', ') + '. Try again.';
+    msg.className = 'msg bad';
+    return;
+  }
+  cancelRefresh();
+  await load();
+  const top = document.getElementById('top-msg');
+  top.className = 'msg';
+  top.textContent = done ? done + (done === 1 ? ' team' : ' teams') + ' updated. Reprint any rosters you already printed.' : 'Ratings marked as of ' + when(P.at) + '.';
+}
+
 /* Wins come in all day — keep the list current while nobody is editing. */
 setInterval(() => {
-  if (pass() && !EDITING && document.getElementById('admin').style.display !== 'none' && !document.hidden) load();
+  if (pass() && !EDITING && !PENDING && document.getElementById('admin').style.display !== 'none' && !document.hidden) load();
 }, 30000);
 
 /* Signed in on leagueadmin.html already? Straight in. */

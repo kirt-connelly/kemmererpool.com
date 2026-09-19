@@ -595,7 +595,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>tricity v1.00</span>
+        <span>tricity v1.01</span>
       </div>
     </div>
   </footer>
@@ -632,7 +632,7 @@ document.getElementById('rule-note').innerHTML =
 /* ── The roster ── */
 tcStatusHook = (msg, bad) => {
   const el = document.getElementById('look-status');
-  el.textContent = /^Loading/.test(msg || '') ? msg : '';
+  el.textContent = /^(Loading|Getting)/.test(msg || '') ? msg : '';
   el.style.color = bad ? '#c0553f' : '';
 };
 
@@ -672,7 +672,8 @@ function updateTotal() {
   document.getElementById('hc-note').textContent = note;
 }
 
-/* Warm the player index while they type the team name. */
+/* Start fetching the player list the moment the page opens, so it's
+   ready by the time they've typed the team name. */
 loadIndex().catch(() => {});
 
 /* ── Open or closed, and how many are in ── */
