@@ -64,8 +64,6 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
 .ros .cap { font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
   text-transform: uppercase; color: var(--brass-ink); margin-left: 8px; white-space: nowrap; }
 .ros .fr { width: 110px; text-align: right; font-family: 'Space Mono', monospace; font-weight: 700; }
-.ros .ct { width: 110px; text-align: right; font-family: 'Space Mono', monospace; font-size: 11px;
-  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
 .ros tr.out td { color: #9a9083; }
 .ros tr.out .nm { font-weight: 500; }
 .ros .none { font-weight: 400; font-size: 13px; color: #b0412c; }
@@ -84,6 +82,14 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
 .qr .h { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: .12em;
   text-transform: uppercase; margin-top: 12px; }
 .qr .d { font-size: 14px; color: var(--ink-2); margin-top: 3px; line-height: 1.35; }
+/* The left box is the rules, not a code, so it reads left. */
+.qr.info { text-align: left; padding: 16px 18px; }
+.qr.info .h { margin-top: 0; color: var(--brass-ink); }
+.qr.info ul { list-style: none; margin: 10px 0 0; }
+.qr.info li { font-size: 15px; line-height: 1.45; padding-left: 16px; position: relative; }
+.qr.info li + li { margin-top: 6px; }
+.qr.info li::before { content: ''; position: absolute; left: 0; top: .6em;
+  width: 5px; height: 5px; background: var(--brass-ink); transform: rotate(45deg); }
 
 .fine { margin-top: 18px; text-align: center; font-size: 13px; color: var(--ink-2); }
 .fine b { color: var(--ink); }
@@ -92,7 +98,6 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
   .sheet { padding: 26px 20px; min-height: 0; }
   .team { font-size: 40px; }
   .ros td { font-size: 17px; }
-  .ros .ct { display: none; }
   .total .n { font-size: 36px; }
   .qrs { grid-template-columns: 1fr; }
 }
@@ -105,7 +110,6 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
   .sheet { max-width: none; box-shadow: none; border-radius: 0; margin: 0; padding: .1in .15in 0;
     min-height: 10.2in; break-after: page; page-break-after: always; background: #fff; }
   .sheet:last-child { break-after: auto; page-break-after: auto; }
-  .ros .ct { display: table-cell; }
   .qrs { grid-template-columns: 1fr 1fr; }
   .team { font-size: 64px; }
 }
@@ -130,7 +134,7 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
 /* ═══════════════════════════════════════════════════════════════
    tricity-roster.html?e=kemmerer&t=<team id>   one team
    tricity-roster.html?e=kemmerer               every team, a page each
-   tricity-roster v1.01
+   tricity-roster v1.02
    ═══════════════════════════════════════════════════════════════ */
 
 const E = tcEventKey();
@@ -158,18 +162,20 @@ function sheet(t) {
   const top = ranked.slice(0, TC_RULES.countTop);
   const short = top.length < TC_RULES.countTop || top.some(p => !p.rating);
 
-  const rows = ranked.map((p, i) => {
-    const counts = i < TC_RULES.countTop;
-    return `<tr class="${counts ? '' : 'out'}">
+  /* The four that count are plain; anything below is greyed. */
+  const rows = ranked.map((p, i) => `<tr class="${i < TC_RULES.countTop ? '' : 'out'}">
       <td class="rk">${i + 1}</td>
       <td class="nm">${esc(p.name)}${p.name === captain ? '<span class="cap">Captain</span>' : ''}</td>
       <td class="fr">${p.rating ? p.rating : '<span class="none">no rating</span>'}</td>
-      <td class="ct">${counts ? 'Counts' : 'Not counted'}</td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 
-  const winUrl = tcUrl('tricity-win.html', { e: E, t: t.id });
-  const hcUrl  = tcUrl('tricity-match.html', { e: E, t: t.id });
+  const hcUrl = tcUrl('tricity-match.html', { e: E, t: t.id });
+
+  /* Date, check-in and fee from the event, then the rules. Anything left
+     blank in TC_EVENTS simply doesn't print. */
+  const info = [EV.when, EV.checkin, EV.fee, EV.deadline ? 'Sign up deadline ' + EV.deadline : '']
+    .concat(EV.info && EV.info.length ? EV.info : TC_RULES.info)
+    .filter(Boolean);
 
   return `<section class="sheet">
     <div class="ev">${esc(EV.name)}${EV.when ? ' &middot; ' + esc(EV.when) : ''}</div>
@@ -177,7 +183,7 @@ function sheet(t) {
     <div class="rule"></div>
 
     <table class="ros">
-      <thead><tr><th>#</th><th>Player</th><th style="text-align:right">Fargo</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>Player</th><th style="text-align:right">Fargo</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
 
@@ -190,10 +196,9 @@ function sheet(t) {
     </div>
 
     <div class="qrs">
-      <div class="qr">
-        <div class="code">${qrSvg(winUrl)}</div>
-        <div class="h">Report a win</div>
-        <div class="d">Won a match? Scan this and pick the team you beat.</div>
+      <div class="qr info">
+        <div class="h">Tournament Info</div>
+        <ul>${info.map(line => `<li>${esc(line)}</li>`).join('')}</ul>
       </div>
       <div class="qr">
         <div class="code">${qrSvg(hcUrl)}</div>
@@ -235,8 +240,7 @@ tcGet(E).then(d => {
     document.title = teams[0].team + ' — ' + EV.name;
     document.getElementById('bar-title').textContent = EV.where + ' Tri City';
     document.getElementById('bar-links').innerHTML =
-      `<a class="btn" href="tricity-match.html?e=${E}&t=${encodeURIComponent(ONE)}">Handicap</a> ` +
-      `<a class="btn" href="tricity-win.html?e=${E}&t=${encodeURIComponent(ONE)}">Report a win</a>`;
+      `<a class="btn" href="tricity-match.html?e=${E}&t=${encodeURIComponent(ONE)}">Handicap</a>`;
   } else {
     document.title = 'All rosters — ' + EV.name;
     document.getElementById('bar-title').textContent = teams.length + ' rosters · ' + EV.where;

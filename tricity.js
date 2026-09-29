@@ -5,7 +5,7 @@
    Everything that changes from one Tri City to the next lives in
    TC_EVENTS at the top. The server keeps its own short list of the
    same keys in functions/api/tricity.js — add an event in both.
-   tricity.js v1.01
+   tricity.js v1.02
    ═══════════════════════════════════════════════════════════════ */
 
 /* Leave a field as '' and the page simply doesn't show it. */
@@ -19,6 +19,9 @@ const TC_EVENTS = {
     fee: '',
     checkin: '',
     maxTeams: null,
+    /* Printed on the roster under Tournament Info. Leave empty to use
+       the shared lines in TC_RULES.info below. */
+    info: [],
   },
   evanston: {
     key: 'evanston',
@@ -29,6 +32,9 @@ const TC_EVENTS = {
     fee: '',
     checkin: '',
     maxTeams: null,
+    /* Printed on the roster under Tournament Info. Leave empty to use
+       the shared lines in TC_RULES.info below. */
+    info: [],
   },
   bridgervalley: {
     key: 'bridgervalley',
@@ -39,6 +45,9 @@ const TC_EVENTS = {
     fee: '',
     checkin: '',
     maxTeams: 32,
+    /* Printed on the roster under Tournament Info. Leave empty to use
+       the shared lines in TC_RULES.info below. */
+    info: [],
   },
 };
 const TC_DEFAULT = 'kemmerer';
@@ -53,6 +62,13 @@ const TC_RULES = {
   perBall: 100,
   maxBalls: 10,
   ruleText: 'Fargo Rate Handicap: 1 ball per 100 points difference (Max of 10 balls per match)',
+  /* What every Tri City has in common — used when an event has no info
+     lines of its own. The date, check-in and fee from TC_EVENTS go above
+     these on the printed roster. */
+  info: [
+    'BCA rules apply',
+    '4 man teams, 12 game format',
+  ],
 };
 
 function tcEventKey() {
