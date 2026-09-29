@@ -7,6 +7,9 @@
  * LEAGUE_KEY if set in the Pages environment variables).
  *
  * Add a page: add a line to the right section below. That's all.
+ *
+ * officers v1.01 — report-a-win off the list for now, everything Tri City
+ * in one section.
  */
 
 const DEFAULT_PW = 'ktown';
@@ -15,11 +18,18 @@ const SECTIONS = [
   {
     title: 'Sign-ups',
     links: [
-      { href: 'leagueadmin.html', name: 'League Signup Admin', note: '8-Ball Fall/Winter 2026–27 teams, players looking and subs' },
-      { href: 'tricityadmin.html', name: 'Tri City Admin', note: 'Tri City teams, rosters, paid, reported wins' },
+      { href: 'leagueadmin.html', name: 'League Signup Admin', note: '8-Ball Fall/Winter 2026\u201327 teams, players looking and subs' },
       { href: 'league-signup.html', name: '8-Ball Signup', note: 'Public form: team, player or sub', public: true },
-      { href: 'tricity.html?e=kemmerer', name: 'Tri City Signup — Kemmerer', note: 'Public team signup with Fargo lookup', public: true },
-      { href: 'tricity-roster.html?e=kemmerer', name: 'Tri City Rosters — Kemmerer', note: 'Every team, one printed page each, with QR codes' },
+    ],
+  },
+  {
+    title: 'Tri City',
+    links: [
+      { href: 'tricityadmin.html', name: 'Tri City Admin', note: 'Teams, rosters, paid, refresh all ratings' },
+      { href: 'tricity.html?e=kemmerer', name: 'Tri City Signup \u2014 Kemmerer', note: 'Public team signup with Fargo lookup', public: true },
+      { href: 'tricity-roster.html?e=kemmerer', name: 'Tri City Rosters \u2014 Kemmerer', note: 'Every team, one printed page each, with the handicap QR' },
+      { href: 'tricity-match.html?e=kemmerer', name: 'Handicap \u2014 Kemmerer', note: 'What the QR on the roster opens' },
+      { href: 'calcutta.html', name: 'Calcutta Tracker', note: 'Auction, payments and payouts. Kept on the device you use it on' },
     ],
   },
   {
@@ -29,16 +39,8 @@ const SECTIONS = [
       { href: 'tournament.html', name: 'Tournament (Fargo Rate Races)', note: 'Bracket with races set by Fargo' },
       { href: 'bracket.html', name: 'Tournament (Custom Races)', note: 'Bracket with races you set' },
       { href: 'chip.html', name: 'Chip Tournament', note: 'Winner-stays-on chip manager' },
-      { href: 'tv.html', name: 'Tournament Board', note: 'TV view — needs a tournament code' },
-      { href: 'signup.html', name: 'Tournament Signup', note: 'Signup sheet — needs a signup code', public: true },
-      { href: 'calcutta.html', name: 'Calcutta Tracker', note: 'Auction, payments and payouts. Kept on the device you use it on' },
-    ],
-  },
-  {
-    title: 'Tri City tournament day',
-    links: [
-      { href: 'tricity-match.html?e=kemmerer', name: 'Handicap — Kemmerer', note: 'What the handicap QR opens' },
-      { href: 'tricity-win.html?e=kemmerer', name: 'Report a Win — Kemmerer', note: 'What the report-a-win QR opens' },
+      { href: 'tv.html', name: 'Tournament Board', note: 'TV view \u2014 needs a tournament code' },
+      { href: 'signup.html', name: 'Tournament Signup', note: 'Signup sheet \u2014 needs a signup code', public: true },
     ],
   },
   {
