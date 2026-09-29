@@ -116,8 +116,7 @@ select:focus, input:focus { outline: none; border-color: var(--brass); }
   </div>
 
   <p class="rule-text" id="rule"></p>
-  <div class="links" id="links"></div>
-  <div class="foot">tricity-match v1.00</div>
+  <div class="foot">tricity-match v1.01</div>
 </div>
 
 <script src="tricity.js"></script>
@@ -137,6 +136,7 @@ let TEAMS = [];
 document.getElementById('eyebrow').textContent = EV.name;
 document.getElementById('rule').innerHTML =
   '<b>' + esc(TC_RULES.ruleText.split(':')[0]) + ':</b>' + esc(TC_RULES.ruleText.slice(TC_RULES.ruleText.indexOf(':') + 1)) +
+  '<br>Given every round — ' + TC_RULES.rounds + ' rounds in a 12 game match.' +
   '<br>A team’s number is the total of its top ' + TC_RULES.countTop + ' players’ ratings.';
 
 const byId = id => TEAMS.find(t => t.id === id);
@@ -164,18 +164,14 @@ function show() {
   them && them !== me ? u.searchParams.set('vs', them) : u.searchParams.delete('vs');
   history.replaceState(null, '', u);
 
-  document.getElementById('links').innerHTML = me
-    ? `<a href="tricity-win.html?e=${E}&t=${encodeURIComponent(me)}">Report a win</a>` +
-      `<a href="tricity-roster.html?e=${E}&t=${encodeURIComponent(me)}">Your roster</a>`
-    : '';
-
   const box = document.getElementById('result');
   const a = byId(me), b = byId(them);
   if (!a || !b || a === b) { box.innerHTML = ''; return; }
 
   const ra = tcTeamRating(a.players), rb = tcTeamRating(b.players);
   const diff = Math.abs(ra - rb);
-  const balls = tcBalls(ra, rb);
+  const perRound = tcBalls(ra, rb);           /* what the spot is each round */
+  const balls = perRound * TC_RULES.rounds;   /* what it adds up to over the match */
   const low = ra < rb ? a : rb < ra ? b : null;
   const capped = Math.floor(diff / TC_RULES.perBall) > TC_RULES.maxBalls;
 
@@ -187,11 +183,11 @@ function show() {
     </div>
     <div class="answer">
       <div class="big">${balls}</div>
-      <div class="unit">${balls === 1 ? 'Ball' : 'Balls'}</div>
-      <div class="who">${balls && low
-        ? `<b>${esc(low.team)}</b> gets ${balls} ${balls === 1 ? 'ball' : 'balls'}.`
+      <div class="unit">${balls === 1 ? 'Ball' : 'Balls'}${perRound ? ` &middot; ${perRound} per round` : ''}</div>
+      <div class="who">${perRound && low
+        ? `<b>${esc(low.team)}</b> gets ${perRound} ${perRound === 1 ? 'ball' : 'balls'} a round, ${balls} over the ${TC_RULES.rounds} rounds.`
         : 'Even match. No balls either way.'}</div>
-      <div class="diff">${fmt(diff)} points apart${capped ? ' — capped at ' + TC_RULES.maxBalls + ' balls' : ''}</div>
+      <div class="diff">${fmt(diff)} points apart${capped ? ' — capped at ' + TC_RULES.maxBalls + ' balls a round' : ''}</div>
     </div>
     <div class="roster-mini"><b style="color:var(--bone)">${esc(a.team)}:</b> ${mini(a)}</div>
     <div class="roster-mini" style="margin-top:0"><b style="color:var(--bone)">${esc(b.team)}:</b> ${mini(b)}</div>`;

@@ -5,7 +5,7 @@
    Everything that changes from one Tri City to the next lives in
    TC_EVENTS at the top. The server keeps its own short list of the
    same keys in functions/api/tricity.js — add an event in both.
-   tricity.js v1.02
+   tricity.js v1.03
    ═══════════════════════════════════════════════════════════════ */
 
 /* Leave a field as '' and the page simply doesn't show it. */
@@ -61,6 +61,9 @@ const TC_RULES = {
   countTop: 4,
   perBall: 100,
   maxBalls: 10,
+  /* The spot is given every round. A 12 game match with 4 man teams is
+     three rounds, so a one ball spot is three balls over the match. */
+  rounds: 3,
   ruleText: 'Fargo Rate Handicap: 1 ball per 100 points difference (Max of 10 balls per match)',
   /* What every Tri City has in common — used when an event has no info
      lines of its own. The date, check-in and fee from TC_EVENTS go above
