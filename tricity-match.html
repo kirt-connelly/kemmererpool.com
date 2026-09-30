@@ -116,10 +116,10 @@ select:focus, input:focus { outline: none; border-color: var(--brass); }
   </div>
 
   <p class="rule-text" id="rule"></p>
-  <div class="foot">tricity-match v1.03</div>
+  <div class="foot">tricity-match v1.04</div>
 </div>
 
-<script src="tricity.js?v=1.04"></script>
+<script src="tricity.js?v=1.05"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    The handicap QR on a team's roster lands here with that team
@@ -138,7 +138,7 @@ let TEAMS = [];
 
 document.getElementById('eyebrow').textContent = EV.name;
 document.getElementById('rule').innerHTML =
-  '<b>Handicap:</b> 1 point per ' + TC_RULES.perPoint + ' Fargo. Max of ' + TC_RULES.maxPerRound +
+  '<b>Handicap:</b> 1 ball per ' + TC_RULES.perBall + ' Fargo. Max of ' + TC_RULES.maxPerRound +
   ' per round, ' + TC_RULES.maxPerMatch + ' per match.' +
   '<br>A team plays at its top ' + TC_RULES.countTop + ' ratings added up and rounded to the nearest ' + TC_RULES.roundTo + '.';
 
@@ -174,10 +174,10 @@ function show() {
   const ra = tcTeamRating(a.players), rb = tcTeamRating(b.players);
   const sa = tcRounded(ra), sb = tcRounded(rb);          /* what they play at */
   const diff = Math.abs(sa - sb);
-  const perRound = tcPointsRound(ra, rb);
-  const points = tcPointsMatch(ra, rb);
+  const perRound = tcBallsRound(ra, rb);
+  const balls = tcBallsMatch(ra, rb);
   const low = sa < sb ? a : sb < sa ? b : null;
-  const capped = Math.floor(diff / TC_RULES.perPoint) > TC_RULES.maxPerRound;
+  const capped = Math.floor(diff / TC_RULES.perBall) > TC_RULES.maxPerRound;
 
   const side = (t, total, rounded, isLow) => `<div class="side${isLow ? ' low' : ''}">
     <div class="nm">${esc(t.team)}</div><div class="n">${fmt(rounded)}</div>
@@ -190,11 +190,11 @@ function show() {
       ${side(b, rb, sb, low === b)}
     </div>
     <div class="answer">
-      <div class="big">${points}</div>
-      <div class="unit">${points === 1 ? 'Point' : 'Points'}${perRound ? ` &middot; ${perRound} per round` : ''}</div>
+      <div class="big">${balls}</div>
+      <div class="unit">${balls === 1 ? 'Ball' : 'Balls'}${perRound ? ` &middot; ${perRound} per round` : ''}</div>
       <div class="who">${perRound && low
-        ? `<b>${esc(low.team)}</b> gets ${perRound} ${perRound === 1 ? 'point' : 'points'} a round, ${points} total.`
-        : 'Even match. No points either way.'}</div>
+        ? `<b>${esc(low.team)}</b> gets ${perRound} ${perRound === 1 ? 'ball' : 'balls'} a round, ${balls} total.`
+        : 'Even match. No balls either way.'}</div>
       <div class="diff">${fmt(diff)} apart after rounding${capped ? ' — capped at ' + TC_RULES.maxPerRound + ' a round, ' + TC_RULES.maxPerMatch + ' a match' : ''}</div>
     </div>
     <div class="roster-mini"><b style="color:var(--bone)">${esc(a.team)}:</b> ${mini(a)}</div>

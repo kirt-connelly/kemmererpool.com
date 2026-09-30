@@ -129,12 +129,12 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
 <div class="sheets" id="sheets"></div>
 
 <script src="qrcode.js"></script>
-<script src="tricity.js?v=1.04"></script>
+<script src="tricity.js?v=1.05"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    tricity-roster.html?e=kemmerer&t=<team id>   one team
    tricity-roster.html?e=kemmerer               every team, a page each
-   tricity-roster v1.04
+   tricity-roster v1.05
    ═══════════════════════════════════════════════════════════════ */
 
 const E = tcEventKey();
@@ -208,7 +208,7 @@ function sheet(t) {
       </div>
     </div>
 
-    <div class="fine"><b>Handicap:</b> 1 point per ${TC_RULES.perPoint} Fargo &middot; max ${TC_RULES.maxPerRound} per round, ${TC_RULES.maxPerMatch} per match</div>
+    <div class="fine"><b>Handicap:</b> 1 ball per ${TC_RULES.perBall} Fargo &middot; max ${TC_RULES.maxPerRound} per round, ${TC_RULES.maxPerMatch} per match</div>
   </section>`;
 }
 

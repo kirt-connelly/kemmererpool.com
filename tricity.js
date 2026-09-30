@@ -5,7 +5,7 @@
    Everything that changes from one Tri City to the next lives in
    TC_EVENTS at the top. The server keeps its own short list of the
    same keys in functions/api/tricity.js — add an event in both.
-   tricity.js v1.04
+   tricity.js v1.05
    ═══════════════════════════════════════════════════════════════ */
 
 /* Leave a field as '' and the page simply doesn't show it. */
@@ -62,12 +62,12 @@ const TC_RULES = {
   maxPlayers: 6,
   shownAtStart: 4,
   countTop: 4,
-  perPoint: 100,        // 1 point per 100 Fargo
+  perBall: 100,         // 1 ball per 100 Fargo
   roundTo: 100,         // team totals go to the nearest 100 first
   rounds: 3,            // 12 game match, 4 man teams
   maxPerRound: 4,
   maxPerMatch: 12,
-  ruleText: 'Handicap: 1 point per 100 Fargo. Max of 4 per round, 12 per match.',
+  ruleText: 'Handicap: 1 ball per 100 Fargo. Max of 4 per round, 12 per match.',
   /* What every Tri City has in common — used when an event has no info
      lines of its own. The date, check-in and fee from TC_EVENTS go above
      these on the printed roster. */
@@ -75,7 +75,7 @@ const TC_RULES = {
     'BCA rules apply',
     '4 man teams, 12 game format',
     'Handicap max of 4 per round, 12 per match',
-    '1 point per 100 Fargo',
+    '1 ball per 100 Fargo',
     'Team totals round to the nearest 100',
   ],
 };
@@ -105,15 +105,15 @@ function tcRounded(total) {
   return Math.round(total / TC_RULES.roundTo) * TC_RULES.roundTo;
 }
 
-/* Points the lower team gets each round, and over the whole match.
+/* Balls the lower team gets each round, and over the whole match.
    Both take the raw totals and do the rounding themselves.
    The flyer's example: 1,600 against 2,000 is 4 a round, 12 for the match. */
-function tcPointsRound(a, b) {
+function tcBallsRound(a, b) {
   const diff = Math.abs(tcRounded(a) - tcRounded(b));
-  return Math.min(TC_RULES.maxPerRound, Math.floor(diff / TC_RULES.perPoint));
+  return Math.min(TC_RULES.maxPerRound, Math.floor(diff / TC_RULES.perBall));
 }
-function tcPointsMatch(a, b) {
-  return Math.min(TC_RULES.maxPerMatch, tcPointsRound(a, b) * TC_RULES.rounds);
+function tcBallsMatch(a, b) {
+  return Math.min(TC_RULES.maxPerMatch, tcBallsRound(a, b) * TC_RULES.rounds);
 }
 
 /* ── Talking to the server ── */
