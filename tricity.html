@@ -389,6 +389,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 /* ═══ TRI CITY ADDITIONS ═════════════════════════════════════ */
+/* Same shape as the other hero buttons, so the pair sit level. */
+.flyer-open {
+  display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font-family: 'Barlow', system-ui, sans-serif; font-size: 14px; font-weight: 600;
+  color: var(--bone); padding: 10px 16px; border: 1px solid rgba(244,239,228,.3);
+  border-radius: 4px; background: rgba(0,0,0,.34);
+  box-shadow: inset 0 1px 0 rgba(244,239,228,.08);
+  transition: border-color .15s, background .15s;
+}
+.flyer-open:hover { border-color: var(--brass); background: rgba(212,161,60,.2); }
+.flyer-open::after { content: '\2197'; color: var(--brass); }
+
+.lb {
+  display: none; position: fixed; inset: 0; z-index: 90; padding: 24px;
+  background: rgba(10,8,6,.92); align-items: center; justify-content: center;
+}
+.lb.open { display: flex; }
+.lb img { max-width: min(100%, 780px); max-height: 100%; border-radius: 4px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.6); }
+.lb-x {
+  position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; cursor: pointer;
+  border-radius: 50%; border: 1px solid var(--edge); background: rgba(0,0,0,.5);
+  color: var(--bone); font-size: 24px; line-height: 1;
+}
+.lb-x:hover { border-color: var(--brass); color: var(--brass); }
 .hero-facts { margin: 16px auto 0; display: flex; gap: 8px 22px; justify-content: center; flex-wrap: wrap;
   font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase; color: var(--brass); }
@@ -509,6 +534,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
         <div class="hero-facts" id="h-facts"></div>
         <div class="hero-jump">
           <a class="back" href="index.html">Back to the league</a>
+          <button type="button" id="flyer-btn" class="flyer-open" style="display:none">Flyer</button>
         </div>
       </div>
     </div>
@@ -595,14 +621,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>tricity v1.02</span>
+        <span>tricity v1.03</span>
       </div>
     </div>
   </footer>
 
 </div>
 
-<script src="tricity.js?v=1.03"></script>
+<div class="lb" id="lb" onclick="closeFlyer()">
+  <img id="lb-img" alt="Tri City tournament flyer">
+  <button type="button" class="lb-x" onclick="closeFlyer()" aria-label="Close">&times;</button>
+</div>
+
+<script src="tricity.js?v=1.04"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    Tri City team signup. tricity.html is the Kemmerer one;
@@ -625,9 +656,28 @@ document.getElementById('h-facts').innerHTML = [
   EV.checkin,
 ].filter(Boolean).map(f => '<span>' + esc(f) + '</span>').join('');
 document.getElementById('rule-note').innerHTML =
-  '<b>Handicap:</b> ' + esc(TC_RULES.ruleText.replace(/^Fargo Rate Handicap:\s*/, '')) +
-  '. Your team’s number is the total of its top ' + TC_RULES.countTop +
-  ' Fargo ratings, no matter what order they signed up in.';
+  '<b>Handicap:</b> 1 point per ' + TC_RULES.perPoint + ' Fargo, max of ' + TC_RULES.maxPerRound +
+  ' per round and ' + TC_RULES.maxPerMatch + ' per match. Your team’s number is the total of its top ' +
+  TC_RULES.countTop + ' Fargo ratings — whatever order they signed up in — rounded to the nearest ' +
+  TC_RULES.roundTo + '.';
+
+/* ── The flyer ── */
+if (EV.flyer) {
+  const btn = document.getElementById('flyer-btn');
+  btn.style.display = '';
+  btn.onclick = () => {
+    const img = document.getElementById('lb-img');
+    img.src = EV.flyer;
+    img.alt = EV.name + ' flyer';
+    document.getElementById('lb').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+}
+function closeFlyer() {
+  document.getElementById('lb').classList.remove('open');
+  document.body.style.overflow = '';
+}
+addEventListener('keydown', e => { if (e.key === 'Escape') closeFlyer(); });
 
 /* ── The roster ── */
 tcStatusHook = (msg, bad) => {
@@ -666,8 +716,11 @@ function updateTotal() {
   const list = picked();
   document.getElementById('hc-n').textContent = tcTeamRating(list).toLocaleString('en-US');
   const unrated = list.filter(p => !p.rating).length;
-  let note = 'Total of your top ' + TC_RULES.countTop + ' players’ Fargo ratings.';
-  if (list.length > TC_RULES.countTop) note = 'Top ' + TC_RULES.countTop + ' of ' + list.length + ' players.';
+  const total = tcTeamRating(list);
+  let note = total
+    ? 'Top ' + TC_RULES.countTop + (list.length > TC_RULES.countTop ? ' of ' + list.length + ' players' : '') +
+      ' — plays at ' + tcRounded(total).toLocaleString('en-US') + ' after rounding.'
+    : 'Total of your top ' + TC_RULES.countTop + ' players’ Fargo ratings.';
   if (unrated) note += ' ' + unrated + (unrated === 1 ? ' player has' : ' players have') + ' no rating yet.';
   document.getElementById('hc-note').textContent = note;
 }

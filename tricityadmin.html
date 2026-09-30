@@ -267,10 +267,10 @@
 </main>
 
 <footer>
-  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; <a href="leagueadmin.html">League signups</a> &nbsp;&middot;&nbsp; tricityadmin v1.02
+  <a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; <a href="leagueadmin.html">League signups</a> &nbsp;&middot;&nbsp; tricityadmin v1.03
 </footer>
 
-<script src="tricity.js?v=1.03"></script>
+<script src="tricity.js?v=1.04"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    Officers' side of the Tri City: every team that signed up, their
@@ -421,7 +421,7 @@ function render(d) {
         <div class="stamp">Signed up ${when(t.at)}${t.source === 'officer' ? ' by an officer' : ''}${t.editedAt ? ' · edited ' + when(t.editedAt) : ''}</div>
       </div>
       <div class="acts" style="flex-direction:column;align-items:flex-end;gap:10px">
-        <div class="hcap">${fmt(tcTeamRating(t.players))}<small>Handicap</small></div>
+        <div class="hcap">${fmt(tcRounded(tcTeamRating(t.players)))}<small>Handicap &middot; top 4 ${fmt(tcTeamRating(t.players))}</small></div>
         <div class="acts">
           <button class="tag${t.paid ? ' paid' : ''}" style="cursor:pointer;background:none;font-family:inherit" data-act="paid" data-id="${esc(t.id)}">${t.paid ? 'Paid' : 'Not paid'}</button>
           <a class="act small" href="tricity-roster.html?e=${E}&t=${encodeURIComponent(t.id)}" target="_blank">Roster</a>
@@ -554,14 +554,14 @@ async function toggleOpen() {
 /* ── CSV — one row per player ── */
 function exportCsv() {
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const lines = [['Team', 'Handicap', 'Paid', 'Player', 'Role', 'Fargo', 'Counts', 'Captain phone', 'Signed up'].map(q).join(',')];
+  const lines = [['Team', 'Handicap', 'Top 4 total', 'Paid', 'Player', 'Role', 'Fargo', 'Counts', 'Captain phone', 'Signed up'].map(q).join(',')];
   DATA.teams.forEach(t => {
     const total = tcTeamRating(t.players);
     const ranked = tcRanked(t.players);
     const stamp = t.at ? new Date(t.at).toISOString().slice(0, 16).replace('T', ' ') : '';
     ranked.forEach((p, i) => {
       const cap = t.players[0] && p.name === t.players[0].name;
-      lines.push([t.team, total, t.paid ? 'Yes' : 'No', p.name, cap ? 'Captain' : 'Player', p.rating || '',
+      lines.push([t.team, tcRounded(total), total, t.paid ? 'Yes' : 'No', p.name, cap ? 'Captain' : 'Player', p.rating || '',
         i < TC_RULES.countTop ? 'Yes' : 'No', cap ? t.captainPhone : '', stamp].map(q).join(','));
     });
   });
@@ -642,7 +642,7 @@ function showRefresh() {
     return `<div class="rf-team">
       <div class="hd">
         <span class="nm">${esc(t.team)}</span>
-        <span class="tot">Handicap ${fmt(before)} &rarr; <b>${fmt(after)}</b></span>
+        <span class="tot">Handicap ${fmt(tcRounded(before))} &rarr; <b>${fmt(tcRounded(after))}</b> <span style="color:var(--text3)">(top 4 ${fmt(before)} &rarr; ${fmt(after)})</span></span>
       </div>
       ${t.changes.map((c, ci) => `
         <label class="rf-ch">

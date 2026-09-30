@@ -5,7 +5,7 @@
    Everything that changes from one Tri City to the next lives in
    TC_EVENTS at the top. The server keeps its own short list of the
    same keys in functions/api/tricity.js — add an event in both.
-   tricity.js v1.03
+   tricity.js v1.04
    ═══════════════════════════════════════════════════════════════ */
 
 /* Leave a field as '' and the page simply doesn't show it. */
@@ -19,6 +19,7 @@ const TC_EVENTS = {
     fee: '',
     checkin: '',
     maxTeams: null,
+    flyer: 'images/tri-city-2027.jpg',
     /* Printed on the roster under Tournament Info. Leave empty to use
        the shared lines in TC_RULES.info below. */
     info: [],
@@ -32,6 +33,7 @@ const TC_EVENTS = {
     fee: '',
     checkin: '',
     maxTeams: null,
+    flyer: 'images/tri-city-2027.jpg',
     /* Printed on the roster under Tournament Info. Leave empty to use
        the shared lines in TC_RULES.info below. */
     info: [],
@@ -45,6 +47,7 @@ const TC_EVENTS = {
     fee: '',
     checkin: '',
     maxTeams: 32,
+    flyer: 'images/tri-city-2027.jpg',
     /* Printed on the roster under Tournament Info. Leave empty to use
        the shared lines in TC_RULES.info below. */
     info: [],
@@ -59,18 +62,21 @@ const TC_RULES = {
   maxPlayers: 6,
   shownAtStart: 4,
   countTop: 4,
-  perBall: 100,
-  maxBalls: 10,
-  /* The spot is given every round. A 12 game match with 4 man teams is
-     three rounds, so a one ball spot is three balls over the match. */
-  rounds: 3,
-  ruleText: 'Fargo Rate Handicap: 1 ball per 100 points difference (Max of 10 balls per match)',
+  perPoint: 100,        // 1 point per 100 Fargo
+  roundTo: 100,         // team totals go to the nearest 100 first
+  rounds: 3,            // 12 game match, 4 man teams
+  maxPerRound: 4,
+  maxPerMatch: 12,
+  ruleText: 'Handicap: 1 point per 100 Fargo. Max of 4 per round, 12 per match.',
   /* What every Tri City has in common — used when an event has no info
      lines of its own. The date, check-in and fee from TC_EVENTS go above
      these on the printed roster. */
   info: [
     'BCA rules apply',
     '4 man teams, 12 game format',
+    'Handicap max of 4 per round, 12 per match',
+    '1 point per 100 Fargo',
+    'Team totals round to the nearest 100',
   ],
 };
 
@@ -87,12 +93,27 @@ const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function tcRanked(players) {
   return (players || []).slice().sort((a, b) => (b.rating || 0) - (a.rating || 0));
 }
+
+/* A team's raw number: its top four Fargo ratings added up. */
 function tcTeamRating(players) {
   return tcRanked(players).slice(0, TC_RULES.countTop).reduce((n, p) => n + (p.rating || 0), 0);
 }
-/* How many balls the lower team gets. */
-function tcBalls(a, b) {
-  return Math.min(TC_RULES.maxBalls, Math.floor(Math.abs(a - b) / TC_RULES.perBall));
+
+/* The number the handicap is worked out from — the total rounded to the
+   nearest 100, so 1,951 plays as 2,000 and 1,934 plays as 1,900. */
+function tcRounded(total) {
+  return Math.round(total / TC_RULES.roundTo) * TC_RULES.roundTo;
+}
+
+/* Points the lower team gets each round, and over the whole match.
+   Both take the raw totals and do the rounding themselves.
+   The flyer's example: 1,600 against 2,000 is 4 a round, 12 for the match. */
+function tcPointsRound(a, b) {
+  const diff = Math.abs(tcRounded(a) - tcRounded(b));
+  return Math.min(TC_RULES.maxPerRound, Math.floor(diff / TC_RULES.perPoint));
+}
+function tcPointsMatch(a, b) {
+  return Math.min(TC_RULES.maxPerMatch, tcPointsRound(a, b) * TC_RULES.rounds);
 }
 
 /* ── Talking to the server ── */

@@ -129,12 +129,12 @@ table.ros { width: 100%; border-collapse: collapse; margin-top: 4px; }
 <div class="sheets" id="sheets"></div>
 
 <script src="qrcode.js"></script>
-<script src="tricity.js?v=1.03"></script>
+<script src="tricity.js?v=1.04"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    tricity-roster.html?e=kemmerer&t=<team id>   one team
    tricity-roster.html?e=kemmerer               every team, a page each
-   tricity-roster v1.03
+   tricity-roster v1.04
    ═══════════════════════════════════════════════════════════════ */
 
 const E = tcEventKey();
@@ -161,6 +161,7 @@ function sheet(t) {
   const total = tcTeamRating(t.players);
   const top = ranked.slice(0, TC_RULES.countTop);
   const short = top.length < TC_RULES.countTop || top.some(p => !p.rating);
+  const plays = tcRounded(total);
 
   /* The four that count are plain; anything below is greyed. */
   const rows = ranked.map((p, i) => `<tr class="${i < TC_RULES.countTop ? '' : 'out'}">
@@ -190,9 +191,9 @@ function sheet(t) {
     <div class="total">
       <div>
         <div class="l">Team handicap</div>
-        <div class="s">Total of the top ${TC_RULES.countTop} Fargo ratings${asOf()}${short ? ' &mdash; short a rated player, see an officer' : ''}</div>
+        <div class="s">Top ${TC_RULES.countTop} Fargo ${total.toLocaleString('en-US')}, rounded to the nearest ${TC_RULES.roundTo}${asOf()}${short ? ' &mdash; short a rated player, see an officer' : ''}</div>
       </div>
-      <div class="n">${total.toLocaleString('en-US')}</div>
+      <div class="n">${plays.toLocaleString('en-US')}</div>
     </div>
 
     <div class="qrs">
@@ -207,7 +208,7 @@ function sheet(t) {
       </div>
     </div>
 
-    <div class="fine"><b>${esc(TC_RULES.ruleText.split(':')[0])}:</b>${esc(TC_RULES.ruleText.slice(TC_RULES.ruleText.indexOf(':') + 1))}</div>
+    <div class="fine"><b>Handicap:</b> 1 point per ${TC_RULES.perPoint} Fargo &middot; max ${TC_RULES.maxPerRound} per round, ${TC_RULES.maxPerMatch} per match</div>
   </section>`;
 }
 
