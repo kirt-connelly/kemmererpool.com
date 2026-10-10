@@ -564,10 +564,15 @@ h2.head {
    The eight teams, listed here until Jenkins has the division up
    on FargoRate and the standings load like the other seasons.
    ──────────────────────────────────────────────────────────── */
+/* The rule that used to sit on the grid moves up to the heading. */
+.teams-hd {
+  margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--edge-in);
+  font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
+}
 .teams {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px; margin-top: 20px; padding-top: 18px;
-  border-top: 1px solid var(--edge-in);
+  gap: 14px; margin-top: 14px;
 }
 .team {
   border: 1px solid var(--edge); border-radius: 6px;
@@ -806,6 +811,7 @@ a:focus-visible, button:focus-visible {
               Start date and holiday weeks came out of the 8-Ball meeting on Aug 25,
               where players voted to play the weeks of Christmas and New Year's.
             </p>
+            <div class="teams-hd">8-Ball 2026&ndash;27 Teams and Captains</div>
             <div class="teams">
               <div class="team">
                 <h4>8 Ball Magic</h4>
@@ -1162,7 +1168,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.50</span>
+        <span>v1.51</span>
       </div>
 
     </div>
