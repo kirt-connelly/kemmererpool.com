@@ -632,7 +632,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>signup v1.17</span>
+        <span>signup v1.18</span>
       </div>
 
     </div>
@@ -646,6 +646,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    the same Resend setup the suggestion box uses.
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── Signups closed ──────────────────────────────────────────
+   One switch. Flip CLOSED back to false when next season opens and
+   the three forms come back exactly as they were. ───────────── */
+var CLOSED = true;
+
 /* ── One form at a time ──────────────────────────────────────
    The three buttons on the front page land here with a hash, so
    whichever one they pressed is the one that opens. ─────────── */
@@ -654,6 +659,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   var picks = document.querySelectorAll('.pick');
 
   function open(name) {
+    if (CLOSED) name = 'team';
     if (PANELS.indexOf(name) === -1) name = 'team';
     PANELS.forEach(function (p) {
       document.getElementById(p).style.display = (p === name) ? '' : 'none';
@@ -894,6 +900,30 @@ document.getElementById('pl-submit').addEventListener('click', async function ()
   }
   btn.disabled = false;
 });
+
+/* Last, so the forms are fully wired before they're swapped out — flipping
+   CLOSED back to false restores them untouched. */
+if (CLOSED) {
+  document.querySelector('.picker').style.display = 'none';
+
+  document.querySelector('.hero-h1').innerHTML = 'Signups are <em>closed.</em>';
+  document.querySelector('.hero-sub').textContent =
+    'Eight teams are in for the 26\u201327 season. Wednesday nights, all winter.';
+  document.querySelector('.hero-deadline').textContent = 'Season starts Wednesday, October 21st.';
+
+  var band = document.querySelector('#team .band-hd');
+  band.innerHTML =
+    '<h2 class="head">Signups are closed</h2>' +
+    '<p class="lede">Eight teams are in. Schedules are coming out soon.</p>';
+
+  document.querySelector('#team .panel-hd').innerHTML =
+    '<span class="eyebrow">8-Ball Fall/Winter 2026&ndash;27</span>' +
+    '<span class="panel-note">Closed October 9th</span>';
+
+  sent('team-body', 'That\u2019s a wrap on signups.',
+       'Eight teams are in for the 26\u201327 season. Play starts Wednesday, October 21st and schedules are coming out soon. Still want in? Talk to an officer.',
+       'Every player pays their own sanction fee on the Jenkins website before they play.');
+}
 </script>
 </body>
 </html>

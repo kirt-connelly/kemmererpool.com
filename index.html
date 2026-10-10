@@ -560,6 +560,38 @@ h2.head {
   margin-top: 18px; color: var(--dim); font-size: 14px; max-width: 62ch;
 }
 
+/* ═══ TEAMS ══════════════════════════════════════════════════
+   The eight teams, listed here until Jenkins has the division up
+   on FargoRate and the standings load like the other seasons.
+   ──────────────────────────────────────────────────────────── */
+.teams {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; margin-top: 20px; padding-top: 18px;
+  border-top: 1px solid var(--edge-in);
+}
+.team {
+  border: 1px solid var(--edge); border-radius: 6px;
+  background: rgba(0,0,0,.22); padding: 14px 16px 13px;
+}
+.team h4 {
+  font-size: 17px; font-weight: 700; letter-spacing: -.01em;
+  color: var(--bone); margin: 0; line-height: 1.25;
+}
+.team .bar {
+  display: block; font-family: 'Space Mono', monospace; font-size: 11.5px;
+  font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--brass); margin-top: 3px;
+}
+.team ol {
+  margin: 11px 0 0; padding-left: 18px; color: var(--bone);
+  font-size: 15px; line-height: 1.6;
+}
+.team li::marker { color: var(--dim); font-size: 13px; }
+.team .cap { color: var(--dim); }
+.team a { color: var(--brass); text-decoration: none; white-space: nowrap; }
+.team a:hover { text-decoration: underline; }
+.teams-foot { margin-top: 14px; color: var(--dim); font-size: 14px; max-width: 62ch; }
+
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
    The one place on the page anyone types. It sits in the same
@@ -729,40 +761,38 @@ a:focus-visible, button:focus-visible {
       <article class="league signup">
         <div class="league-hd">
           <div>
-            <span class="flag">Signups open</span>
+            <span class="flag">Signups closed</span>
             <h3>8-Ball Fall/Winter 2026&ndash;27</h3>
             <p>
-              Time to get signed up for the upcoming 8 ball season. Sign up
-              your team or if you don't have one, give us your name and we'll
-              help you find one.
+              Signups are closed and eight teams are in. Play starts Wednesday,
+              October 21st and schedules are coming out soon. Every player pays
+              their own sanction fee on the Jenkins website before they play.
             </p>
             <div class="league-go">
-              <a href="league-signup.html">Team Signup</a>
-              <a href="league-signup.html#solo">Player Signup (No Team)</a>
-              <a href="league-signup.html#sub">Sub List Signup</a>
+              <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">Pay your sanction fee</a>
             </div>
             <div class="facts">
               <div class="fact">
-                <span class="k">Sign-up deadline</span>
-                <span class="v hot">October 9th</span>
+                <span class="k">Signups</span>
+                <span class="v">Closed October 9th &middot; 8 teams in</span>
               </div>
               <div class="fact">
                 <span class="k">Sanction fees</span>
-                <span class="v">Paid to Jenkins on
+                <span class="v hot">Every player pays their own to Jenkins on
                   <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">their website</a>
                 </span>
               </div>
               <div class="fact">
                 <span class="k">Season start</span>
-                <span class="v">Tentatively October 21st</span>
+                <span class="v hot">Wednesday, October 21st</span>
               </div>
               <div class="fact">
                 <span class="k">Holiday Weeks</span>
                 <span class="v">Off Thanksgiving week. Playing the weeks of Christmas and New Year's.</span>
               </div>
               <div class="fact">
-                <span class="k">Still to come</span>
-                <span class="v">Full details, teams and schedule</span>
+                <span class="k">Schedules</span>
+                <span class="v">Coming out soon</span>
               </div>
               <div class="fact">
                 <span class="k">Questions</span>
@@ -775,6 +805,94 @@ a:focus-visible, button:focus-visible {
             <p class="facts-foot">
               Start date and holiday weeks came out of the 8-Ball meeting on Aug 25,
               where players voted to play the weeks of Christmas and New Year's.
+            </p>
+            <div class="teams">
+              <div class="team">
+                <h4>8 Ball Magic</h4>
+                <span class="bar">Grumpies</span>
+                <ol>
+                  <li>Rylee Roberts <span class="cap">(captain)</span> &middot; <a href="tel:3072481966">(307) 248-1966</a></li>
+                  <li>Ty Dever</li>
+                  <li>Jeff S. Fox</li>
+                  <li>Trinity Kofoed</li>
+                  <li>Jace Joyner</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>Chalk is Cheap</h4>
+                <span class="bar">Grumpies</span>
+                <ol>
+                  <li>Sable Abeyta <span class="cap">(captain)</span> &middot; <a href="tel:3076771419">(307) 677-1419</a></li>
+                  <li>Jim Whittaker</li>
+                  <li>Dean Meacham</li>
+                  <li>Jake Raven</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>English Teachers</h4>
+                <span class="bar">Sage Lanes</span>
+                <ol>
+                  <li>Cody Baker <span class="cap">(captain)</span> &middot; <a href="tel:3077233837">(307) 723-3837</a></li>
+                  <li>Dave Shillcox</li>
+                  <li>Tanner Hansen</li>
+                  <li>Johnnie Colangelo</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>Grumpies BYTCHES &amp; BRYTCHES</h4>
+                <span class="bar">Grumpies</span>
+                <ol>
+                  <li>Kylee Smith <span class="cap">(captain)</span> &middot; <a href="tel:3076790984">(307) 679-0984</a></li>
+                  <li>John Brandis</li>
+                  <li>Jessica Carver</li>
+                  <li>Joel Carver</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>Pit Masters</h4>
+                <span class="bar">Sage Lanes</span>
+                <ol>
+                  <li>Jeff Christen <span class="cap">(captain)</span> &middot; <a href="tel:3077230113">(307) 723-0113</a></li>
+                  <li>Mark Scott</li>
+                  <li>Harlan Nielson</li>
+                  <li>Ryan Christen</li>
+                  <li>Bill Lozier</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>Rack Pack</h4>
+                <span class="bar">Stock Exchange</span>
+                <ol>
+                  <li>Andy Cass <span class="cap">(captain)</span> &middot; <a href="tel:3073599593">(307) 359-9593</a></li>
+                  <li>Eddie Beehler</li>
+                  <li>Amanda Mcgill</li>
+                  <li>Zakirie Malone</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>Stock Sticks</h4>
+                <span class="bar">Stock Exchange</span>
+                <ol>
+                  <li>Bill Abriani <span class="cap">(captain)</span> &middot; <a href="tel:3079999999">307-999-9999</a></li>
+                  <li>Danny Kominsky</li>
+                  <li>Gregg Harwood</li>
+                  <li>Jerilyn Case</li>
+                </ol>
+              </div>
+              <div class="team">
+                <h4>Three Dads and a Mitch</h4>
+                <span class="bar">Sage Lanes</span>
+                <ol>
+                  <li>Trevor Connelly <span class="cap">(captain)</span> &middot; <a href="tel:8016486387">(801) 648-6387</a></li>
+                  <li>Teddy Deason</li>
+                  <li>Mitch Deason</li>
+                  <li>Kirt Connelly</li>
+                </ol>
+              </div>
+            </div>
+            <p class="teams-foot">
+              Captains are listed first. Standings and stats will show here once
+              Jenkins has the division up on FargoRate, same as the other seasons.
             </p>
           </div>
         </div>
@@ -1044,7 +1162,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.48</span>
+        <span>v1.50</span>
       </div>
 
     </div>
