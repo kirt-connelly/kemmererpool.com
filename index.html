@@ -596,6 +596,16 @@ h2.head {
 .team a { color: var(--brass); text-decoration: none; white-space: nowrap; }
 .team a:hover { text-decoration: underline; }
 .teams-foot { margin-top: 14px; color: var(--dim); font-size: 14px; max-width: 62ch; }
+/* Each card's way through to that team's own 21 nights. */
+.team .tsched {
+  display: inline-block; margin-top: 11px;
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; text-decoration: none;
+  color: var(--brass); border: 1px solid rgba(212,161,60,.4); border-radius: 4px;
+  padding: 7px 11px; background: rgba(212,161,60,.08);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.team .tsched:hover { background: rgba(212,161,60,.2); border-color: var(--brass); color: var(--bone); }
 
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
@@ -760,26 +770,27 @@ a:focus-visible, button:focus-visible {
         <h2 class="head">Leagues</h2>
       </div>
 
-      <!-- The main league, and the one everything is pointed at right now:
-           sign-ups. Full width, above the running season, because getting
-           teams in is the job this fall. -->
-      <article class="league signup">
+      <!-- The league that's running. The week panel below reads
+           season-8ball.js, so it rolls over on its own every Wednesday
+           and needs nothing from anybody. -->
+      <article class="league live">
         <div class="league-hd">
           <div>
-            <span class="flag">Signups closed</span>
+            <span class="flag">Season on</span>
             <h3>8-Ball Fall/Winter 2026&ndash;27</h3>
             <p>
-              Signups are closed and eight teams are in. Play starts Wednesday,
-              October 21st and schedules are coming out soon. Every player pays
-              their own sanction fee on the Jenkins website before they play.
+              Eight teams, Wednesday nights, Oct 21 through Mar 17. Find your
+              team's nights below, and remember every player pays their own
+              sanction fee on the Jenkins website before they play.
             </p>
             <div class="league-go">
+              <a href="team-schedule.html">Team schedules</a>
               <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">Pay your sanction fee</a>
             </div>
             <div class="facts">
               <div class="fact">
-                <span class="k">Signups</span>
-                <span class="v">Closed October 9th &middot; 8 teams in</span>
+                <span class="k">Season</span>
+                <span class="v hot">Oct 21 &ndash; Mar 17 &middot; 21 weeks</span>
               </div>
               <div class="fact">
                 <span class="k">Sanction fees</span>
@@ -788,8 +799,8 @@ a:focus-visible, button:focus-visible {
                 </span>
               </div>
               <div class="fact">
-                <span class="k">Season start</span>
-                <span class="v hot">Wednesday, October 21st</span>
+                <span class="k">Where</span>
+                <span class="v">Stock Exchange, Sage Lanes and Grumpies</span>
               </div>
               <div class="fact">
                 <span class="k">Holiday Weeks</span>
@@ -797,7 +808,11 @@ a:focus-visible, button:focus-visible {
               </div>
               <div class="fact">
                 <span class="k">Schedules</span>
-                <span class="v">Coming out soon</span>
+                <span class="v"><a href="team-schedule.html">Every team's nights</a>, ready to print</span>
+              </div>
+              <div class="fact">
+                <span class="k">Standings</span>
+                <span class="v">Here once Jenkins posts the division on FargoRate</span>
               </div>
               <div class="fact">
                 <span class="k">Questions</span>
@@ -811,6 +826,19 @@ a:focus-visible, button:focus-visible {
               Start date and holiday weeks came out of the 8-Ball meeting on Aug 25,
               where players voted to play the weeks of Christmas and New Year's.
             </p>
+            <div class="league-body">
+              <div class="panel" id="thisweek">
+                <div class="panel-hd">
+                  <span class="eyebrow" id="week-head">This week</span>
+                  <span class="nextup-when" id="week-when"></span>
+                </div>
+                <div class="nextup-body" id="week-body">
+                  <div class="nextup-wait">Loading this week&hellip;</div>
+                </div>
+                <a class="panel-more" href="team-schedule.html">Your team's whole season &rarr;</a>
+              </div>
+            </div>
+
             <div class="teams-hd">8-Ball 2026&ndash;27 Teams and Captains</div>
             <div class="teams">
               <div class="team">
@@ -823,6 +851,7 @@ a:focus-visible, button:focus-visible {
                   <li>Trinity Kofoed</li>
                   <li>Jace Joyner</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=8-ball-magic">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>Chalk is Cheap</h4>
@@ -833,6 +862,7 @@ a:focus-visible, button:focus-visible {
                   <li>Dean Meacham</li>
                   <li>Jake Raven</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=chalk-is-cheap">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>English Teachers</h4>
@@ -843,6 +873,7 @@ a:focus-visible, button:focus-visible {
                   <li>Tanner Hansen</li>
                   <li>Johnnie Colangelo</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=english-teachers">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>Grumpies BYTCHES &amp; BRYTCHES</h4>
@@ -853,6 +884,7 @@ a:focus-visible, button:focus-visible {
                   <li>Jessica Carver</li>
                   <li>Joel Carver</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=bytches-brytches">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>Pit Masters</h4>
@@ -864,6 +896,7 @@ a:focus-visible, button:focus-visible {
                   <li>Ryan Christen</li>
                   <li>Bill Lozier</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=pit-masters">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>Rack Pack</h4>
@@ -874,16 +907,18 @@ a:focus-visible, button:focus-visible {
                   <li>Amanda Mcgill</li>
                   <li>Zakirie Malone</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=rack-pack">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>Stock Sticks</h4>
                 <span class="bar">Stock Exchange</span>
                 <ol>
-                  <li>Bill Abriani <span class="cap">(captain)</span> &middot; <a href="tel:3079999999">307-999-9999</a></li>
+                  <li>Bill Abriani <span class="cap">(captain)</span> &middot; <a href="tel:3074663310">(307) 466-3310</a></li>
                   <li>Danny Kominsky</li>
                   <li>Gregg Harwood</li>
                   <li>Jerilyn Case</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=stock-sticks">Schedule &rarr;</a>
               </div>
               <div class="team">
                 <h4>Three Dads and a Mitch</h4>
@@ -894,15 +929,16 @@ a:focus-visible, button:focus-visible {
                   <li>Mitch Deason</li>
                   <li>Kirt Connelly</li>
                 </ol>
+                <a class="tsched" href="team-schedule.html?t=three-dads-and-a-mitch">Schedule &rarr;</a>
               </div>
             </div>
             <p class="teams-foot">
-              Captains are listed first. Standings and stats will show here once
-              Jenkins has the division up on FargoRate, same as the other seasons.
+              Captains are listed first. Tap a team for all 21 of their nights.
             </p>
           </div>
         </div>
-      </article>
+
+</article>
 
       <!-- Finished this summer: final standings, no fixtures left to show. -->
       <article class="league">
@@ -1168,7 +1204,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.51</span>
+        <span>v1.52</span>
       </div>
 
     </div>
@@ -1176,6 +1212,7 @@ a:focus-visible, button:focus-visible {
 
 </div>
 
+<script src="season-8ball.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    Live data comes through the same Cloudflare proxy the main site
@@ -1385,8 +1422,55 @@ async function submitSuggestion() {
   btn.disabled = false;
 }
 
+/* ── This week ───────────────────────────────────────────────────
+   The 8-ball season is run off season-8ball.js rather than FargoRate
+   until Jenkins posts the division, so this panel works out which
+   Wednesday we're on and lists that night's four matches with the bar
+   each one is at. It rolls over by itself and needs nobody. */
+function loadThisWeek() {
+  const S = window.SEASON_8BALL;
+  const body = document.getElementById('week-body');
+  const when = document.getElementById('week-when');
+  const head = document.getElementById('week-head');
+  if (!S || !body) return;
+
+  const week = S.current();
+  if (!week) {                                   /* past Mar 17 */
+    head.textContent = 'Season done';
+    body.innerHTML = '<div class="nextup-wait">That\u2019s the season. Next one goes up once it\u2019s set.</div>';
+    return;
+  }
+
+  const [iso, games] = week;
+  const d = S.day(iso);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tonight = d.getTime() === today.getTime();
+
+  const wk = S.weekNumber(iso);
+  head.textContent = !games.length ? 'No play this week'
+    : tonight ? 'Tonight' : (wk === 1 ? 'Opening night' : 'Next up');
+  when.textContent = d.toLocaleDateString('en-US',
+    { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase() +
+    (wk ? '  \u00b7  WEEK ' + wk + ' OF 21' : '');
+
+  if (!games.length) {
+    body.innerHTML = '<div class="nextup-wait">' +
+      esc(S.offNotes[iso] || 'No play this week') + '. Back on the Wednesday after.</div>';
+    return;
+  }
+
+  body.innerHTML = games.map(([h, v]) =>
+    '<div class="fixture">' +
+      '<span class="h">' + esc(S.teams[h].name) + '</span>' +
+      '<span class="v">VS</span>' +
+      '<span class="a">' + esc(S.teams[v].name) + '</span>' +
+      '<span class="rm">' + esc(S.teams[h].bar) + '</span>' +
+    '</div>').join('');
+}
+
 loadStandings();
 loadNext();
+loadThisWeek();
 
 /* ── Anchors that land where they should ─────────────────────────
    Standings and Next up arrive after the page does, so a section can

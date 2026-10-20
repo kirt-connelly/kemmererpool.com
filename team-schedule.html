@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Team Schedules — Kemmerer Pool League</title>
+<meta name="description" content="Every team's 8-Ball Fall/Winter 2026-27 schedule — who you play, when, and which bar." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Kemmerer Pool League — team schedules
+
+   One team at a time, picked from the row of buttons or by landing
+   on ?t=<team>. The season is the fixture list at the bottom of this
+   file; it stays here until Jenkins has the division on FargoRate
+   and schedule.html can read it live.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --night:#14100c; --night-2:#1d1712; --felt:#1c5142; --felt-lo:#102e26;
+  --rail:#3a2318; --brass:#d4a13c; --bone:#f4efe4; --dim:#9d9282;
+  --edge:rgba(244,239,228,.13); --edge-in:rgba(244,239,228,.10);
+  --radius:6px; --shell:900px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sans-serif;
+  font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.shell{width:100%;max-width:var(--shell);margin:0 auto;padding:0 24px}
+.lamp{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120vw 70vh at 50% -18vh,rgba(212,161,60,.16),transparent 62%)}
+.page{position:relative;z-index:1}
+
+/* masthead */
+.mast{position:sticky;top:0;z-index:40;background:rgba(20,16,12,.84);
+  backdrop-filter:saturate(140%) blur(10px);-webkit-backdrop-filter:saturate(140%) blur(10px);
+  border-bottom:1px solid rgba(212,161,60,.15)}
+.mast-in{display:flex;align-items:center;gap:24px;height:62px}
+.mark{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit}
+.mark .eight{width:27px;height:27px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:radial-gradient(circle at 33% 27%,rgba(255,255,255,.55),rgba(255,255,255,0) 42%),#100d0a;
+  box-shadow:inset -3px -4px 7px rgba(0,0,0,.6)}
+.mark .eight span{width:12px;height:12px;border-radius:50%;background:var(--bone);
+  font:700 8px/12px 'Space Mono',monospace;color:#100d0a;text-align:center}
+.mark b{font-weight:700;font-size:15px;color:var(--bone);white-space:nowrap}
+.mast nav{margin-left:auto;display:flex;gap:4px}
+.mast nav a{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);text-decoration:none;padding:8px 12px;border-radius:4px}
+.mast nav a:hover{color:var(--bone);background:rgba(244,239,228,.06)}
+
+/* rails */
+.rail-rule{display:flex;align-items:center;justify-content:center;gap:46px;height:26px;position:relative}
+.rail-rule::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,161,60,.22) 12%,rgba(212,161,60,.22) 88%,transparent)}
+.rail-rule i{width:7px;height:7px;background:var(--brass);opacity:.5;transform:rotate(45deg);flex:none}
+
+/* hero */
+.cloth{position:relative;overflow:hidden;border-top:3px solid var(--rail);border-bottom:3px solid var(--rail);
+  background:radial-gradient(90% 120% at 50% -10%,rgba(255,255,255,.09),transparent 55%),
+             linear-gradient(180deg,var(--felt) 0%,var(--felt-lo) 100%)}
+.cloth-in{position:relative;z-index:2;padding-top:48px;padding-bottom:50px;text-align:center}
+.eyebrow{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass)}
+.hero-h1{font-family:'Alfa Slab One',Georgia,serif;font-weight:400;font-size:clamp(34px,6.4vw,62px);
+  line-height:.98;letter-spacing:-.025em;margin:12px 0 0;text-shadow:0 3px 0 rgba(0,0,0,.3),0 22px 44px rgba(0,0,0,.45)}
+.hero-h1 em{font-style:normal;color:var(--brass)}
+.hero-sub{margin:14px auto 0;font-size:18px;color:rgba(244,239,228,.88);max-width:46ch}
+
+/* team picker */
+.pick-band{padding:26px 0 0}
+.picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}
+.pick{font-family:'Barlow',system-ui,sans-serif;font-size:15px;font-weight:600;color:var(--dim);
+  background:rgba(244,239,228,.05);border:1px solid var(--edge);border-radius:5px;
+  padding:11px 14px;cursor:pointer;text-align:left;line-height:1.3}
+.pick small{display:block;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--dim);opacity:.8;margin-top:2px}
+.pick:hover{color:var(--bone);background:rgba(244,239,228,.09)}
+.pick[aria-pressed="true"]{color:var(--brass);background:rgba(212,161,60,.16);border-color:rgba(212,161,60,.55)}
+.pick[aria-pressed="true"] small{color:var(--brass);opacity:.9}
+
+/* the schedule */
+.band{padding:28px 0 60px}
+.panel{border:1px solid var(--edge);border-radius:var(--radius);overflow:hidden;background:rgba(0,0,0,.18)}
+.panel-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:16px 18px;background:rgba(0,0,0,.28);border-bottom:1px solid var(--edge-in)}
+.panel-hd h2{font-size:24px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.panel-hd .who{font-size:14px;color:var(--dim);margin-top:3px}
+.panel-hd .who b{color:var(--bone);font-weight:600}
+.print-btn{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;cursor:pointer;padding:10px 15px;border-radius:4px;
+  border:1px solid rgba(212,161,60,.6);background:rgba(212,161,60,.18);color:var(--brass)}
+.print-btn:hover{background:rgba(212,161,60,.3);color:var(--bone)}
+.hd-acts{display:flex;gap:8px;flex-wrap:wrap}
+.print-btn{text-decoration:none;display:inline-flex;align-items:center}
+.print-btn.quiet{border-color:var(--edge);background:rgba(244,239,228,.07);color:var(--bone)}
+.print-btn.quiet:hover{border-color:var(--brass);background:rgba(212,161,60,.16);color:var(--bone)}
+
+.wk{display:grid;grid-template-columns:96px 78px 1fr;gap:0 14px;align-items:center;
+  padding:11px 18px;border-top:1px solid var(--edge-in)}
+.weeks .wk:first-child{border-top:none}
+.wk:nth-child(even){background:rgba(244,239,228,.03)}
+.wk .d{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--bone)}
+.wk .d span{display:block;font-size:11px;font-weight:400;color:var(--dim)}
+.tag{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;text-align:center;padding:4px 0;border-radius:99px}
+.tag.home{background:var(--brass);color:var(--night)}
+.tag.away{border:1px solid var(--dim);color:var(--dim)}
+.wk .opp{font-size:18px;font-weight:700;line-height:1.25}
+.wk .at{font-size:13px;color:var(--dim)}
+.wk .at.ours{color:var(--brass)}
+.wk.off{background:rgba(244,239,228,.02)}
+.wk.off .d{color:var(--dim)}
+.wk.off .note{grid-column:2 / -1;font-size:14px;color:var(--dim)}
+.wk.past{opacity:.45}
+.wk.next{background:rgba(212,161,60,.1);box-shadow:inset 3px 0 0 var(--brass)}
+.wk .flag{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brass);margin-left:9px;white-space:nowrap}
+.tally{display:flex;gap:18px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--edge-in);
+  background:rgba(0,0,0,.25);font-size:14px;color:var(--dim)}
+.tally b{color:var(--bone);font-weight:600}
+
+.foot{border-top:1px solid var(--edge);margin-top:20px;padding:30px 0 40px;background:rgba(0,0,0,.2)}
+.foot-links{display:flex;gap:14px;flex-wrap:wrap}
+.foot-links a{display:inline-flex;align-items:center;color:var(--bone);text-decoration:none;font-size:15px;
+  font-weight:600;padding:9px 14px;border-radius:4px;border:1px solid var(--edge);background:rgba(244,239,228,.07)}
+.foot-links a:hover{border-color:var(--brass);background:rgba(212,161,60,.16)}
+.colophon{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:20px;padding-top:14px;
+  border-top:1px solid var(--edge-in);font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim)}
+
+@media (max-width:620px){
+  body{font-size:16px}
+  .shell{padding-left:16px;padding-right:16px}
+  .wk{grid-template-columns:76px 68px 1fr;gap:0 10px;padding:10px 14px}
+  .wk .opp{font-size:16px}
+  .mast-in{flex-direction:column;justify-content:center;gap:2px;height:auto;padding:9px 0 7px}
+  .mast nav{margin-left:0;flex-wrap:wrap;justify-content:center}
+}
+
+/* Printed, it's one page a team: white paper, black ink, no furniture,
+   and tight enough that 21 weeks never spill onto a second sheet. */
+@media print{
+  @page{size:letter portrait;margin:.45in}
+  .lamp,.mast,.cloth,.rail-rule,.pick-band,.hd-acts,.foot{display:none !important}
+  body{background:#fff;color:#000;font-size:11pt}
+  .band{padding:0}
+  .shell{max-width:none;padding:0}
+  .panel{border:2px solid #000;border-radius:0;background:#fff;break-inside:avoid}
+  .panel-hd{background:#fff;border-bottom:2px solid #000;padding:10px 12px}
+  .panel-hd h2{font-size:19pt}
+  .panel-hd .who{color:#333;font-size:10pt}
+  .panel-hd .who b{color:#000}
+  /* Two columns beats shrinking the type: 21 weeks on one sheet, still readable. */
+  .weeks{column-count:2;column-gap:16px}
+  .wk{border-top:1px solid #bbb;padding:5px 10px;grid-template-columns:76px 60px 1fr;break-inside:avoid}
+  .weeks .wk:first-child{border-top:1px solid #bbb}
+  .wk:nth-child(even){background:#f1f1f1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wk .d{color:#000;font-size:11pt}
+  .wk .d span{color:#555;font-size:8pt}
+  .wk .opp{color:#000;font-size:12pt;line-height:1.2}
+  .wk .at,.wk.off .note{color:#444;font-size:9pt}
+  .wk .at.ours{color:#000;font-weight:600}
+  .wk.off .d{color:#444}
+  .wk.past{opacity:1}
+  .wk.next{background:none;box-shadow:none}
+  .wk .flag{display:none}
+  .tag{font-size:8.5pt;padding:3px 0}
+  .tag.home{background:#000;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tag.away{border-color:#666;color:#333}
+  .tally{background:#fff;border-top:2px solid #000;color:#333;font-size:9.5pt;padding:8px 12px}
+  .tally b{color:#000}
+}
+</style>
+</head>
+<body>
+
+<div class="lamp" aria-hidden="true"></div>
+<div class="page">
+
+  <header class="mast">
+    <div class="shell mast-in">
+      <a class="mark" href="index.html">
+        <span class="eight" aria-hidden="true"><span>8</span></span>
+        <b>Kemmerer Pool League</b>
+      </a>
+      <nav>
+        <a href="index.html#leagues">Leagues</a>
+        <a href="tournaments.html">Tournaments</a>
+        <a href="index.html#rooms">Bars</a>
+        <a href="index.html#officers">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="cloth">
+    <div class="shell cloth-in">
+      <div class="eyebrow">8-Ball Fall/Winter 2026&ndash;27</div>
+      <h1 class="hero-h1">Team <em>schedules.</em></h1>
+      <p class="hero-sub">Pick your team. Wednesday nights, Oct 21 through Mar 17.</p>
+    </div>
+  </div>
+  <div class="rail-rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+  <section class="pick-band">
+    <div class="shell">
+      <div class="picker" id="picker"></div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="shell"><div id="out"></div></div>
+  </section>
+
+  <footer class="foot">
+    <div class="shell">
+      <div class="foot-links">
+        <a href="index.html">Back to the league</a>
+        <a href="league.html?lg=8ball">Standings</a>
+        <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
+      </div>
+      <div class="colophon">
+        <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
+        <span>team-schedule v1.02</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="season-8ball.js"></script>
+<script>
+/* The season lives in season-8ball.js, shared with the front page, so
+   a correction is made once and both pages follow. */
+const S = window.SEASON_8BALL;
+const TEAMS = S.teams;
+const OFF_NOTE = S.offNotes;
+
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* Dates are plain Y-M-D, built locally so a night never slides a day. */
+const day = iso => S.day(iso);
+const fmt = iso => day(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const year = iso => iso.slice(0,4);
+
+const nights = team => S.season(team);
+
+function render(team) {
+  const t = TEAMS[team];
+  const rows = nights(team);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const next = rows.find(r => !r.off && day(r.iso) >= today);
+
+  const played = rows.filter(r => !r.off);
+  const home = played.filter(r => r.home).length;
+  const byBar = {};
+  played.forEach(r => { byBar[r.bar] = (byBar[r.bar] || 0) + 1; });
+  const bars = Object.entries(byBar).sort((a,b) => b[1] - a[1]);
+
+  document.getElementById('out').innerHTML = `
+    <div class="panel">
+      <div class="panel-hd">
+        <div>
+          <h2>${esc(t.name)}</h2>
+          <div class="who">Home at <b>${esc(t.bar)}</b> &middot; Captain <b>${esc(t.captain)}</b></div>
+        </div>
+        <div class="hd-acts">
+          <a class="print-btn quiet" href="images/${t.slug}-schedule.png" download>Save image</a>
+          <button class="print-btn" onclick="window.print()">Print</button>
+        </div>
+      </div>
+      <div class="weeks">${rows.map(r => {
+        if (r.off) return `<div class="wk off">
+            <div class="d">${fmt(r.iso)}<span>${year(r.iso)}</span></div>
+            <div class="note">${esc(OFF_NOTE[r.iso] || 'No play')}</div>
+          </div>`;
+        const past = day(r.iso) < today;
+        const isNext = next && r.iso === next.iso && r.opp === next.opp;
+        return `<div class="wk${past ? ' past' : ''}${isNext ? ' next' : ''}">
+            <div class="d">${fmt(r.iso)}<span>${year(r.iso)}</span></div>
+            <div class="tag ${r.home ? 'home' : 'away'}">${r.home ? 'Home' : 'Away'}</div>
+            <div>
+              <div class="opp">${esc(TEAMS[r.opp].name)}${isNext ? '<span class="flag">Next up</span>' : ''}</div>
+              <div class="at${r.bar === t.bar ? ' ours' : ''}">${esc(r.bar)}</div>
+            </div>
+          </div>`;
+      }).join('')}</div>
+      <div class="tally">
+        <span><b>${home}</b> home &middot; <b>${played.length - home}</b> away</span>
+        ${bars.map(([bar,n]) => `<span><b>${n}</b> ${n === 1 ? 'night' : 'nights'} at ${esc(bar)}</span>`).join('')}
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.pick').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.t === String(team) ? 'true' : 'false'));
+  document.title = t.name + ' Schedule — Kemmerer Pool League';
+}
+
+/* ── The picker ── */
+document.getElementById('picker').innerHTML = Object.keys(TEAMS).map(id =>
+  `<button type="button" class="pick" data-t="${id}" aria-pressed="false">
+     ${esc(TEAMS[id].name)}<small>${esc(TEAMS[id].bar)}</small>
+   </button>`).join('');
+
+document.querySelectorAll('.pick').forEach(b => b.onclick = () => {
+  const id = b.dataset.t;
+  const u = new URL(location.href);
+  u.searchParams.set('t', TEAMS[id].slug);
+  history.replaceState(null, '', u);
+  render(Number(id));
+});
+
+/* ?t= takes a slug (three-dads-a-mitch), a number, or part of a name. */
+(function () {
+  const want = (new URLSearchParams(location.search).get('t') || '').toLowerCase().trim();
+  let id = Object.keys(TEAMS).find(k => TEAMS[k].slug === want || k === want);
+  if (!id && want) id = Object.keys(TEAMS).find(k => TEAMS[k].name.toLowerCase().includes(want));
+  if (id) { render(Number(id)); return; }
+  document.getElementById('out').innerHTML =
+    '<div class="panel"><div class="panel-hd"><div><h2>Pick a team</h2>' +
+    '<div class="who">Eight teams, 21 Wednesdays. Your schedule prints on one page.</div>' +
+    '</div></div></div>';
+})();
+</script>
+</body>
+</html>
