@@ -596,6 +596,10 @@ h2.head {
 .team a { color: var(--brass); text-decoration: none; white-space: nowrap; }
 .team a:hover { text-decoration: underline; }
 .teams-foot { margin-top: 14px; color: var(--dim); font-size: 14px; max-width: 62ch; }
+/* The housekeeping, under the schedule where it belongs once the
+   season is running. */
+.season-notes { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 30px; }
+.season-notes .v { font-size: 15px; }
 /* Each card's way through to that team's own 21 nights. */
 .team .tsched {
   display: inline-block; margin-top: 11px;
@@ -787,45 +791,6 @@ a:focus-visible, button:focus-visible {
               <a href="team-schedule.html">Team schedules</a>
               <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">Pay your sanction fee</a>
             </div>
-            <div class="facts">
-              <div class="fact">
-                <span class="k">Season</span>
-                <span class="v hot">Oct 21 &ndash; Mar 17 &middot; 21 weeks</span>
-              </div>
-              <div class="fact">
-                <span class="k">Sanction fees</span>
-                <span class="v hot">Every player pays their own to Jenkins on
-                  <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">their website</a>
-                </span>
-              </div>
-              <div class="fact">
-                <span class="k">Where</span>
-                <span class="v">Stock Exchange, Sage Lanes and Grumpies</span>
-              </div>
-              <div class="fact">
-                <span class="k">Holiday Weeks</span>
-                <span class="v">Off Thanksgiving week. Playing the weeks of Christmas and New Year's.</span>
-              </div>
-              <div class="fact">
-                <span class="k">Schedules</span>
-                <span class="v"><a href="team-schedule.html">Every team's nights</a>, ready to print</span>
-              </div>
-              <div class="fact">
-                <span class="k">Standings</span>
-                <span class="v">Here once Jenkins posts the division on FargoRate</span>
-              </div>
-              <div class="fact">
-                <span class="k">Questions</span>
-                <span class="v">
-                  <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
-                  or Trevor at <a href="tel:8016486387">801-648-6387</a>
-                </span>
-              </div>
-            </div>
-            <p class="facts-foot">
-              Start date and holiday weeks came out of the 8-Ball meeting on Aug 25,
-              where players voted to play the weeks of Christmas and New Year's.
-            </p>
             <div class="league-body">
               <div class="panel" id="thisweek">
                 <div class="panel-hd">
@@ -935,6 +900,27 @@ a:focus-visible, button:focus-visible {
             <p class="teams-foot">
               Captains are listed first. Tap a team for all 21 of their nights.
             </p>
+
+            <div class="facts season-notes">
+              <div class="fact">
+                <span class="k">Weeks off</span>
+                <span class="v">Thanksgiving week, Nov 25. Playing Christmas and New Year's weeks.</span>
+              </div>
+              <div class="fact">
+                <span class="k">Sanction fees</span>
+                <span class="v">Every player pays their own to Jenkins on
+                  <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">their website</a>
+                </span>
+              </div>
+              <div class="fact">
+                <span class="k">Questions</span>
+                <span class="v">
+                  <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>
+                  or Trevor at <a href="tel:8016486387">801-648-6387</a>
+                </span>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1204,7 +1190,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.52</span>
+        <span>v1.53</span>
       </div>
 
     </div>
