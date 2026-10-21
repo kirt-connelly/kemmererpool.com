@@ -338,7 +338,7 @@ h2.head {
 
 /* ═══ STANDINGS ══════════════════════════════════════════════ */
 .stand { width: 100%; border-collapse: collapse; }
-#standings-frame { overflow-x: auto; }
+#standings-frame, #standings-8ball { overflow-x: auto; }
 .stand thead th {
   font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
   letter-spacing: .13em; text-transform: uppercase; color: var(--dim);
@@ -789,6 +789,7 @@ a:focus-visible, button:focus-visible {
             </p>
             <div class="league-go">
               <a href="team-schedule.html">Team schedules</a>
+              <a href="league.html?lg=8ball">Standings and stats</a>
               <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener">Pay your sanction fee</a>
             </div>
             <div class="league-body">
@@ -801,6 +802,17 @@ a:focus-visible, button:focus-visible {
                   <div class="nextup-wait">Loading this week&hellip;</div>
                 </div>
                 <a class="panel-more" href="team-schedule.html">Your team's whole season &rarr;</a>
+              </div>
+
+              <div class="panel">
+                <div class="panel-hd">
+                  <span class="eyebrow">Standings</span>
+                  <span class="panel-note">8-Ball 2026&ndash;27</span>
+                </div>
+                <div id="standings-8ball">
+                  <div class="quiet-note">Loading the standings&hellip;</div>
+                </div>
+                <a class="panel-more" href="league.html?lg=8ball">Players, ratings and stats &rarr;</a>
               </div>
             </div>
 
@@ -879,7 +891,7 @@ a:focus-visible, button:focus-visible {
                 <span class="bar">Stock Exchange</span>
                 <ol>
                   <li>Bill Abriani <span class="cap">(captain)</span> &middot; <a href="tel:3074663310">(307) 466-3310</a></li>
-                  <li>Danny Kominsky</li>
+                  <li>Dan Kominsky</li>
                   <li>Gregg Harwood</li>
                   <li>Jerilyn Case</li>
                 </ol>
@@ -964,12 +976,12 @@ a:focus-visible, button:focus-visible {
             <span class="flag">Season ended</span>
             <h3>8-Ball Fall/Winter 2025&ndash;26</h3>
             <p>Last winter's league. Check out and print the
-              <a href="schedule.html?league=8ball">full schedule</a>.</p>
+              <a href="schedule.html?league=8ball2526">full schedule</a>.</p>
           </div>
         </div>
         <div class="league-go">
-          <a href="league.html?lg=8ball">Full Standings and Stats</a>
-          <a href="league.html?lg=8ball&amp;view=schedule">Weekly Results</a>
+          <a href="league.html?lg=8ball2526">Full Standings and Stats</a>
+          <a href="league.html?lg=8ball2526&amp;view=schedule">Weekly Results</a>
         </div>
       </article>
 
@@ -1190,7 +1202,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.53</span>
+        <span>v1.55</span>
       </div>
 
     </div>
@@ -1208,7 +1220,8 @@ a:focus-visible, button:focus-visible {
 
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
-const DIVISION = 'c97cf1bf-ff08-44a0-b916-b4520124b3e6';   // 10-Ball Summer 2026
+const DIVISION = 'c97cf1bf-ff08-44a0-b916-b4520124b3e6';   // 10-Ball Summer 2026, finished
+const DIVISION_8BALL = '6e366095-3e94-426d-ad45-b4ea0013fc17';   // Kemmerer, 8-Ball 2026-27 — the season that's running
 
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1247,10 +1260,11 @@ function findPctIdx(headers) {
   return -1;
 }
 
-async function loadStandings() {
-  const frame = document.getElementById('standings-frame');
+async function loadStandings(divisionId = DIVISION, frameId = 'standings-frame') {
+  const frame = document.getElementById(frameId);
+  if (!frame) return;
   try {
-    const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateTeamStandingsReport/' + DIVISION));
+    const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateTeamStandingsReport/' + divisionId));
     if (!r.ok) throw new Error(r.status);
     const t = parseTable(await r.text());
     if (!t || !t.body.length) throw new Error('empty');
@@ -1290,8 +1304,13 @@ async function loadStandings() {
       ).join('') +
       '</tbody></table>';
   } catch (e) {
-    frame.innerHTML = '<div class="quiet-note">Standings aren\u2019t loading right now. ' +
-      'Give it a minute, or try <a href="league.html?lg=10ball">the standings page</a>.</div>';
+    /* An empty report is the normal state until the first week's results
+       are in, so say that rather than crying failure. */
+    const lg = frameId === 'standings-8ball' ? '8ball' : '10ball';
+    frame.innerHTML = e.message === 'empty'
+      ? '<div class="quiet-note">No results posted yet. Standings fill in once the first week is scored.</div>'
+      : '<div class="quiet-note">Standings aren\u2019t loading right now. ' +
+        'Give it a minute, or try <a href="league.html?lg=' + lg + '">the standings page</a>.</div>';
   }
 }
 
@@ -1454,7 +1473,8 @@ function loadThisWeek() {
     '</div>').join('');
 }
 
-loadStandings();
+loadStandings();                                          /* 10-ball, final */
+loadStandings(DIVISION_8BALL, 'standings-8ball');         /* this season, live */
 loadNext();
 loadThisWeek();
 

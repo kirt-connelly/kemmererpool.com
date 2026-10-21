@@ -549,8 +549,9 @@
   <h1 id="lg-title">10-Ball Summer 2026</h1>
   <div class="sub" id="lg-sub">Standings, players and the schedule.</div>
   <div class="league-tabs">
-    <button class="ltab" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
-    <button class="ltab inactive-league" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 25-26</button>
+    <button class="ltab" id="ltab-8ball" onclick="switchLeague('8ball')">8-Ball 26-27</button>
+    <button class="ltab inactive-league" id="ltab-10ball" onclick="switchLeague('10ball')">10-Ball 26</button>
+    <button class="ltab inactive-league" id="ltab-8ball2526" onclick="switchLeague('8ball2526')">8-Ball 25-26</button>
   </div>
 </div>
 
@@ -587,16 +588,20 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.22</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.23</div>
   </div>
 </footer>
 
 <script>
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
+/* The season that's running first. Last year's divisions stay here so
+   their standings, stats and schedules keep working — archive, not
+   delete. Add the new one each season and leave the old key alone. */
 const DIVISIONS = {
-  '10ball': { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: 'Kemmerer Summer 10 Ball 2026' },
-  '8ball':  { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: 'Kemmerer 8 Ball League 25-26' },
+  '8ball':     { id: '6e366095-3e94-426d-ad45-b4ea0013fc17', label: 'Kemmerer 8 Ball League 26-27' },
+  '10ball':    { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: 'Kemmerer Summer 10 Ball 2026' },
+  '8ball2526': { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: 'Kemmerer 8 Ball League 25-26' },
 };
 const VIEWS = {
   teams:    { url: id => `${BASE}/GenerateTeamStandingsReport/${id}`,         method: 'GET' },
@@ -1903,15 +1908,17 @@ const PAGE_TABS = [];   // every tab here is a league now; Events has its own pa
 
 /* Title, subtitle and the printable-sheet link all follow the tab. */
 const LEAGUE_HD = {
-  '10ball': { title: '10-Ball Summer 2026', eyebrow: 'Season ended',
-              sub: 'Final standings, players and the schedule.' },
-  '8ball':  { title: '8-Ball Fall/Winter 2025\u201326', eyebrow: 'Season ended',
-              sub: 'Last winter\u2019s league, start to finish.' },
+  '8ball':     { title: '8-Ball Fall/Winter 2026\u201327', eyebrow: 'Season on',
+                 sub: 'Standings, players and the schedule, week by week.' },
+  '10ball':    { title: '10-Ball Summer 2026', eyebrow: 'Season ended',
+                 sub: 'Final standings, players and the schedule.' },
+  '8ball2526': { title: '8-Ball Fall/Winter 2025\u201326', eyebrow: 'Season ended',
+                 sub: 'Last winter\u2019s league, start to finish.' },
 };
 
 function switchLeague(lg) {
   league = lg;
-  ['10ball','8ball'].forEach(k => {
+  Object.keys(DIVISIONS).forEach(k => {
     const el = document.getElementById(`ltab-${k}`);
     if (!el) return;
     el.classList.toggle('active', k === lg);
@@ -1993,7 +2000,7 @@ function scrollToNextMatch() {
       document.getElementById(`vt-${k}`).classList.toggle('active', k === wantView));
   }
 
-  switchLeague(['10ball', '8ball'].includes(want) ? want : '10ball');
+  switchLeague(Object.keys(DIVISIONS).includes(want) ? want : '8ball');
 })();
 
 </script>

@@ -337,7 +337,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.16</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.17</div>
   </div>
 </footer>
 
@@ -345,22 +345,28 @@
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
 
+/* Running season first; past ones keep their key so old links and
+   printed sheets still resolve. */
 const DIVISIONS = {
-  '10ball': { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: '10-Ball 2026' },
-  '8ball':  { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: '8-Ball 25-26' },
+  '8ball':     { id: '6e366095-3e94-426d-ad45-b4ea0013fc17', label: '8-Ball 26-27' },
+  '10ball':    { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: '10-Ball 2026' },
+  '8ball2526': { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: '8-Ball 25-26' },
 };
 
-const league = (new URLSearchParams(location.search).get('league') || '10ball');
-const div = DIVISIONS[league] || DIVISIONS['10ball'];
+const asked = (new URLSearchParams(location.search).get('league') || '8ball');
+const league = DIVISIONS[asked] ? asked : '8ball';
+const div = DIVISIONS[league];
 
-const other = league === '8ball' ? '10ball' : '8ball';
+/* Every other season on the site, so nothing is a dead end. */
+const others = Object.keys(DIVISIONS).filter(k => k !== league);
 
 document.getElementById('lg-title').textContent = div.label + ' Schedule';
 document.getElementById('lg-sub').textContent =
   'Every week of the season, start to finish. Print it for the wall.';
 document.title = div.label + ' Schedule \u2014 Kemmerer Pool League';
-document.getElementById('other-link').href = 'schedule.html?league=' + other;
-document.getElementById('other-link').textContent = DIVISIONS[other].label;
+const otherBox = document.getElementById('other-link');
+otherBox.outerHTML = others.map(k =>
+  `<a class="act" href="schedule.html?league=${k}">${DIVISIONS[k].label}</a>`).join('');
 
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
