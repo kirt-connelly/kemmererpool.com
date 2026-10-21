@@ -1202,7 +1202,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.55</span>
+        <span>v1.56</span>
       </div>
 
     </div>
@@ -1210,6 +1210,7 @@ a:focus-visible, button:focus-visible {
 
 </div>
 
+<script src="fargo-fixes.js"></script>
 <script src="season-8ball.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -1266,7 +1267,7 @@ async function loadStandings(divisionId = DIVISION, frameId = 'standings-frame')
   try {
     const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateTeamStandingsReport/' + divisionId));
     if (!r.ok) throw new Error(r.status);
-    const t = parseTable(await r.text());
+    const t = parseTable(fixFargoHtml(await r.text()));
     if (!t || !t.body.length) throw new Error('empty');
 
     const pct = findPctIdx(t.headers);
@@ -1338,7 +1339,7 @@ async function loadNext() {
     if (!r.ok) throw new Error(r.status);
 
     const d = document.createElement('div');
-    d.innerHTML = await r.text();
+    d.innerHTML = fixFargoHtml(await r.text());
     const list = d.querySelector('#schedule-list') || d;
 
     const weeks = [];

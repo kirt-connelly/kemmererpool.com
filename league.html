@@ -588,10 +588,11 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.23</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.24</div>
   </div>
 </footer>
 
+<script src="fargo-fixes.js"></script>
 <script>
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
@@ -678,7 +679,7 @@ async function fetchSection(lg, vw) {
       }
       const r = await fetch(PROXY + encodeURIComponent(url), opts);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const html = await r.text();
+      const html = fixFargoHtml(await r.text());
       if (!html || html.trim().length < 30) throw new Error('empty');
 
       tried.push({ body, chars: html.length, schedule: looksLikeSchedule(html) });
@@ -1265,7 +1266,7 @@ async function loadMatchResult(matchId, title) {
     const url = `https://lms.fargorate.com/PublicReport/MatchResultBCAPL?matchId=${matchId}`;
     const r   = await fetch(PROXY + encodeURIComponent(url));
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const html = await r.text();
+    const html = fixFargoHtml(await r.text());
     document.getElementById('content').innerHTML =
       renderMatchResult(html, title) +
       `<div style="margin-top:16px">
@@ -1629,7 +1630,7 @@ async function loadTeamDetail(teamId, teamName) {
   try {
     const r = await fetch(PROXY + encodeURIComponent(url));
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const html = await r.text();
+    const html = fixFargoHtml(await r.text());
     document.getElementById('content').innerHTML = renderTeamDetail(html, teamName);
   } catch(e) {
     document.getElementById('content').innerHTML = notice(`Could not load team detail: ${e.message}`);
