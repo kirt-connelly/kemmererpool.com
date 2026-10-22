@@ -257,6 +257,9 @@ h2.head {
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 22px; flex-wrap: wrap;
 }
+/* Flex items default to min-width:auto, which lets a wide table push the
+   whole page sideways. Zero it so the table scrolls inside its own frame. */
+.league-hd > div { min-width: 0; }
 .league.live .league-hd, .league.ended .league-hd { margin-bottom: 22px; }
 /* A block that carries panels: the buttons sit under the copy and the
    panels get their own air, rather than everything running together. */
@@ -570,44 +573,31 @@ h2.head {
   font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
   letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
 }
-.teams {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
-  gap: 14px; margin-top: 14px;
+.teams-wrap {
+  margin-top: 14px; overflow-x: auto; max-width: 100%;
+  border: 1px solid var(--edge); border-radius: 6px; background: rgba(0,0,0,.22);
 }
-.team {
-  border: 1px solid var(--edge); border-radius: 6px;
-  background: rgba(0,0,0,.22); padding: 14px 16px 13px;
+.teams-tbl td { font-size: 15px; }
+.teams-tbl .tm { font-weight: 600; font-size: 16px; color: var(--bone); white-space: nowrap; }
+.teams-tbl .br {
+  font-family: 'Space Mono', monospace; font-size: 11.5px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--brass); white-space: nowrap;
 }
-.team h4 {
-  font-size: 17px; font-weight: 700; letter-spacing: -.01em;
-  color: var(--bone); margin: 0; line-height: 1.25;
+.teams-tbl .cp { white-space: nowrap; }
+.teams-tbl td { white-space: nowrap; }
+.teams-tbl .ph a { font-family: 'Space Mono', monospace; font-size: 14px; }
+.teams-tbl .sc { text-align: right; }
+.teams-tbl .sc a {
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; white-space: nowrap;
 }
-.team .bar {
-  display: block; font-family: 'Space Mono', monospace; font-size: 11.5px;
-  font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--brass); margin-top: 3px;
-}
-.team .capt {
-  margin: 10px 0 0; color: var(--bone); font-size: 15px; line-height: 1.55;
-}
-.team .cap { color: var(--dim); }
-.team a { color: var(--brass); text-decoration: none; white-space: nowrap; }
-.team a:hover { text-decoration: underline; }
+.teams-tbl a { color: var(--brass); text-decoration: none; }
+.teams-tbl a:hover { text-decoration: underline; }
 .teams-foot { margin-top: 14px; color: var(--dim); font-size: 14px; max-width: 62ch; }
 /* The housekeeping, under the schedule where it belongs once the
    season is running. */
 .season-notes { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 30px; }
 .season-notes .v { font-size: 15px; }
-/* Each card's way through to that team's own 21 nights. */
-.team .tsched {
-  display: inline-block; margin-top: 11px;
-  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-  letter-spacing: .13em; text-transform: uppercase; text-decoration: none;
-  color: var(--brass); border: 1px solid rgba(212,161,60,.4); border-radius: 4px;
-  padding: 7px 11px; background: rgba(212,161,60,.08);
-  transition: background .15s, border-color .15s, color .15s;
-}
-.team .tsched:hover { background: rgba(212,161,60,.2); border-color: var(--brass); color: var(--bone); }
 
 
 /* ═══ SUGGESTIONS ════════════════════════════════════════════
@@ -700,6 +690,10 @@ a:focus-visible, button:focus-visible {
   .stand td.pos, .stand td.team { background: #16120e; }
   .stand .hteam, .stand td.team { border-right: 1px solid var(--edge-in); }
   .stand tbody td { padding: 10px; }
+  /* The team name stays put while the rest of its row scrolls under it. */
+  .teams-tbl thead th:first-child, .teams-tbl td.tm { position: sticky; left: 0; z-index: 2; }
+  .teams-tbl thead th:first-child { background: var(--night-2); }
+  .teams-tbl td.tm { background: #16120e; border-right: 1px solid var(--edge-in); }
   .stand .team { font-size: 15px; }
   .panel-note { display: none; }
   .league-go a { font-size: 13px; padding: 9px 12px; }
@@ -815,59 +809,76 @@ a:focus-visible, button:focus-visible {
             </div>
 
             <div class="teams-hd">8-Ball 2026&ndash;27 Teams and Captains</div>
-            <div class="teams">
-              <div class="team">
-                <h4>8 Ball Magic</h4>
-                <span class="bar">Grumpies</span>
-                <p class="capt">Rylee R. <span class="cap">(captain)</span> &middot; <a href="tel:3072481966">(307) 248-1966</a></p>
-                <a class="tsched" href="team-schedule.html?t=8-ball-magic">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>Chalk is Cheap</h4>
-                <span class="bar">Grumpies</span>
-                <p class="capt">Sable A. <span class="cap">(captain)</span> &middot; <a href="tel:3076771419">(307) 677-1419</a></p>
-                <a class="tsched" href="team-schedule.html?t=chalk-is-cheap">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>English Teachers</h4>
-                <span class="bar">Sage Lanes</span>
-                <p class="capt">Cody B. <span class="cap">(captain)</span> &middot; <a href="tel:3077233837">(307) 723-3837</a></p>
-                <a class="tsched" href="team-schedule.html?t=english-teachers">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>Bytches &amp; Brytches</h4>
-                <span class="bar">Grumpies</span>
-                <p class="capt">Kylee S. <span class="cap">(captain)</span> &middot; <a href="tel:3076790984">(307) 679-0984</a></p>
-                <a class="tsched" href="team-schedule.html?t=bytches-brytches">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>Pit Masters</h4>
-                <span class="bar">Sage Lanes</span>
-                <p class="capt">Jeff C. <span class="cap">(captain)</span> &middot; <a href="tel:3077230113">(307) 723-0113</a></p>
-                <a class="tsched" href="team-schedule.html?t=pit-masters">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>Rack Pack</h4>
-                <span class="bar">Stock Exchange</span>
-                <p class="capt">Andy C. <span class="cap">(captain)</span> &middot; <a href="tel:3073599593">(307) 359-9593</a></p>
-                <a class="tsched" href="team-schedule.html?t=rack-pack">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>Stock Sticks</h4>
-                <span class="bar">Stock Exchange</span>
-                <p class="capt">Bill A. <span class="cap">(captain)</span> &middot; <a href="tel:3074663310">(307) 466-3310</a></p>
-                <a class="tsched" href="team-schedule.html?t=stock-sticks">Schedule &rarr;</a>
-              </div>
-              <div class="team">
-                <h4>Three Dads and a Mitch</h4>
-                <span class="bar">Sage Lanes</span>
-                <p class="capt">Trevor C. <span class="cap">(captain)</span> &middot; <a href="tel:8016486387">(801) 648-6387</a></p>
-                <a class="tsched" href="team-schedule.html?t=three-dads-and-a-mitch">Schedule &rarr;</a>
-              </div>
+            <div class="teams-wrap">
+              <table class="stand teams-tbl">
+                <thead>
+                  <tr>
+                    <th>Team</th><th>Captain</th><th>Phone</th><th>Home bar</th><th class="r">Season</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="tm">8 Ball Magic</td>
+                    <td class="cp">Rylee R.</td>
+                    <td class="ph"><a href="tel:3072481966">(307) 248-1966</a></td>
+                    <td class="br">Grumpies</td>
+                    <td class="sc"><a href="team-schedule.html?t=8-ball-magic">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">Chalk is Cheap</td>
+                    <td class="cp">Sable A.</td>
+                    <td class="ph"><a href="tel:3076771419">(307) 677-1419</a></td>
+                    <td class="br">Grumpies</td>
+                    <td class="sc"><a href="team-schedule.html?t=chalk-is-cheap">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">English Teachers</td>
+                    <td class="cp">Cody B.</td>
+                    <td class="ph"><a href="tel:3077233837">(307) 723-3837</a></td>
+                    <td class="br">Sage Lanes</td>
+                    <td class="sc"><a href="team-schedule.html?t=english-teachers">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">Bytches &amp; Brytches</td>
+                    <td class="cp">Kylee S.</td>
+                    <td class="ph"><a href="tel:3076790984">(307) 679-0984</a></td>
+                    <td class="br">Grumpies</td>
+                    <td class="sc"><a href="team-schedule.html?t=bytches-brytches">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">Pit Masters</td>
+                    <td class="cp">Jeff C.</td>
+                    <td class="ph"><a href="tel:3077230113">(307) 723-0113</a></td>
+                    <td class="br">Sage Lanes</td>
+                    <td class="sc"><a href="team-schedule.html?t=pit-masters">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">Rack Pack</td>
+                    <td class="cp">Andy C.</td>
+                    <td class="ph"><a href="tel:3073599593">(307) 359-9593</a></td>
+                    <td class="br">Stock Exchange</td>
+                    <td class="sc"><a href="team-schedule.html?t=rack-pack">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">Stock Sticks</td>
+                    <td class="cp">Bill A.</td>
+                    <td class="ph"><a href="tel:3074663310">(307) 466-3310</a></td>
+                    <td class="br">Stock Exchange</td>
+                    <td class="sc"><a href="team-schedule.html?t=stock-sticks">Schedule &rarr;</a></td>
+                  </tr>
+                  <tr>
+                    <td class="tm">Three Dads and a Mitch</td>
+                    <td class="cp">Trevor C.</td>
+                    <td class="ph"><a href="tel:8016486387">(801) 648-6387</a></td>
+                    <td class="br">Sage Lanes</td>
+                    <td class="sc"><a href="team-schedule.html?t=three-dads-and-a-mitch">Schedule &rarr;</a></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             <p class="teams-foot">
-              Captains and their numbers. Full rosters, ratings and player stats are on the
-              <a href="league.html?lg=8ball">stats page</a>; tap a team for all 21 of their nights.
+              Full rosters, ratings and player stats are on the
+              <a href="league.html?lg=8ball">stats page</a>.
             </p>
 
             <div class="facts season-notes">
@@ -1159,7 +1170,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.58</span>
+        <span>v1.59</span>
       </div>
 
     </div>
