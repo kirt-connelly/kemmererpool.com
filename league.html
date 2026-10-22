@@ -94,6 +94,9 @@
 
     /* ── Table ── */
     .tbl { width: 100%; border-collapse: collapse; }
+    .plink { color: inherit; text-decoration: underline; text-underline-offset: 3px;
+      text-decoration-color: var(--text3); text-decoration-thickness: 1px; }
+    .plink:hover { color: var(--accent); text-decoration-color: var(--accent); }
     .tbl th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
     .tbl td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; color: var(--text2); }
     .tbl tbody tr:last-child td { border-bottom: none; }
@@ -535,6 +538,7 @@
     </a>
     <nav class="mast-nav">
       <a href="index.html#leagues">Leagues</a>
+      <a href="player.html">Players</a>
       <a href="tournaments.html">Tournaments</a>
       <a href="index.html#rooms">Bars</a>
       <a href="index.html#officers">Contact</a>
@@ -588,7 +592,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.25</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.26</div>
   </div>
 </footer>
 
@@ -736,6 +740,20 @@ function parseTable(html) {
   return { headers, rows };
 }
 
+/* Player pages live on their own page so a link can be sent to
+   somebody. Same slug rule player.html uses to read it back. */
+function playerSlug(name) {
+  let n = String(name || '').replace(/\s*\(\s*[^)]*\s*\)\s*$/, '').replace(/\s+/g, ' ').trim();
+  if (/^[^,]+,\s*.+$/.test(n)) n = n.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
+  return n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+function playerLink(name, label) {
+  const slug = playerSlug(name);
+  const text = label == null ? name : label;
+  if (!slug) return text;
+  return `<a class="plink" href="player.html?p=${encodeURIComponent(slug)}&lg=${league}">${text}</a>`;
+}
+
 function findWinPctIdx(headers) {
   const patterns = [/win\s*pct/i, /win\s*%/i, /pct/i, /%/i];
   for (const p of patterns) {
@@ -845,7 +863,7 @@ function renderPlayers(data) {
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${cell}</td>`;
+          if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
           if (ci===winIdx && winIdx>0) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
@@ -916,7 +934,7 @@ function renderByTeam(data) {
               ? name.replace(/^([^,]+),\s*(.+)$/, '$2 $1')
               : name;
             return `<tr>
-              <td style="font-weight:600;color:var(--cream);min-width:130px">${displayName}</td>
+              <td style="font-weight:600;color:var(--cream);min-width:130px">${playerLink(name, displayName)}</td>
               ${cells.slice(1).map((cell, ci) => {
                 const hdr = headers[ci + 1] || '';
                 // Win pct bar
@@ -987,7 +1005,7 @@ function renderList(data) {
         return `<tr>
           <td><span class="rank-num">${i+1}</span></td>
           ${r.map((cell,ci) => {
-            if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${cell}</td>`;
+            if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
             if (ci===ratingIdx && ratingIdx>=0) return `<td>
               <div class="fargo-wrap">
                 <div class="fargo-track"><div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div></div>

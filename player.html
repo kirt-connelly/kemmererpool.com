@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player &mdash; Kemmerer Pool League</title>
+  <meta name="description" content="Season record, rating, best wins and every game played — player pages for the Kemmerer Pool League." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #14100c; --bg2: #1d1712; --bg3: #251d15;
+      --border: #33291f; --border2: #473829;
+      --text: #f4efe4; --text2: #b7ab99; --text3: #8d8172;
+      --accent: #d4a13c; --cream: #f4efe4;
+      --green: #2f8a63; --green2: #4fae86; --loss: #c0553f;
+      --on-accent: #201910; --radius: 6px; --radius-sm: 4px;
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5;
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    /* ── masthead ── */
+    .mast { background: #100d09; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
+    .mast-in {
+      max-width: 1000px; margin: 0 auto; padding: 0 20px; height: 54px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .mark { display: flex; align-items: center; gap: 10px; }
+    .mark .ball {
+      width: 24px; height: 24px; border-radius: 50%; background: #0b0908;
+      display: grid; place-items: center; border: 1px solid var(--border2);
+      font-size: 11px; font-weight: 700; color: var(--cream);
+    }
+    .mark b { font-size: 15px; font-weight: 700; color: var(--cream); letter-spacing: -.01em; }
+    .mast nav { margin-left: auto; display: flex; gap: 2px; flex-wrap: wrap; }
+    .mast nav a {
+      font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--text3);
+      padding: 7px 9px; border-radius: var(--radius-sm);
+    }
+    .mast nav a:hover { color: var(--cream); background: var(--bg3); text-decoration: none; }
+
+    .wrap { max-width: 1000px; margin: 0 auto; padding-left: 20px; padding-right: 20px; padding-top: 22px; padding-bottom: 60px; }
+
+    .crumb {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px;
+    }
+    .crumb a { color: var(--text3); }
+    .crumb a:hover { color: var(--accent); }
+
+    /* ── hero ── */
+    .hero {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px 22px; display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap;
+    }
+    .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; color: var(--cream); }
+    .hero .sub { margin-top: 5px; color: var(--text2); font-size: 15px; }
+    .hero .sub a { font-weight: 600; }
+    .rating {
+      margin-left: auto; text-align: center; border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 10px 18px; background: var(--bg3); min-width: 108px;
+    }
+    .rating .n { font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; line-height: 1; color: var(--accent); }
+    .rating .l {
+      font-family: 'Space Mono', monospace; font-size: 9.5px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--text3); margin-top: 6px;
+    }
+    .hero-actions { display: flex; gap: 8px; margin-top: 14px; flex-basis: 100%; flex-wrap: wrap; }
+    .btn {
+      font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+      border: 1px solid rgba(212,161,60,.4); border-radius: var(--radius-sm);
+      padding: 8px 12px; background: rgba(212,161,60,.08); cursor: pointer;
+    }
+    .btn:hover { background: rgba(212,161,60,.2); color: var(--cream); text-decoration: none; }
+
+    /* ── tiles ── */
+    .tiles {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px; margin-top: 14px;
+    }
+    .tile { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+    .tile .k {
+      font-family: 'Space Mono', monospace; font-size: 9.5px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--text3);
+    }
+    .tile .v { font-size: 24px; font-weight: 800; color: var(--cream); margin-top: 6px; line-height: 1.15; letter-spacing: -.01em; }
+    .tile .v.sm { font-size: 17px; font-weight: 700; }
+    .tile .n { font-size: 13px; color: var(--text2); margin-top: 3px; }
+    .tile .v .mono { font-family: 'Space Mono', monospace; }
+
+    /* ── cards ── */
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 18px; overflow: hidden; }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .13em; text-transform: uppercase; color: var(--accent);
+    }
+    .card-meta { font-size: 12px; color: var(--text3); }
+
+    table.tbl { width: 100%; border-collapse: collapse; }
+    .tbl th {
+      text-align: left; padding: 9px 14px; font-family: 'Space Mono', monospace;
+      font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .tbl td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 15px; color: var(--text2); }
+    .tbl tbody tr:last-child td { border-bottom: none; }
+    .tbl tbody tr:hover td { background: rgba(244,239,228,.03); }
+    .tbl .nm { color: var(--cream); font-weight: 600; }
+    .tbl .num { font-family: 'Space Mono', monospace; text-align: center; white-space: nowrap; }
+    .scroll { overflow-x: auto; }
+
+    .res { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 3px; }
+    .res.w { background: rgba(79,174,134,.16); color: var(--green2); }
+    .res.l { background: rgba(192,85,63,.16); color: var(--loss); }
+    .dot { font-size: 8px; margin-right: 6px; }
+    .dot.on { color: var(--green2); }
+    .dot.off { color: var(--border2); }
+
+    .form { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 7px; }
+    .pip {
+      width: 20px; height: 20px; border-radius: 3px; display: grid; place-items: center;
+      font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+    }
+    .pip.w { background: rgba(79,174,134,.18); color: var(--green2); }
+    .pip.l { background: rgba(192,85,63,.18); color: var(--loss); }
+
+    .night { padding: 13px 16px; border-bottom: 1px solid var(--border); }
+    .night:last-child { border-bottom: none; }
+    .night-hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 9px; }
+    .night-hd .d {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
+    }
+    .night-hd .vs { color: var(--text2); font-size: 14px; }
+    .night-hd .tot { margin-left: auto; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+    .glist { display: flex; flex-direction: column; gap: 6px; }
+    .game {
+      display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center;
+      gap: 10px; padding: 8px 10px; background: var(--bg3); border-radius: var(--radius-sm);
+    }
+    .game .rd { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text3); }
+    .game .opp { color: var(--cream); font-weight: 600; font-size: 15px; }
+    .game .opp small { color: var(--text3); font-weight: 400; font-family: 'Space Mono', monospace; font-size: 11px; margin-left: 6px; }
+    .game .sc { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; white-space: nowrap; }
+
+    .find { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .find input, .find select {
+      background: var(--bg2); border: 1px solid var(--border2); color: var(--text);
+      border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'Barlow', sans-serif; font-size: 15px;
+    }
+    .find input { flex: 1 1 220px; }
+    .find input:focus, .find select:focus { outline: none; border-color: var(--accent); }
+
+    .quiet { padding: 22px 16px; text-align: center; color: var(--text3); font-size: 14px; }
+    .err { color: var(--loss); }
+    .foot { margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text3); font-size: 13px; }
+
+    @media (max-width: 560px) {
+      /* The name and the links won't share a line on a phone, so they
+         stack and centre rather than wrapping raggedly. */
+      .mast-in { flex-direction: column; justify-content: center; gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px; }
+      .mast nav { margin-left: 0; justify-content: center; }
+      .mark b { font-size: 14px; }
+      .wrap { padding-top: 16px; }
+      .hero { padding: 16px; }
+      .hero h1 { font-size: 24px; }
+      .rating { margin-left: 0; }
+      .game { grid-template-columns: 28px 1fr auto; row-gap: 4px; }
+      .game .res { grid-column: 3; }
+      .tbl td, .tbl th { padding: 9px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="mast">
+    <div class="mast-in">
+      <a class="mark" href="index.html"><span class="ball">8</span><b>Kemmerer Pool League</b></a>
+      <nav>
+        <a href="league.html?lg=8ball">Stats</a>
+        <a href="player.html">Players</a>
+        <a href="schedule.html">Schedule</a>
+        <a href="index.html">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="main">
+    <div class="quiet">Loading&hellip;</div>
+  </main>
+
+  <script src="fargo-fixes.js?v=1.00"></script>
+  <script src="fargo-match.js?v=1.00"></script>
+  <script src="season-8ball.js?v=1.00"></script>
+  <script>
+  /* ────────────────────────────────────────────────────────────────
+     player.html v1.00
+
+     Two pages in one file. No ?p= gives the directory — everyone in
+     the division with their team and rating. With ?p=<slug> it's one
+     player: rating, record, best win, and every game they've played,
+     read out of the match scoresheets and cached so the second visit
+     is instant.
+     ──────────────────────────────────────────────────────────────── */
+  const FM = window.FargoMatch;
+  const DIVISIONS = {
+    '8ball':     { id: '6e366095-3e94-426d-ad45-b4ea0013fc17', label: '8-Ball 2026–27' },
+    '10ball':    { id: 'c97cf1bf-ff08-44a0-b916-b4520124b3e6', label: 'Summer 10-Ball 2026' },
+    '8ball2526': { id: '1dc8b2aa-62eb-41a6-a8f6-b379014efe83', label: '8-Ball 2025–26' },
+  };
+  const qs   = new URLSearchParams(location.search);
+  const LG   = DIVISIONS[qs.get('lg')] ? qs.get('lg') : '8ball';
+  const DIV  = DIVISIONS[LG].id;
+  const main = document.getElementById('main');
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pct = (w, l) => (w + l) ? Math.round(w * 100 / (w + l)) + '%' : '—';
+  /* Opponents are players too — every name on the page is a way in. */
+  const pLink = name => {
+    const slug = FM.slugName(name || '');
+    if (!slug) return esc(name || '—');
+    return `<a href="player.html?p=${encodeURIComponent(slug)}${LG !== '8ball' ? '&lg=' + LG : ''}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--text3)">${esc(name)}</a>`;
+  };
+  const fmtDate = s => {
+    const d = FM.parseDate(s);
+    return d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : String(s || '');
+  };
+
+  /* ── roster ───────────────────────────────────────────────────
+     The ratings report is the one that always carries a rating; the
+     by-team report is what reliably says whose team is whose. Read
+     both and merge on the name. */
+  async function loadRoster() {
+    const byName = {};
+    const put = (name, patch) => {
+      const k = FM.normName(name);
+      if (!k) return;
+      byName[k] = Object.assign({ name: FM.cleanName(name), team: '', rating: 0 }, byName[k], patch);
+      if (patch.name) byName[k].name = FM.cleanName(patch.name);
+    };
+
+    const [listHtml, byTeamHtml] = await Promise.all([
+      FM.reportCached('GeneratePlayerListReport', DIV).catch(() => ''),
+      FM.reportCached('GeneratePlayerStandingsByTeamReport', DIV).catch(() => ''),
+    ]);
+
+    const t = listHtml && FM.parseTable(listHtml);
+    if (t && t.rows.length) {
+      const h = t.headers;
+      let ni = FM.colIndex(h, /^(name|player)/i);
+      let ti = FM.colIndex(h, /team/i);
+      let ri = FM.colIndex(h, /rating|fargo|eff/i);
+      if (ni < 0) ni = h.length ? 0 : 0;
+      t.rows.forEach(r => {
+        const nm = r[ni] || '';
+        if (!nm) return;
+        put(nm, {
+          name: nm,
+          team: ti >= 0 ? (r[ti] || '') : '',
+          rating: ri >= 0 ? (parseInt(String(r[ri]).replace(/[^0-9]/g, '')) || 0) : 0,
+        });
+      });
+    }
+
+    /* By-team is grouped: a row on its own names the team, the rows
+       under it are that team's players. */
+    if (byTeamHtml) {
+      const d = document.createElement('div');
+      d.innerHTML = byTeamHtml;
+      let team = '';
+      [...d.querySelectorAll('table tr')].forEach(tr => {
+        const cells = [...tr.querySelectorAll('td')];
+        if (!cells.length) return;
+        const vals = cells.map(c => c.textContent.trim());
+        const isHdr = cells.length === 1 || (cells[0] && cells[0].colSpan > 1) ||
+          vals.slice(1).every(v => v === '' || v === '-');
+        if (isHdr) { team = vals[0] || team; return; }
+        if (vals[0] && team) put(vals[0], { team });
+      });
+    }
+
+    return Object.values(byName)
+      .filter(p => p.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /* ── directory ─────────────────────────────────────────────── */
+  async function renderDirectory() {
+    main.innerHTML = '<div class="quiet">Loading the player list&hellip;</div>';
+    let roster;
+    try { roster = await loadRoster(); }
+    catch (e) { main.innerHTML = notice('Player list couldn\'t load. ' + esc(e.message)); return; }
+    if (!roster.length) { main.innerHTML = notice('No players posted for this season yet.'); return; }
+
+    const teams = [...new Set(roster.map(p => p.team).filter(Boolean))].sort();
+    main.innerHTML = `
+      <div class="crumb"><a href="index.html">Home</a> &rsaquo; Players</div>
+      <div class="hero">
+        <div>
+          <h1>Players</h1>
+          <div class="sub">${roster.length} players · ${esc(DIVISIONS[LG].label)}. Tap a name for their season.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Find a player</span><span class="card-meta" id="count"></span></div>
+        <div style="padding:14px 16px 0">
+          <div class="find">
+            <input id="q" type="search" placeholder="Search by name" autocomplete="off" />
+            <select id="tf">
+              <option value="">All teams</option>
+              ${teams.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="scroll"><table class="tbl">
+          <thead><tr><th>Player</th><th>Team</th><th style="text-align:center">Fargo</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table></div>
+      </div>
+      <p class="foot">Ratings and rosters come from FargoRate. A player's page fills in once their team has played.</p>`;
+
+    const rows = document.getElementById('rows');
+    const q = document.getElementById('q');
+    const tf = document.getElementById('tf');
+    const count = document.getElementById('count');
+
+    function draw() {
+      const needle = FM.normName(q.value);
+      const team = tf.value;
+      const hits = roster.filter(p =>
+        (!team || p.team === team) &&
+        (!needle || FM.normName(p.name).includes(needle)));
+      count.textContent = `${hits.length} shown`;
+      rows.innerHTML = hits.length ? hits.map(p => `
+        <tr>
+          <td class="nm"><a href="player.html?p=${encodeURIComponent(FM.slugName(p.name))}${LG !== '8ball' ? '&lg=' + LG : ''}">${esc(p.name)}</a></td>
+          <td>${esc(p.team || '—')}</td>
+          <td class="num" style="color:var(--accent);font-weight:700">${p.rating || '—'}</td>
+        </tr>`).join('')
+        : `<tr><td colspan="3" class="quiet">Nobody by that name.</td></tr>`;
+    }
+    q.addEventListener('input', draw);
+    tf.addEventListener('change', draw);
+    draw();
+  }
+
+  const notice = msg => `<div class="card"><div class="quiet">${msg}</div></div>`;
+
+  /* ── one player ────────────────────────────────────────────── */
+  async function renderPlayer(slug) {
+    main.innerHTML = '<div class="quiet">Loading&hellip;</div>';
+
+    let roster = [];
+    try { roster = await loadRoster(); } catch (e) { /* carry on with the log */ }
+    const me = roster.find(p => FM.slugName(p.name) === slug);
+    const name = me ? me.name : slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    document.title = `${name} — Kemmerer Pool League`;
+
+    /* Shell first so the page isn't blank while the scoresheets load. */
+    const teamSlug = seasonSlug(me && me.team);
+    main.innerHTML = `
+      <div class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="player.html${LG !== '8ball' ? '?lg=' + LG : ''}">Players</a> &rsaquo; ${esc(name)}</div>
+      <div class="hero">
+        <div>
+          <h1>${esc(name)}</h1>
+          <div class="sub">
+            ${me && me.team
+              ? (teamSlug ? `<a href="team-schedule.html?t=${esc(teamSlug)}">${esc(me.team)}</a>` : esc(me.team))
+              : 'Kemmerer Pool League'}
+            · ${esc(DIVISIONS[LG].label)}
+          </div>
+        </div>
+        ${me && me.rating ? `<div class="rating"><div class="n">${me.rating}</div><div class="l">Fargo</div></div>` : ''}
+        <div class="hero-actions">
+          <button class="btn" id="share">Share</button>
+          ${teamSlug ? `<a class="btn" href="team-schedule.html?t=${esc(teamSlug)}">Team schedule</a>` : ''}
+          <a class="btn" href="league.html?lg=${esc(LG)}">Full stats</a>
+        </div>
+      </div>
+      <div id="body"><div class="quiet">Reading this season's scoresheets&hellip;</div></div>
+      <p class="foot">Scores come from the FargoRate match sheets, read once and kept on this phone so it's quick next time.</p>`;
+
+    document.getElementById('share').addEventListener('click', share);
+
+    const body = document.getElementById('body');
+    try {
+      const games = await gatherGames(name, me && me.team);
+      body.innerHTML = games.nights.length ? summary(games, me) : notice(
+        'No games logged yet. Once this player’s team plays a night and the scores post, it all fills in here.');
+    } catch (e) {
+      body.innerHTML = notice('<span class="err">The match sheets didn’t load.</span> ' + esc(e.message));
+    }
+  }
+
+  /* Our own fixture file knows the team slugs for the schedule pages. */
+  function seasonSlug(teamName) {
+    const S = window.SEASON_8BALL;
+    if (!S || !teamName || LG !== '8ball') return '';
+    const want = FM.normTeam(teamName);
+    const hit = Object.values(S.teams).find(t => FM.normTeam(t.name) === want);
+    return hit ? hit.slug : '';
+  }
+
+  /* ── the season, game by game ──────────────────────────────── */
+  async function gatherGames(name, teamName) {
+    const want = FM.normName(name);
+    const blocks = FM.parseSchedule(await FM.scheduleCached(DIV));
+
+    /* Every match their team has on the calendar that carries an id.
+       Unplayed ones come back with no games and simply drop out. */
+    const wantTeam = FM.normTeam(teamName || '');
+    const today = new Date(); today.setHours(23, 59, 59, 999);
+    const wanted = [];
+    blocks.forEach(b => {
+      const d = FM.parseDate(b.date);
+      if (d && d > today) return;
+      b.matches.forEach(m => {
+        if (!m.matchId) return;
+        if (wantTeam && FM.normTeam(m.home) !== wantTeam && FM.normTeam(m.away) !== wantTeam) return;
+        wanted.push({ date: b.date, when: d, ...m });
+      });
+    });
+
+    /* Without a team we can't narrow the list, so cap it rather than
+       pulling the whole division's season down a phone. */
+    const ids = (wantTeam ? wanted : wanted.slice(-16)).map(m => m.matchId);
+    const loaded = await FM.loadMatches(ids);
+    const byId = {};
+    loaded.forEach(m => { if (m && m.matchId) byId[m.matchId] = m; });
+
+    const nights = [];
+    let won = 0, lost = 0, ptsFor = 0, ptsAgainst = 0;
+    const vs = {};            /* opponent → record */
+    let best = null;
+
+    wanted.forEach(m => {
+      const data = byId[m.matchId];
+      if (!data || !data.games.length) return;
+      const mine = [];
+      data.games.forEach(g => {
+        const onOne = g.side1.some(p => FM.normName(p.name) === want);
+        const onTwo = g.side2.some(p => FM.normName(p.name) === want);
+        if (!onOne && !onTwo) return;
+        const me   = onOne ? g.side1 : g.side2;
+        const them = onOne ? g.side2 : g.side1;
+        const win  = onOne ? g.win1 : g.win2;
+        const loss = onOne ? g.win2 : g.win1;
+        const row = {
+          round: g.round,
+          doubles: g.doubles,
+          partner: me.filter(p => FM.normName(p.name) !== want).map(p => p.name),
+          opp: them.map(p => p.name).join(' & '),
+          oppRating: Math.max(...them.map(p => p.rating || 0), 0),
+          mine: onOne ? g.score1 : g.score2,
+          theirs: onOne ? g.score2 : g.score1,
+          code: onOne ? g.code1 : g.code2,
+          broke: onOne ? g.broke1 : g.broke2,
+          win, loss,
+        };
+        ptsFor     += onOne ? g.points1 : g.points2;
+        ptsAgainst += onOne ? g.points2 : g.points1;
+        if (win) won++; else if (loss) lost++;
+        if (row.opp) {
+          const k = row.opp;
+          vs[k] = vs[k] || { opp: k, rating: row.oppRating, w: 0, l: 0 };
+          if (win) vs[k].w++; else if (loss) vs[k].l++;
+          if (row.oppRating > vs[k].rating) vs[k].rating = row.oppRating;
+        }
+        if (win && row.oppRating && (!best || row.oppRating > best.oppRating)) {
+          best = { ...row, date: m.date };
+        }
+        mine.push(row);
+      });
+      if (!mine.length) return;
+      /* The sheet itself says who played and when, which beats the
+         posted schedule whenever the two disagree. */
+      const sheetHome = data.team1 && FM.normTeam(data.team1) === wantTeam;
+      const oppTeam = data.team1 && data.team2
+        ? (sheetHome ? data.team2 : data.team1)
+        : (FM.normTeam(m.home) === wantTeam ? m.away : m.home);
+      const when = FM.parseDate(data.date) || m.when;
+      mine.sort((a, b) => a.round - b.round);
+      nights.push({
+        date: data.date || m.date, when, oppTeam, venue: m.venue,
+        home: data.team1 ? sheetHome : FM.normTeam(m.home) === wantTeam,
+        games: mine,
+        won: mine.filter(g => g.win).length,
+        lost: mine.filter(g => g.loss).length,
+      });
+    });
+
+    nights.sort((a, b) => (a.when && b.when) ? a.when - b.when : 0);
+
+    /* Current run, counted back from the last game played. */
+    const flat = [];
+    nights.forEach(n => n.games.forEach(g => flat.push(g)));
+    let streak = 0, streakWin = false;
+    for (let i = flat.length - 1; i >= 0; i--) {
+      const g = flat[i];
+      if (!g.win && !g.loss) continue;
+      if (streak === 0) { streakWin = g.win; streak = 1; continue; }
+      if (g.win === streakWin) streak++; else break;
+    }
+
+    return {
+      nights, won, lost, ptsFor, ptsAgainst, best, streak, streakWin, flat,
+      vs: Object.values(vs).sort((a, b) => (b.w + b.l) - (a.w + a.l) || b.rating - a.rating),
+    };
+  }
+
+  /* ── the profile body ──────────────────────────────────────── */
+  function summary(g, me) {
+    const nights = g.nights.length;
+    const next = nextUp(me && me.team);
+    const streakTxt = g.streak
+      ? `${g.streak} ${g.streakWin ? 'win' : 'loss'}${g.streak > 1 ? 'es'.slice(g.streakWin ? 1 : 0) : ''}`
+      : '—';
+
+    return `
+      <div class="tiles">
+        <div class="tile">
+          <div class="k">Record</div>
+          <div class="v"><span class="mono">${g.won}–${g.lost}</span></div>
+          <div class="n">${pct(g.won, g.lost)} of ${g.won + g.lost} games</div>
+        </div>
+        <div class="tile">
+          <div class="k">Nights played</div>
+          <div class="v"><span class="mono">${nights}</span></div>
+          <div class="n">${esc(g.nights[nights - 1] ? 'Last out ' + fmtDate(g.nights[nights - 1].date) : '')}</div>
+        </div>
+        <div class="tile">
+          <div class="k">Balls for / against</div>
+          <div class="v sm"><span class="mono">${g.ptsFor} / ${g.ptsAgainst}</span></div>
+          <div class="n">${g.ptsFor - g.ptsAgainst >= 0 ? '+' : ''}${g.ptsFor - g.ptsAgainst} on the season</div>
+        </div>
+        <div class="tile">
+          <div class="k">Current run</div>
+          <div class="v sm" style="color:${g.streak ? (g.streakWin ? 'var(--green2)' : 'var(--loss)') : 'var(--cream)'}">${esc(streakTxt)}</div>
+          <div class="form">${g.flat.slice(-10).map(x =>
+            `<span class="pip ${x.win ? 'w' : 'l'}">${x.win ? 'W' : 'L'}</span>`).join('')}</div>
+        </div>
+        ${g.best ? `
+        <div class="tile">
+          <div class="k">Best win</div>
+          <div class="v sm">${esc(FM.shortName(g.best.opp))} <span class="mono" style="color:var(--text3);font-size:13px">${g.best.oppRating}</span></div>
+          <div class="n">${g.best.code ? esc(g.best.code) : esc(g.best.mine) + '–' + esc(g.best.theirs)} on ${fmtDate(g.best.date)}</div>
+        </div>` : ''}
+      </div>
+
+      ${next.length ? `
+      <div class="card">
+        <div class="card-header"><span class="card-title">Next up</span><span class="card-meta">Wednesdays, 7:00</span></div>
+        <div class="scroll"><table class="tbl"><tbody>
+          ${next.map(n => `<tr>
+            <td class="num" style="text-align:left;color:var(--accent)">${esc(n.date)}</td>
+            <td class="nm">${n.home ? 'vs' : 'at'} ${esc(n.opp)}</td>
+            <td style="text-align:right;color:var(--text3)">${esc(n.bar)}</td>
+          </tr>`).join('')}
+        </tbody></table></div>
+      </div>` : ''}
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Every game this season</span>
+          <span class="card-meta">${g.flat.length} games over ${nights} night${nights === 1 ? '' : 's'}</span>
+        </div>
+        ${g.nights.slice().reverse().map(n => `
+          <div class="night">
+            <div class="night-hd">
+              <span class="d">${fmtDate(n.date)}</span>
+              <span class="vs">${n.home ? 'vs' : 'at'} ${esc(n.oppTeam)}${n.venue ? ' · ' + esc(n.venue) : ''}</span>
+              <span class="tot">${n.won}–${n.lost}</span>
+            </div>
+            <div class="glist">
+              ${n.games.map(x => `
+                <div class="game">
+                  <span class="rd">R${x.round}</span>
+                  <span class="opp">
+                    <span class="dot ${x.broke ? 'on' : 'off'}">●</span>${x.doubles ? esc(x.opp) : pLink(x.opp)}
+                    ${x.oppRating ? `<small>${x.oppRating}</small>` : ''}
+                    ${x.doubles && x.partner.length ? `<small>with ${esc(FM.shortName(x.partner[0]))}</small>` : ''}
+                  </span>
+                  <span class="sc" style="color:${x.win ? 'var(--green2)' : x.loss ? 'var(--loss)' : 'var(--text2)'}">${esc(x.mine)}–${esc(x.theirs)}</span>
+                  <span class="res ${x.win ? 'w' : 'l'}">${x.code || (x.win ? 'W' : 'L')}</span>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>
+
+      ${g.vs.length ? `
+      <div class="card">
+        <div class="card-header"><span class="card-title">Head to head</span><span class="card-meta">${g.vs.length} opponents</span></div>
+        <div class="scroll"><table class="tbl">
+          <thead><tr><th>Opponent</th><th style="text-align:center">Fargo</th><th style="text-align:center">W–L</th></tr></thead>
+          <tbody>${g.vs.map(v => `<tr>
+            <td class="nm">${v.opp.includes(' & ') ? esc(v.opp) : pLink(v.opp)}</td>
+            <td class="num" style="color:var(--text3)">${v.rating || '—'}</td>
+            <td class="num" style="color:${v.w > v.l ? 'var(--green2)' : v.l > v.w ? 'var(--loss)' : 'var(--text2)'};font-weight:700">${v.w}–${v.l}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </div>` : ''}
+
+      <p class="foot">A dot by the opponent's name means this player broke. TR, BR, WZ and WF are table run, break and run, win zip and forfeit.</p>`;
+  }
+
+  /* Their team's next three nights, from our own fixture list. */
+  function nextUp(teamName) {
+    const S = window.SEASON_8BALL;
+    if (!S || !teamName || LG !== '8ball') return [];
+    const want = FM.normTeam(teamName);
+    const entry = Object.entries(S.teams).find(([, t]) => FM.normTeam(t.name) === want);
+    if (!entry) return [];
+    const season = S.season(Number(entry[0]));
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return season
+      .filter(x => !x.off && S.day(x.iso) >= today)
+      .slice(0, 3)
+      .map(x => ({
+        date: S.day(x.iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        opp: S.teams[x.opp] ? S.teams[x.opp].name : '',
+        home: x.home, bar: x.bar || '',
+      }));
+  }
+
+  function share() {
+    const url = location.href;
+    const title = document.title;
+    if (navigator.share) { navigator.share({ title, url }).catch(() => {}); return; }
+    const btn = document.getElementById('share');
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(() => { btn.textContent = 'Link copied'; setTimeout(() => btn.textContent = 'Share', 1800); })
+      .catch(() => { btn.textContent = url; });
+  }
+
+  /* ── boot ─────────────────────────────────────────────────── */
+  const who = (qs.get('p') || '').trim();
+  (who ? renderPlayer(FM.slugName(who.replace(/-/g, ' '))) : renderDirectory())
+    .catch(e => { main.innerHTML = notice('<span class="err">Something went wrong.</span> ' + esc(e.message)); });
+  </script>
+</body>
+</html>
