@@ -97,7 +97,7 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
 .print-btn.quiet{border-color:var(--edge);background:rgba(244,239,228,.07);color:var(--bone)}
 .print-btn.quiet:hover{border-color:var(--brass);background:rgba(212,161,60,.16);color:var(--bone)}
 
-.wk{display:grid;grid-template-columns:96px 78px 1fr;gap:0 14px;align-items:center;
+.wk{display:grid;grid-template-columns:96px 78px 1fr auto;gap:0 14px;align-items:center;
   padding:11px 18px;border-top:1px solid var(--edge-in)}
 .weeks .wk:first-child{border-top:none}
 .wk:nth-child(even){background:rgba(244,239,228,.03)}
@@ -113,7 +113,24 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
 .wk.off{background:rgba(244,239,228,.02)}
 .wk.off .d{color:var(--dim)}
 .wk.off .note{grid-column:2 / -1;font-size:14px;color:var(--dim)}
-.wk.past{opacity:.45}
+.wk.past .d,.wk.past .tag,.wk.past .opp,.wk.past .at{opacity:.5}
+/* The result of a night that's been played, sitting where the eye
+   lands at the end of the row. Tapping it opens that scoresheet. */
+.res{display:flex;align-items:baseline;gap:9px;text-decoration:none;white-space:nowrap;
+  padding:5px 9px;border-radius:4px;border:1px solid var(--edge-in);background:rgba(0,0,0,.25)}
+.res:hover{border-color:var(--brass)}
+.res b{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;
+  padding:2px 6px;border-radius:3px}
+.res.win b{background:rgba(79,174,134,.18);color:#4fae86}
+.res.lose b{background:rgba(192,85,63,.18);color:#c0553f}
+.res.tie b{background:rgba(244,239,228,.1);color:var(--dim)}
+.res .sc{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--bone)}
+.res .rd{font-family:'Space Mono',monospace;font-size:11px;color:var(--dim)}
+.res-wait{font-family:'Space Mono',monospace;font-size:11px;color:var(--dim);opacity:.5}
+@media (max-width:620px){
+  .wk{grid-template-columns:84px 70px 1fr}
+  .res,.res-wait{grid-column:2 / -1;margin-top:6px;justify-self:start}
+}
 .wk.next{background:rgba(212,161,60,.1);box-shadow:inset 3px 0 0 var(--brass)}
 .wk .flag{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;
   text-transform:uppercase;color:var(--brass);margin-left:9px;white-space:nowrap}
@@ -223,13 +240,15 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>team-schedule v1.02</span>
+        <span>team-schedule v1.03</span>
       </div>
     </div>
   </footer>
 
 </div>
 
+<script src="fargo-fixes.js?v=1.00"></script>
+<script src="fargo-match.js?v=1.02"></script>
 <script src="season-8ball.js"></script>
 <script>
 /* The season lives in season-8ball.js, shared with the front page, so
@@ -286,6 +305,7 @@ function render(team) {
               <div class="opp">${esc(TEAMS[r.opp].name)}${isNext ? '<span class="flag">Next up</span>' : ''}</div>
               <div class="at${r.bar === t.bar ? ' ours' : ''}">${esc(r.bar)}</div>
             </div>
+            ${past ? `<div class="res-wait" data-iso="${r.iso}" data-opp="${esc(oppKey(r.opp))}">&mdash;</div>` : ''}
           </div>`;
       }).join('')}</div>
       <div class="tally">
@@ -297,6 +317,46 @@ function render(team) {
   document.querySelectorAll('.pick').forEach(b =>
     b.setAttribute('aria-pressed', b.dataset.t === String(team) ? 'true' : 'false'));
   document.title = t.name + ' Schedule — Kemmerer Pool League';
+  fillResults(team);
+}
+
+
+/* ── Results, once a night has been played ──────────────────────────
+   The fixtures come from our own list; the scores come from the match
+   sheets. Each sheet is read once and kept, so this costs one fetch a
+   week rather than twenty in March. */
+const DIVISION_8BALL = '6e366095-3e94-426d-ad45-b4ea0013fc17';
+const oppKey = n => (window.FargoMatch ? FargoMatch.normTeam(TEAMS[n].name) : String(n));
+
+async function fillResults(team) {
+  const slots = [...document.querySelectorAll('.res-wait[data-iso]')];
+  if (!window.FargoMatch || !slots.length) return;
+  let season;
+  try { season = await FargoMatch.teamSeason(DIVISION_8BALL, TEAMS[team].name); }
+  catch (e) { slots.forEach(el => el.remove()); return; }
+  if (!season.length) { slots.forEach(el => el.remove()); return; }
+
+  const byNight = {};
+  season.forEach(r => { byNight[`${r.iso}|${FargoMatch.normTeam(r.opp)}`] = r; });
+  const spare = season.slice();
+
+  slots.forEach(el => {
+    const key = `${el.dataset.iso}|${el.dataset.opp}`;
+    let r = byNight[key];
+    /* If their posted date is off, fall back to the right opponent. */
+    if (!r) r = spare.find(x => !x.used && FargoMatch.normTeam(x.opp) === el.dataset.opp);
+    if (!r) { el.remove(); return; }
+    r.used = true;
+    const cls = r.win ? 'win' : r.loss ? 'lose' : 'tie';
+    const tag = r.win ? 'Won' : r.loss ? 'Lost' : 'Tied';
+    const rd  = `${r.rounds}\u2013${r.oppRounds} rounds`;
+    const a = document.createElement('a');
+    a.className = `res ${cls}`;
+    a.href = `league.html?lg=8ball&view=schedule&match=${encodeURIComponent(r.matchId)}`;
+    a.title = `${tag} ${r.for}\u2013${r.against} on balls, ${rd}. Tap for the scoresheet.`;
+    a.innerHTML = `<b>${tag}</b><span class="sc">${r.for}\u2013${r.against}</span><span class="rd">${rd}</span>`;
+    el.replaceWith(a);
+  });
 }
 
 /* ── The picker ── */

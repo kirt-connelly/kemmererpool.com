@@ -596,6 +596,29 @@ h2.head {
 .teams-foot { margin-top: 14px; color: var(--dim); font-size: 14px; max-width: 62ch; }
 /* The housekeeping, under the schedule where it belongs once the
    season is running. */
+/* Last week's four results, read off the scoresheets. The winner's
+   name and total carry the colour; the loser stays quiet. */
+.rrow {
+  display: grid; grid-template-columns: 1fr auto auto auto 1fr;
+  align-items: center; gap: 4px 10px; padding: 11px 16px;
+  border-top: 1px solid var(--edge-in); text-decoration: none; color: inherit;
+}
+.rrow:first-child { border-top: none; }
+.rrow:hover { background: rgba(244,239,228,.03); }
+.rrow .t { font-size: 15px; font-weight: 600; color: var(--dim); }
+.rrow .t.a { text-align: right; }
+.rrow .t.won { color: var(--bone); }
+.rrow .n {
+  font-family: 'Space Mono', monospace; font-size: 17px; font-weight: 700;
+  color: var(--dim); white-space: nowrap;
+}
+.rrow .n.won { color: var(--brass); }
+.rrow .dash { color: var(--dim); font-size: 13px; }
+.rrow .rd {
+  grid-column: 1 / -1; font-family: 'Space Mono', monospace; font-size: 10.5px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--dim); text-align: center;
+}
+@media (max-width: 560px) { .rrow .t { font-size: 14px; } .rrow { padding: 10px 12px; } }
 .season-notes { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 30px; }
 .season-notes .v { font-size: 15px; }
 
@@ -795,6 +818,15 @@ a:focus-visible, button:focus-visible {
                   <div class="nextup-wait">Loading this week&hellip;</div>
                 </div>
                 <a class="panel-more" href="team-schedule.html">Your team's whole season &rarr;</a>
+              </div>
+
+              <div class="panel" id="lastweek" hidden>
+                <div class="panel-hd">
+                  <span class="eyebrow">Last Wednesday</span>
+                  <span class="panel-note" id="lw-when"></span>
+                </div>
+                <div id="lw-body"></div>
+                <a class="panel-more" href="league.html?lg=8ball&amp;view=schedule">Every week&rsquo;s scoresheets &rarr;</a>
               </div>
 
               <div class="panel">
@@ -1171,7 +1203,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.60</span>
+        <span>v1.61</span>
       </div>
 
     </div>
@@ -1179,7 +1211,8 @@ a:focus-visible, button:focus-visible {
 
 </div>
 
-<script src="fargo-fixes.js"></script>
+<script src="fargo-fixes.js?v=1.00"></script>
+<script src="fargo-match.js?v=1.02"></script>
 <script src="season-8ball.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -1443,10 +1476,37 @@ function loadThisWeek() {
     '</div>').join('');
 }
 
+/* Last week's results, straight off the scoresheets. Quietly does
+   nothing if the week isn't posted yet. */
+async function loadLastWeek() {
+  if (!window.FargoMatch) return;
+  const panel = document.getElementById('lastweek');
+  if (!panel) return;
+  let wk;
+  try { wk = await FargoMatch.recentResults(DIVISION_8BALL); } catch (e) { return; }
+  if (!wk || !wk.matches.length) return;
+
+  document.getElementById('lw-when').textContent = wk.date
+    ? wk.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() : '';
+  document.getElementById('lw-body').innerHTML = wk.matches.map(m => {
+    const rd = `${m.homeRounds}\u2013${m.awayRounds} rounds`;
+    return '<a class="rrow" href="league.html?lg=8ball&view=schedule&match=' + encodeURIComponent(m.matchId) + '">' +
+      '<span class="t' + (m.homeWin ? ' won' : '') + '">' + esc(m.home) + '</span>' +
+      '<span class="n' + (m.homeWin ? ' won' : '') + '">' + m.homePts + '</span>' +
+      '<span class="dash">&ndash;</span>' +
+      '<span class="n' + (m.awayWin ? ' won' : '') + '">' + m.awayPts + '</span>' +
+      '<span class="t a' + (m.awayWin ? ' won' : '') + '">' + esc(m.away) + '</span>' +
+      '<span class="rd">' + rd + '</span>' +
+    '</a>';
+  }).join('');
+  panel.hidden = false;
+}
+
 loadStandings();                                          /* 10-ball, final */
 loadStandings(DIVISION_8BALL, 'standings-8ball');         /* this season, live */
 loadNext();
 loadThisWeek();
+loadLastWeek();
 
 /* ── Anchors that land where they should ─────────────────────────
    Standings and Next up arrive after the page does, so a section can

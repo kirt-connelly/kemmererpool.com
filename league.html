@@ -592,7 +592,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.26</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.27</div>
   </div>
 </footer>
 
@@ -1977,6 +1977,8 @@ function switchView(vw) {
   loadView();
 }
 
+let pendingMatch = null;
+
 async function loadView() {
   inDrillDown = false;
   document.getElementById('content').innerHTML =
@@ -1990,6 +1992,11 @@ async function loadView() {
   else if (view==='schedule') html = renderSchedule(data);
   document.getElementById('content').innerHTML = html;
   if (view === 'schedule') scrollToNextMatch();
+  /* A link from a team schedule can name a match: open that sheet. */
+  if (pendingMatch) {
+    const m = pendingMatch; pendingMatch = null;
+    loadMatchResult(m.id, m.title);
+  }
 }
 
 // Jump to the next upcoming date so the schedule doesn't open on old weeks.
@@ -2011,6 +2018,11 @@ function scrollToNextMatch() {
   const want = q.get('lg');
   /* ?lg=events used to be a tab here. It has its own page now. */
   if (want === 'events') { location.replace('tournaments.html'); return; }
+
+  const wantMatch = (q.get('match') || '').trim();
+  if (/^[a-f0-9-]{36}$/i.test(wantMatch)) {
+    pendingMatch = { id: wantMatch, title: q.get('m') || 'Match result' };
+  }
 
   const wantView = q.get('view');
   if (['teams', 'players', 'byteam', 'list', 'schedule'].includes(wantView)) {

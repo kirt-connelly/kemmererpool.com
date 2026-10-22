@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────────────
-   fargo-match.js  v1.00
+   fargo-match.js  v1.02
 
    Everything the player pages need to read FargoRate's public reports.
    league.html still carries its own copy of this parsing for its own
@@ -15,7 +15,7 @@
 
   const PROXY = '/proxy?url=';
   const BASE  = 'https://lms.fargorate.com/PublicReport';
-  const CACHE_V = 1;                       /* bump to throw old cached matches away */
+  const CACHE_V = 2;                       /* bump to throw old cached matches away */
 
   const fixHtml = h => (window.fixFargoHtml ? window.fixFargoHtml(h) : String(h));
 
@@ -225,6 +225,7 @@
       team2: gi('TeamTwo_Name') || '',
       date: gi('Date') || '',
       maxScore,
+      maxHdcp: parseInt(gi('Division_MaximumAllowedHandicap')) || 20,
       games: [],
     };
 
@@ -324,10 +325,141 @@
     return done;
   }
 
+
+  /* ── who won ─────────────────────────────────────────────────────
+     The same arithmetic the scoresheet does: in 8-ball the round is
+     won on balls with the handicap added, the handicap itself is the
+     FargoRate expectation spread spread over the rounds back to front,
+     and the match goes to whoever took more rounds. */
+  function result(m) {
+    const use8 = m.maxScore > 1;
+    const rounds = [...new Set(m.games.map(g => g.round))].sort((a, b) => a - b);
+    const rate = side => Math.max(...side.map(p => p.rating || 0), 0);
+
+    let hdcpBy = {}, hdcpTeam = 0;
+    if (use8) {
+      let v1 = 0, v2 = 0;
+      m.games.forEach(g => {
+        const r1 = rate(g.side1), r2 = rate(g.side2);
+        if (r1 > 0 && r2 > 0) {
+          const p = 1 / (1 + Math.pow(2, (r2 - r1) / 100));
+          v1 += p * 10 + (1 - p) * (7.4 - 0.0062 * r2);
+          v2 += (1 - p) * 10 + p * (7.4 - 0.0062 * r1);
+        }
+      });
+      const cap = m.maxHdcp || 20;
+      let total = 0;
+      if (v2 > v1)      { hdcpTeam = 1; total = Math.min(Math.floor(v2 - v1), cap); }
+      else if (v1 > v2) { hdcpTeam = 2; total = Math.min(Math.floor(v1 - v2), cap); }
+      let left = total, i = rounds.length - 1;
+      while (left > 0 && rounds.length) {
+        const rn = rounds[i];
+        hdcpBy[rn] = (hdcpBy[rn] || 0) + 1;
+        left--; i--;
+        if (i < 0) i = rounds.length - 1;
+      }
+    }
+
+    let rw1 = 0, rw2 = 0, pts1 = 0, pts2 = 0, gw1 = 0, gw2 = 0;
+    rounds.forEach(rn => {
+      let p1 = 0, p2 = 0, w1 = 0, w2 = 0;
+      m.games.filter(g => g.round === rn).forEach(g => {
+        p1 += g.points1; p2 += g.points2;
+        if (g.win1) w1++; else if (g.win2) w2++;
+      });
+      const h = use8 ? (hdcpBy[rn] || 0) : 0;
+      const a1 = p1 + (hdcpTeam === 1 ? h : 0);
+      const a2 = p2 + (hdcpTeam === 2 ? h : 0);
+      const t1 = use8 ? a1 : w1, t2 = use8 ? a2 : w2;
+      if (t1 > t2) rw1 += 1;
+      else if (t2 > t1) rw2 += 1;
+      else if (t1 > 0) { rw1 += 0.5; rw2 += 0.5; }
+      pts1 += use8 ? a1 : p1; pts2 += use8 ? a2 : p2;
+      gw1 += w1; gw2 += w2;
+    });
+
+    return {
+      rounds: rounds.length, rw1, rw2, pts1, pts2, gw1, gw2,
+      win1: rw1 > rw2, win2: rw2 > rw1, tie: rw1 === rw2 && rw1 > 0,
+    };
+  }
+
+  const isoOf = d => d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '';
+
+  /* Every night one team has already played, with the result from
+     that night's own sheet. */
+  async function teamSeason(divisionId, teamName) {
+    const want = normTeam(teamName);
+    const blocks = parseSchedule(await scheduleCached(divisionId));
+    const today = new Date(); today.setHours(23, 59, 59, 999);
+    const ids = [];
+    blocks.forEach(b => {
+      const d = parseDate(b.date);
+      if (d && d > today) return;
+      b.matches.forEach(m => {
+        if (!m.matchId) return;
+        if (want && normTeam(m.home) !== want && normTeam(m.away) !== want) return;
+        ids.push(m.matchId);
+      });
+    });
+    const loaded = await loadMatches(ids);
+    return loaded.filter(m => m && m.games.length).map(m => {
+      const r = result(m);
+      const home = normTeam(m.team1) === want;
+      const when = parseDate(m.date);
+      return {
+        matchId: m.matchId, when, iso: isoOf(when),
+        team: home ? m.team1 : m.team2,
+        opp:  home ? m.team2 : m.team1,
+        home,
+        for:    home ? r.pts1 : r.pts2,
+        against:home ? r.pts2 : r.pts1,
+        rounds:    home ? r.rw1 : r.rw2,
+        oppRounds: home ? r.rw2 : r.rw1,
+        win:  home ? r.win1 : r.win2,
+        loss: home ? r.win2 : r.win1,
+        tie:  r.tie,
+      };
+    });
+  }
+
+
+  /* The most recent night that has scores on it, division-wide. The
+     sheet's own date is what gets shown, so a wrong date on the posted
+     schedule can't mislabel it. */
+  async function recentResults(divisionId) {
+    const blocks = parseSchedule(await scheduleCached(divisionId));
+    const today = new Date(); today.setHours(23, 59, 59, 999);
+    const past = blocks.filter(b => {
+      const d = parseDate(b.date);
+      return d && d <= today && b.matches.some(m => m.matchId);
+    });
+    for (let i = past.length - 1; i >= 0; i--) {
+      const ids = past[i].matches.filter(m => m.matchId).map(m => m.matchId);
+      const loaded = (await loadMatches(ids)).filter(m => m && m.games.length);
+      if (!loaded.length) continue;
+      const when = parseDate(loaded[0].date) || parseDate(past[i].date);
+      return {
+        date: when, iso: isoOf(when),
+        matches: loaded.map(m => {
+          const r = result(m);
+          return {
+            matchId: m.matchId, home: m.team1, away: m.team2,
+            homePts: r.pts1, awayPts: r.pts2,
+            homeRounds: r.rw1, awayRounds: r.rw2,
+            homeWin: r.win1, awayWin: r.win2, tie: r.tie,
+          };
+        }),
+      };
+    }
+    return null;
+  }
+
   window.FargoMatch = {
     PROXY, BASE,
     cleanName, normName, slugName, normTeam, shortName,
     fetchReport, report, reportCached, fetchSchedule, scheduleCached, parseTable, colIndex,
     parseSchedule, parseDate, parseMatch, loadMatch, loadMatches,
+    result, teamSeason, recentResults, isoOf,
   };
 })();
