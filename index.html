@@ -618,6 +618,9 @@ h2.head {
   grid-column: 1 / -1; font-family: 'Space Mono', monospace; font-size: 10.5px;
   letter-spacing: .1em; text-transform: uppercase; color: var(--dim); text-align: center;
 }
+/* The rows go through to the scoresheet, so they say so. */
+.rrow .go { color: var(--brass); }
+.rrow:hover .go { text-decoration: underline; }
 @media (max-width: 560px) { .rrow .t { font-size: 14px; } .rrow { padding: 10px 12px; } }
 .season-notes { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 30px; }
 .season-notes .v { font-size: 15px; }
@@ -1203,7 +1206,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.61</span>
+        <span>v1.62</span>
       </div>
 
     </div>
@@ -1496,7 +1499,7 @@ async function loadLastWeek() {
       '<span class="dash">&ndash;</span>' +
       '<span class="n' + (m.awayWin ? ' won' : '') + '">' + m.awayPts + '</span>' +
       '<span class="t a' + (m.awayWin ? ' won' : '') + '">' + esc(m.away) + '</span>' +
-      '<span class="rd">' + rd + '</span>' +
+      '<span class="rd">' + rd + ' &middot; <span class="go">Scoresheet &rarr;</span></span>' +
     '</a>';
   }).join('');
   panel.hidden = false;

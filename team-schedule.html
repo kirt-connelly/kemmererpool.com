@@ -117,8 +117,11 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
 /* The result of a night that's been played, sitting where the eye
    lands at the end of the row. Tapping it opens that scoresheet. */
 .res{display:flex;align-items:baseline;gap:9px;text-decoration:none;white-space:nowrap;
-  padding:5px 9px;border-radius:4px;border:1px solid var(--edge-in);background:rgba(0,0,0,.25)}
-.res:hover{border-color:var(--brass)}
+  padding:5px 10px;border-radius:4px;border:1px solid rgba(212,161,60,.35);background:rgba(212,161,60,.07)}
+.res:hover{border-color:var(--brass);background:rgba(212,161,60,.16)}
+/* Say so, rather than hoping someone tries tapping it. */
+.res .go{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--brass)}
 .res b{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;
   padding:2px 6px;border-radius:3px}
 .res.win b{background:rgba(79,174,134,.18);color:#4fae86}
@@ -240,7 +243,7 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>team-schedule v1.03</span>
+        <span>team-schedule v1.04</span>
       </div>
     </div>
   </footer>
@@ -354,7 +357,8 @@ async function fillResults(team) {
     a.className = `res ${cls}`;
     a.href = `league.html?lg=8ball&view=schedule&match=${encodeURIComponent(r.matchId)}`;
     a.title = `${tag} ${r.for}\u2013${r.against} on balls, ${rd}. Tap for the scoresheet.`;
-    a.innerHTML = `<b>${tag}</b><span class="sc">${r.for}\u2013${r.against}</span><span class="rd">${rd}</span>`;
+    a.innerHTML = `<b>${tag}</b><span class="sc">${r.for}\u2013${r.against}</span>` +
+                  `<span class="rd">${rd}</span><span class="go">Scoresheet \u2192</span>`;
     el.replaceWith(a);
   });
 }

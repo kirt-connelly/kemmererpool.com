@@ -149,6 +149,13 @@
     }
     .night-hd .vs { color: var(--text2); font-size: 14px; }
     .night-hd .tot { margin-left: auto; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+    .night-hd .sheet {
+      font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+      border: 1px solid rgba(212,161,60,.35); background: rgba(212,161,60,.07);
+      border-radius: var(--radius-sm); padding: 4px 8px; white-space: nowrap;
+    }
+    .night-hd .sheet:hover { background: rgba(212,161,60,.18); text-decoration: none; }
     .glist { display: flex; flex-direction: column; gap: 6px; }
     .game {
       display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center;
@@ -209,7 +216,7 @@
   <script src="season-8ball.js?v=1.00"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.01
+     player.html v1.02
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -497,6 +504,7 @@
       const when = FM.parseDate(data.date) || m.when;
       mine.sort((a, b) => a.round - b.round);
       nights.push({
+        matchId: m.matchId,
         date: data.date || m.date, when, oppTeam, venue: m.venue,
         home: data.team1 ? sheetHome : FM.normTeam(m.home) === wantTeam,
         games: mine,
@@ -586,6 +594,7 @@
               <span class="d">${fmtDate(n.date)}</span>
               <span class="vs">${n.home ? 'vs' : 'at'} ${esc(n.oppTeam)}${n.venue ? ' · ' + esc(n.venue) : ''}</span>
               <span class="tot">${n.won}–${n.lost}</span>
+              ${n.matchId ? `<a class="sheet" href="league.html?lg=${esc(LG)}&view=schedule&match=${encodeURIComponent(n.matchId)}">Scoresheet →</a>` : ''}
             </div>
             <div class="glist">
               ${n.games.map(x => `
