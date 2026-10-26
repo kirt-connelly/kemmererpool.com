@@ -20,7 +20,7 @@ window.SEASON_8BALL = {
   teams: {
     1: { name: 'Stock Sticks',         bar: 'Stock Exchange', captain: 'Bill Abriani',    slug: 'stock-sticks' },
     2: { name: 'Bytches & Brytches',   bar: 'Grumpies',       captain: 'Kylee Smith',     slug: 'bytches-brytches' },
-    3: { name: 'English Teachers',     bar: 'Sage Lanes',     captain: 'Cody Baker',      slug: 'english-teachers' },
+    3: { name: 'English Teachers',     bar: 'Sage Lanes',     captain: 'Tanner Hansen',   slug: 'english-teachers' },
     4: { name: '8 Ball Magic',         bar: 'Grumpies',       captain: 'Rylee Roberts',   slug: '8-ball-magic' },
     5: { name: 'Rack Pack',            bar: 'Stock Exchange', captain: 'Andy Cass',       slug: 'rack-pack' },
     6: { name: 'Chalk is Cheap',       bar: 'Grumpies',       captain: 'Sable Abeyta',    slug: 'chalk-is-cheap' },
