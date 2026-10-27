@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────────────
-   fargo-match.js  v1.02
+   fargo-match.js  v1.03
 
    Everything the player pages need to read FargoRate's public reports.
    league.html still carries its own copy of this parsing for its own
@@ -198,7 +198,9 @@
         });
       });
     }
-    return blocks;
+    /* Same corrections the other pages apply: nights split in two get
+       merged, and a match filed on the wrong night moves back. */
+    return window.fixFargoBlocks ? window.fixFargoBlocks(blocks) : blocks;
   }
 
   function parseDate(s) {

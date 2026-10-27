@@ -337,11 +337,11 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.18</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.19</div>
   </div>
 </footer>
 
-<script src="fargo-fixes.js"></script>
+<script src="fargo-fixes.js?v=1.01"></script>
 <script>
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
@@ -441,7 +441,10 @@ function parseSchedule(html) {
     });
   }
 
-  return weeks.filter(w => w.matches.length);
+  /* Nights split across two headings get merged and a match filed on
+     the wrong night moves back — same corrections the other pages use. */
+  const fixed = window.fixFargoBlocks ? window.fixFargoBlocks(weeks) : weeks;
+  return fixed.filter(w => w.matches.length);
 }
 
 function parseDate(str) {

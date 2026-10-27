@@ -592,11 +592,11 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.27</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.28</div>
   </div>
 </footer>
 
-<script src="fargo-fixes.js"></script>
+<script src="fargo-fixes.js?v=1.01"></script>
 <script>
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
@@ -1209,12 +1209,16 @@ function renderSchedule(data) {
     });
   }
 
+  /* The posted schedule splits a night in two and parks one match on
+     the Thanksgiving week. fargo-fixes puts those back. */
+  const weeks = window.fixFargoBlocks ? window.fixFargoBlocks(blocks) : blocks;
+
   /* Fall back to the print sheet rather than leaving a dead end. */
-  if (!blocks.length) return notice('No schedule data found. Try the ' +
+  if (!weeks.length) return notice('No schedule data found. Try the ' +
     `<a href="schedule.html?league=${league}">print sheet</a>.`);
 
   // First block on or after today — the schedule scrolls here on open.
-  const nextIdx = blocks.findIndex(b => {
+  const nextIdx = weeks.findIndex(b => {
     if (!b.matches.length) return false;
     const d = parseDate(b.date);
     return d && d >= today;
@@ -1229,7 +1233,7 @@ function renderSchedule(data) {
   </div>
 
   <div style="display:flex;flex-direction:column;gap:10px">
-    ${blocks.map((block, bi) => {
+    ${weeks.map((block, bi) => {
       if (!block.matches.length) return '';
       const dt     = parseDate(block.date);
       const isPast = dt && dt <= today;
