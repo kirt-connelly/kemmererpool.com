@@ -212,11 +212,11 @@
   </main>
 
   <script src="fargo-fixes.js?v=1.01"></script>
-  <script src="fargo-match.js?v=1.03"></script>
+  <script src="fargo-match.js?v=1.04"></script>
   <script src="season-8ball.js?v=1.00"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.03
+     player.html v1.04
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -461,6 +461,7 @@
       if (!data || !data.games.length) return;
       const mine = [];
       data.games.forEach(g => {
+        if (g.scored === false) return;      /* lineup posted, score not in yet */
         const onOne = g.side1.some(p => FM.normName(p.name) === want);
         const onTwo = g.side2.some(p => FM.normName(p.name) === want);
         if (!onOne && !onTwo) return;

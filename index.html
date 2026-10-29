@@ -620,6 +620,8 @@ h2.head {
 }
 /* The rows go through to the scoresheet, so they say so. */
 .rrow .go { color: var(--brass); }
+/* Scores still going in — say so rather than showing a half total as final. */
+.rrow .part { color: var(--bone); opacity: .75; }
 .rrow:hover .go { text-decoration: underline; }
 @media (max-width: 560px) { .rrow .t { font-size: 14px; } .rrow { padding: 10px 12px; } }
 .season-notes { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 30px; }
@@ -1206,7 +1208,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.64</span>
+        <span>v1.65</span>
       </div>
 
     </div>
@@ -1215,7 +1217,7 @@ a:focus-visible, button:focus-visible {
 </div>
 
 <script src="fargo-fixes.js?v=1.01"></script>
-<script src="fargo-match.js?v=1.03"></script>
+<script src="fargo-match.js?v=1.04"></script>
 <script src="season-8ball.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -1492,7 +1494,8 @@ async function loadLastWeek() {
   document.getElementById('lw-when').textContent = wk.date
     ? wk.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() : '';
   document.getElementById('lw-body').innerHTML = wk.matches.map(m => {
-    const rd = `${m.homeRounds}\u2013${m.awayRounds} rounds`;
+    const rd = `${m.homeRounds}\u2013${m.awayRounds} rounds` +
+      (m.partial ? ` \u00b7 <span class="part">${m.scored} of ${m.total} games in</span>` : '');
     return '<a class="rrow" href="league.html?lg=8ball&view=schedule&match=' + encodeURIComponent(m.matchId) + '">' +
       '<span class="t' + (m.homeWin ? ' won' : '') + '">' + esc(m.home) + '</span>' +
       '<span class="n' + (m.homeWin ? ' won' : '') + '">' + m.homePts + '</span>' +

@@ -243,7 +243,7 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>team-schedule v1.05</span>
+        <span>team-schedule v1.06</span>
       </div>
     </div>
   </footer>
@@ -251,7 +251,7 @@ body{background:var(--night);color:var(--bone);font-family:'Barlow',system-ui,sa
 </div>
 
 <script src="fargo-fixes.js?v=1.01"></script>
-<script src="fargo-match.js?v=1.03"></script>
+<script src="fargo-match.js?v=1.04"></script>
 <script src="season-8ball.js"></script>
 <script>
 /* The season lives in season-8ball.js, shared with the front page, so
@@ -350,9 +350,11 @@ async function fillResults(team) {
     if (!r) r = spare.find(x => !x.used && FargoMatch.normTeam(x.opp) === el.dataset.opp);
     if (!r) { el.remove(); return; }
     r.used = true;
-    const cls = r.win ? 'win' : r.loss ? 'lose' : 'tie';
-    const tag = r.win ? 'Won' : r.loss ? 'Lost' : 'Tied';
-    const rd  = `${r.rounds}\u2013${r.oppRounds} rounds`;
+    const cls = r.partial ? 'tie' : r.win ? 'win' : r.loss ? 'lose' : 'tie';
+    const tag = r.partial ? 'Live' : r.win ? 'Won' : r.loss ? 'Lost' : 'Tied';
+    const rd  = r.partial
+      ? `${r.scored} of ${r.total} games in`
+      : `${r.rounds}\u2013${r.oppRounds} rounds`;
     const a = document.createElement('a');
     a.className = `res ${cls}`;
     a.href = `league.html?lg=8ball&view=schedule&match=${encodeURIComponent(r.matchId)}`;

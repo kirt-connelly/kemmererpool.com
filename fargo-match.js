@@ -247,7 +247,11 @@
 
       const s1raw = game.querySelector('input.row-score[data-team="1"]')?.getAttribute('value');
       const s2raw = game.querySelector('input.row-score[data-team="2"]')?.getAttribute('value');
-      if (s1raw === null || s1raw === undefined) return;      /* not played yet */
+      if (s1raw === null || s1raw === undefined) return;      /* no box at all */
+      /* The boxes are there from the moment a lineup is set and stay
+         empty until someone types the score in. An empty box is a game
+         not yet played or not yet entered — it is not a 0. */
+      const scored = String(s1raw).trim() !== '' || String(s2raw == null ? '' : s2raw).trim() !== '';
 
       const code = v => ['TR', 'BR', 'WZ', 'WF'].includes(String(v || '').toUpperCase().trim());
       const n1 = parseInt(s1raw) || 0, n2 = parseInt(s2raw) || 0;
@@ -267,7 +271,7 @@
       }
 
       out.games.push({
-        round, doubles,
+        round, doubles, scored,
         side1, side2,
         score1: s1raw, score2: s2raw,
         points1: a1 ? maxScore : n1,
@@ -280,6 +284,8 @@
       });
     });
 
+    out.total  = out.games.length;
+    out.scored = out.games.filter(g => g.scored).length;
     return out;
   }
 
@@ -303,12 +309,37 @@
     try { localStorage.setItem(key(id), JSON.stringify(data)); } catch (e) { /* fine */ }
   }
 
+  /* Only a finished sheet is worth keeping. A lineup posted on
+     Wednesday with the scores still to come would otherwise be held
+     as gospel long after Thursday morning, which is exactly how a
+     match ends up reading 20\u20130 on handicap alone. Anything older
+     than a fortnight is as entered as it is ever going to be. */
+  const SETTLES_AFTER_DAYS = 2;    /* a fresh sheet can still be corrected */
+  const FINAL_AFTER_DAYS   = 14;   /* by now it is what it is */
+  function worthKeeping(data) {
+    if (!data || !data.total) return false;
+    const when = parseDate(data.date);
+    const age = when ? (Date.now() - when.getTime()) / 864e5 : 99;
+    if (age > FINAL_AFTER_DAYS) return true;
+    /* Fully entered and a couple of days settled: keep it. Anything
+       newer is re-read next visit, which costs one fetch a match and
+       means a score typed in late \u2014 or fixed \u2014 shows up. */
+    return data.scored === data.total && age > SETTLES_AFTER_DAYS;
+  }
+
+  /* Sheets kept under an older cache version will never be read again. */
+  try {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('kpl.') && !k.startsWith(`kpl.match.${CACHE_V}.`) && !k.startsWith(`kpl.rep.${CACHE_V}.`))
+      .forEach(k => localStorage.removeItem(k));
+  } catch (e) { /* no storage, nothing to sweep */ }
+
   async function loadMatch(matchId) {
     const hit = cacheGet(matchId);
     if (hit) return hit;
     const html = await fetchReport(`${BASE}/MatchResultBCAPL?matchId=${matchId}`);
     const data = parseMatch(html, matchId);
-    if (data.games.length) cachePut(matchId, data);
+    if (worthKeeping(data)) cachePut(matchId, data);
     return data;
   }
 
@@ -338,6 +369,10 @@
     const rounds = [...new Set(m.games.map(g => g.round))].sort((a, b) => a - b);
     const rate = side => Math.max(...side.map(p => p.rating || 0), 0);
 
+    /* A round nobody has entered yet isn't a 0–0 draw, and it certainly
+       isn't a handicap win: leave it out until the scores go in. */
+    const live = rounds.filter(rn => m.games.some(g => g.round === rn && g.scored));
+
     let hdcpBy = {}, hdcpTeam = 0;
     if (use8) {
       let v1 = 0, v2 = 0;
@@ -363,7 +398,7 @@
     }
 
     let rw1 = 0, rw2 = 0, pts1 = 0, pts2 = 0, gw1 = 0, gw2 = 0;
-    rounds.forEach(rn => {
+    live.forEach(rn => {
       let p1 = 0, p2 = 0, w1 = 0, w2 = 0;
       m.games.filter(g => g.round === rn).forEach(g => {
         p1 += g.points1; p2 += g.points2;
@@ -380,8 +415,11 @@
       gw1 += w1; gw2 += w2;
     });
 
+    const scored = m.scored != null ? m.scored : m.games.filter(g => g.scored).length;
+    const total  = m.total  != null ? m.total  : m.games.length;
     return {
-      rounds: rounds.length, rw1, rw2, pts1, pts2, gw1, gw2,
+      rounds: live.length, rw1, rw2, pts1, pts2, gw1, gw2,
+      scored, total, partial: scored > 0 && scored < total,
       win1: rw1 > rw2, win2: rw2 > rw1, tie: rw1 === rw2 && rw1 > 0,
     };
   }
@@ -405,7 +443,7 @@
       });
     });
     const loaded = await loadMatches(ids);
-    return loaded.filter(m => m && m.games.length).map(m => {
+    return loaded.filter(m => m && m.scored).map(m => {
       const r = result(m);
       const home = normTeam(m.team1) === want;
       const when = parseDate(m.date);
@@ -421,6 +459,7 @@
         win:  home ? r.win1 : r.win2,
         loss: home ? r.win2 : r.win1,
         tie:  r.tie,
+        partial: r.partial, scored: r.scored, total: r.total,
       };
     });
   }
@@ -438,7 +477,7 @@
     });
     for (let i = past.length - 1; i >= 0; i--) {
       const ids = past[i].matches.filter(m => m.matchId).map(m => m.matchId);
-      const loaded = (await loadMatches(ids)).filter(m => m && m.games.length);
+      const loaded = (await loadMatches(ids)).filter(m => m && m.scored);
       if (!loaded.length) continue;
       const when = parseDate(loaded[0].date) || parseDate(past[i].date);
       return {
@@ -450,6 +489,7 @@
             homePts: r.pts1, awayPts: r.pts2,
             homeRounds: r.rw1, awayRounds: r.rw2,
             homeWin: r.win1, awayWin: r.win2, tie: r.tie,
+            partial: r.partial, scored: r.scored, total: r.total,
           };
         }),
       };
