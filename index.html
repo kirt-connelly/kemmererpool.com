@@ -613,15 +613,13 @@ h2.head {
 /* Games won on the night, under the name they belong to. */
 .rrow .t small {
   font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-  letter-spacing: .08em; color: var(--dim);
+  letter-spacing: .08em; color: var(--brass);
 }
-.rrow .t.won small { color: var(--brass); }
 .rrow .t.won { color: var(--bone); }
 .rrow .n {
   font-family: 'Space Mono', monospace; font-size: 17px; font-weight: 700;
-  color: var(--dim); white-space: nowrap;
+  color: var(--brass); white-space: nowrap;
 }
-.rrow .n.won { color: var(--brass); }
 .rrow .dash { color: var(--dim); font-size: 13px; }
 .rrow .rd {
   grid-column: 1 / -1; font-family: 'Space Mono', monospace; font-size: 10.5px;
@@ -1217,7 +1215,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.68</span>
+        <span>v1.69</span>
       </div>
 
     </div>
@@ -1525,8 +1523,8 @@ async function loadLastWeek() {
   const pts = n => n + (n === 1 ? ' point' : ' points');
   document.getElementById('lw-body').innerHTML = wk.matches.map(m => {
     const rd = m.partial
-      ? `<span class="part">${m.scored} of ${m.total} games in</span>`
-      : `${m.homeGames}\u2013${m.awayGames} games`;
+      ? `<span class="part">${m.scored} of ${m.total} games in</span> &middot; `
+      : '';
     return '<a class="rrow" href="league.html?lg=8ball&view=schedule&match=' + encodeURIComponent(m.matchId) + '">' +
       '<span class="t' + (m.homeWin ? ' won' : '') + '">' + esc(m.home) +
         '<small>' + (m.partial ? '' : pts(m.homePoints)) + '</small></span>' +
@@ -1535,7 +1533,7 @@ async function loadLastWeek() {
       '<span class="n' + (m.awayWin ? ' won' : '') + '">' + m.awayPts + '</span>' +
       '<span class="t a' + (m.awayWin ? ' won' : '') + '">' + esc(m.away) +
         '<small>' + (m.partial ? '' : pts(m.awayPoints)) + '</small></span>' +
-      '<span class="rd">' + rd + ' &middot; <span class="go">Scoresheet &rarr;</span></span>' +
+      '<span class="rd">' + rd + '<span class="go">Scoresheet &rarr;</span></span>' +
     '</a>';
   }).join('');
   panel.hidden = false;
