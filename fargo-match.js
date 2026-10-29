@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────────────
-   fargo-match.js  v1.03
+   fargo-match.js  v1.05
 
    Everything the player pages need to read FargoRate's public reports.
    league.html still carries its own copy of this parsing for its own
@@ -15,7 +15,7 @@
 
   const PROXY = '/proxy?url=';
   const BASE  = 'https://lms.fargorate.com/PublicReport';
-  const CACHE_V = 2;                       /* bump to throw old cached matches away */
+  const CACHE_V = 3;                       /* bump to throw old cached matches away */
 
   const fixHtml = h => (window.fixFargoHtml ? window.fixFargoHtml(h) : String(h));
 
@@ -312,11 +312,21 @@
   const memo = {};
   const key = id => `kpl.match.${CACHE_V}.${id}`;
 
+  /* A kept sheet is only usable if it was written by a build that
+     knew which games had scores in them. Anything older gets read
+     again rather than quietly counting as nothing. */
+  const usable = d => d && Array.isArray(d.games) && typeof d.scored === 'number';
+
   function cacheGet(id) {
     if (memo[id]) return memo[id];
     try {
       const raw = localStorage.getItem(key(id));
-      if (raw) { memo[id] = JSON.parse(raw); return memo[id]; }
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (!usable(d)) { localStorage.removeItem(key(id)); return null; }
+        memo[id] = d;
+        return d;
+      }
     } catch (e) { /* private mode, full quota — just refetch */ }
     return null;
   }
