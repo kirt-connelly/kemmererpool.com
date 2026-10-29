@@ -612,9 +612,10 @@ h2.head {
 .rrow .t.a { text-align: right; align-items: flex-end; }
 /* Games won on the night, under the name they belong to. */
 .rrow .t small {
-  font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700;
-  letter-spacing: .08em; color: var(--dim); opacity: .8;
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: .08em; color: var(--dim);
 }
+.rrow .t.won small { color: var(--brass); }
 .rrow .t.won { color: var(--bone); }
 .rrow .n {
   font-family: 'Space Mono', monospace; font-size: 17px; font-weight: 700;
@@ -1216,7 +1217,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.67</span>
+        <span>v1.68</span>
       </div>
 
     </div>
@@ -1519,19 +1520,21 @@ async function loadLastWeek() {
 
   document.getElementById('lw-when').textContent = wk.date
     ? wk.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() : '';
-  const gms = n => n + (n === 1 ? ' game' : ' games');
+  /* What the night was worth to each side goes under their name;
+     the games they took sit on the line below. */
+  const pts = n => n + (n === 1 ? ' point' : ' points');
   document.getElementById('lw-body').innerHTML = wk.matches.map(m => {
     const rd = m.partial
       ? `<span class="part">${m.scored} of ${m.total} games in</span>`
-      : `${m.homePoints}\u2013${m.awayPoints} points`;
+      : `${m.homeGames}\u2013${m.awayGames} games`;
     return '<a class="rrow" href="league.html?lg=8ball&view=schedule&match=' + encodeURIComponent(m.matchId) + '">' +
       '<span class="t' + (m.homeWin ? ' won' : '') + '">' + esc(m.home) +
-        '<small>' + gms(m.homeGames) + '</small></span>' +
+        '<small>' + (m.partial ? '' : pts(m.homePoints)) + '</small></span>' +
       '<span class="n' + (m.homeWin ? ' won' : '') + '">' + m.homePts + '</span>' +
       '<span class="dash">&ndash;</span>' +
       '<span class="n' + (m.awayWin ? ' won' : '') + '">' + m.awayPts + '</span>' +
       '<span class="t a' + (m.awayWin ? ' won' : '') + '">' + esc(m.away) +
-        '<small>' + gms(m.awayGames) + '</small></span>' +
+        '<small>' + (m.partial ? '' : pts(m.awayPoints)) + '</small></span>' +
       '<span class="rd">' + rd + ' &middot; <span class="go">Scoresheet &rarr;</span></span>' +
     '</a>';
   }).join('');
