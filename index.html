@@ -605,25 +605,26 @@ h2.head {
 }
 .rrow:first-child { border-top: none; }
 .rrow:hover { background: rgba(244,239,228,.03); }
-/* One rule across the row: the team that won the night is brass,
-   the team that didn't is plain white. Name, score and points all
-   follow their own side. */
+/* The night reads at a glance: the team that won it comes forward in
+   bone and brass, the other settles back into the page. */
 .rrow .t {
   display: flex; flex-direction: column; gap: 2px;
-  font-size: 15px; font-weight: 600; color: var(--bone);
+  font-size: 15px; font-weight: 600; color: var(--dim);
 }
-.rrow .t.won { color: var(--brass); }
+.rrow .t.won { color: var(--bone); font-weight: 700; }
 .rrow .t.a { text-align: right; align-items: flex-end; }
 /* Games won on the night, under the name they belong to. */
 .rrow .t small {
   font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
-  letter-spacing: .08em; color: inherit;
+  letter-spacing: .08em; color: var(--dim);
 }
+.rrow .t.won small { color: var(--brass); }
 .rrow .n {
   font-family: 'Space Mono', monospace; font-size: 17px; font-weight: 700;
-  color: var(--bone); white-space: nowrap;
+  color: var(--dim); white-space: nowrap;
 }
-.rrow .n.won { color: var(--brass); }
+/* The winning total carries the weight of the row. */
+.rrow .n.won { color: var(--brass); font-size: 19px; font-weight: 700; }
 .rrow .dash { color: var(--dim); font-size: 13px; }
 .rrow .rd {
   grid-column: 1 / -1; font-family: 'Space Mono', monospace; font-size: 10.5px;
@@ -1219,7 +1220,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.70</span>
+        <span>v1.71</span>
       </div>
 
     </div>
