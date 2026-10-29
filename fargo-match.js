@@ -203,9 +203,25 @@
     return window.fixFargoBlocks ? window.fixFargoBlocks(blocks) : blocks;
   }
 
+  /* Safari's date parser is fussier than Chrome's, and the reports
+     hand us three different shapes. Read the two we know by hand
+     before falling back to whatever the browser makes of it. */
   function parseDate(s) {
     if (!s) return null;
+    if (s instanceof Date) return isNaN(s) ? null : s;
     const t = String(s).replace(/^[a-z]+,\s*/i, '').trim();
+
+    let m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp][Mm])?)?/);
+    if (m) {
+      let hh = m[4] ? parseInt(m[4], 10) : 0;
+      const ap = (m[7] || '').toUpperCase();
+      if (ap === 'PM' && hh < 12) hh += 12;
+      if (ap === 'AM' && hh === 12) hh = 0;
+      return new Date(+m[3], +m[1] - 1, +m[2], hh, m[5] ? +m[5] : 0, m[6] ? +m[6] : 0);
+    }
+    m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+
     const d = new Date(t);
     return isNaN(d) ? null : d;
   }
@@ -348,13 +364,17 @@
   async function loadMatches(ids, limit = 4) {
     const queue = ids.slice();
     const done = [];
+    let failed = 0;
     const worker = async () => {
       while (queue.length) {
         const id = queue.shift();
-        try { done.push(await loadMatch(id)); } catch (e) { /* skip a bad one */ }
+        try { done.push(await loadMatch(id)); } catch (e) { failed++; }
       }
     };
     await Promise.all(Array.from({ length: Math.min(limit, queue.length) }, worker));
+    /* How many didn't answer, so a caller can tell "nothing posted"
+       apart from "nothing loaded". */
+    done.failed = failed;
     return done;
   }
 
@@ -471,13 +491,24 @@
   async function recentResults(divisionId) {
     const blocks = parseSchedule(await scheduleCached(divisionId));
     const today = new Date(); today.setHours(23, 59, 59, 999);
-    const past = blocks.filter(b => {
+    const withIds = blocks.filter(b => b.matches.some(m => m.matchId));
+    let past = withIds.filter(b => {
       const d = parseDate(b.date);
-      return d && d <= today && b.matches.some(m => m.matchId);
+      return d && d <= today;
     });
+    /* If not one date could be read, don't give up — the sheets
+       themselves carry their date, and an unplayed one comes back
+       empty anyway. */
+    if (!past.length) past = withIds;
     for (let i = past.length - 1; i >= 0; i--) {
       const ids = past[i].matches.filter(m => m.matchId).map(m => m.matchId);
-      const loaded = (await loadMatches(ids)).filter(m => m && m.scored);
+      const got = await loadMatches(ids);
+      /* Every sheet refused: that's a failure to report, not a quiet
+         "no scores yet". */
+      if (ids.length && got.failed === ids.length) {
+        throw new Error('the scoresheets didn\u2019t answer');
+      }
+      const loaded = got.filter(m => m && m.scored);
       if (!loaded.length) continue;
       const when = parseDate(loaded[0].date) || parseDate(past[i].date);
       return {

@@ -1208,7 +1208,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.65</span>
+        <span>v1.66</span>
       </div>
 
     </div>
@@ -1217,7 +1217,7 @@ a:focus-visible, button:focus-visible {
 </div>
 
 <script src="fargo-fixes.js?v=1.01"></script>
-<script src="fargo-match.js?v=1.04"></script>
+<script src="fargo-match.js?v=1.05"></script>
 <script src="season-8ball.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -1484,12 +1484,30 @@ function loadThisWeek() {
 /* Last week's results, straight off the scoresheets. Quietly does
    nothing if the week isn't posted yet. */
 async function loadLastWeek() {
-  if (!window.FargoMatch) return;
   const panel = document.getElementById('lastweek');
   if (!panel) return;
+
+  /* A panel that quietly vanishes tells nobody anything, so a failure
+     says so in its own box instead of disappearing. */
+  const say = msg => {
+    document.getElementById('lw-body').innerHTML =
+      '<div class="quiet-note" style="padding:16px">' + msg + '</div>';
+    panel.hidden = false;
+  };
+
+  if (!window.FargoMatch) {
+    say('Scores couldn\u2019t load. Reload the page and they should come in.');
+    return;
+  }
   let wk;
-  try { wk = await FargoMatch.recentResults(DIVISION_8BALL); } catch (e) { return; }
-  if (!wk || !wk.matches.length) return;
+  try {
+    wk = await FargoMatch.recentResults(DIVISION_8BALL);
+  } catch (e) {
+    console.warn('last week:', e);
+    say('Scores couldn\u2019t load \u2014 ' + (e && e.message ? e.message : 'the report didn\u2019t answer') + '. Reload to try again.');
+    return;
+  }
+  if (!wk || !wk.matches.length) return;   /* nothing posted yet: say nothing */
 
   document.getElementById('lw-when').textContent = wk.date
     ? wk.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase() : '';
