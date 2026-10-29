@@ -1,11 +1,25 @@
+# Cloudflare Pages response headers.
+#
+# The pages and their scripts have to move together: an old index.html
+# asking for an old script, or a new page paired with a script the
+# browser kept, is how a panel ends up blank with nothing in the console
+# to show for it. So the HTML is always revalidated, and the scripts are
+# held only briefly — they carry ?v= markers for the rest.
+
 /*
-  /
-  X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 
-/*
-  Cache-Control: public, max-age=300
-
+# Always ask: a deploy shows up on the next load, not in four hours.
+/
+  Cache-Control: no-cache
 /*.html
-  Cache-Control: public, max-age=60
+  Cache-Control: no-cache
+
+# Short, and revalidated — the ?v= on each include does the real work.
+/*.js
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Pictures don't change under the same name.
+/images/*
+  Cache-Control: public, max-age=86400
