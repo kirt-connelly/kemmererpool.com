@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────────────
-   fargo-match.js  v1.05
+   fargo-match.js  v1.06
 
    Everything the player pages need to read FargoRate's public reports.
    league.html still carries its own copy of this parsing for its own
@@ -447,10 +447,21 @@
 
     const scored = m.scored != null ? m.scored : m.games.filter(g => g.scored).length;
     const total  = m.total  != null ? m.total  : m.games.length;
+    const done = total > 0 && scored === total;
+
+    /* Five points are on the table: one for each of the four rounds,
+       and a fifth for the higher ball total over the whole match. A
+       dead heat splits whichever one it falls on. Checked against
+       FargoRate's own RDS column \u2014 all eight teams agree. */
+    const bonus1 = !done ? 0 : pts1 > pts2 ? 1 : pts1 === pts2 ? 0.5 : 0;
+    const bonus2 = !done ? 0 : 1 - bonus1;
+    const mp1 = rw1 + bonus1, mp2 = rw2 + bonus2;
+
     return {
       rounds: live.length, rw1, rw2, pts1, pts2, gw1, gw2,
-      scored, total, partial: scored > 0 && scored < total,
-      win1: rw1 > rw2, win2: rw2 > rw1, tie: rw1 === rw2 && rw1 > 0,
+      mp1, mp2, bonus1, bonus2,
+      scored, total, partial: scored > 0 && !done,
+      win1: mp1 > mp2, win2: mp2 > mp1, tie: mp1 === mp2 && mp1 > 0,
     };
   }
 
@@ -486,6 +497,10 @@
         against:home ? r.pts2 : r.pts1,
         rounds:    home ? r.rw1 : r.rw2,
         oppRounds: home ? r.rw2 : r.rw1,
+        points:    home ? r.mp1 : r.mp2,
+        oppPoints: home ? r.mp2 : r.mp1,
+        games:     home ? r.gw1 : r.gw2,
+        oppGames:  home ? r.gw2 : r.gw1,
         win:  home ? r.win1 : r.win2,
         loss: home ? r.win2 : r.win1,
         tie:  r.tie,
@@ -529,6 +544,8 @@
             matchId: m.matchId, home: m.team1, away: m.team2,
             homePts: r.pts1, awayPts: r.pts2,
             homeRounds: r.rw1, awayRounds: r.rw2,
+            homePoints: r.mp1, awayPoints: r.mp2,
+            homeGames: r.gw1, awayGames: r.gw2,
             homeWin: r.win1, awayWin: r.win2, tie: r.tie,
             partial: r.partial, scored: r.scored, total: r.total,
           };
