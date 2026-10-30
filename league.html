@@ -594,7 +594,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.31</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.32</div>
   </div>
 </footer>
 
@@ -813,7 +813,7 @@ function renderTeams(data) {
           ${r.map((cell,ci) => {
             if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
             if (ci===1) return `<td>${teamId
-              ? `<span style="font-weight:500;color:var(--cream);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--text3)" onclick="loadTeamDetail('${teamId}','${teamName.replace(/'/g,"\\'")}')">${cell}</span>`
+              ? `<span class="plink" style="font-weight:500;cursor:pointer" onclick="loadTeamDetail('${teamId}','${teamName.replace(/'/g,"\\'")}')">${cell}</span>`
               : `<span style="font-weight:500;color:var(--cream)">${cell}</span>`
             }</td>`;
             if (ci===pctIdx && pctIdx>0) {
