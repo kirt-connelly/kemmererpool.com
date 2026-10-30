@@ -592,7 +592,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.29</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.30</div>
   </div>
 </footer>
 
@@ -1012,22 +1012,14 @@ function renderList(data) {
     </div>
     <div style="overflow-x:auto"><table class="tbl">
       <thead><tr><th>#</th>${t.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-      <tbody>${sorted.map((r,i) => {
-        const rating = ratingIdx>=0 ? parseInt(r[ratingIdx])||0 : 0;
-        const pct = Math.min(rating/800,1);
-        return `<tr>
+      <tbody>${sorted.map((r,i) => `<tr>
           <td><span class="rank-num">${i+1}</span></td>
-          ${r.map((cell,ci) => {
-            if (ci===ratingIdx && ratingIdx>=0) return `<td>
-              <div class="fargo-wrap">
-                <div class="fargo-track"><div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div></div>
-                <span class="fargo-num" style="color:${fargoColor(rating)}">${cell}</span>
-              </div></td>`;
-            if (ci===nameIdx) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
-            return `<td style="color:var(--text2)">${cell}</td>`;
-          }).join('')}
-        </tr>`;
-      }).join('')}</tbody>
+          ${r.map((cell,ci) =>
+            ci===nameIdx
+              ? `<td style="color:var(--text2)">${playerLink(cell)}</td>`
+              : `<td style="color:var(--text2)">${cell}</td>`
+          ).join('')}
+        </tr>`).join('')}</tbody>
     </table></div>
   </div>
   ${abbrLegend()}`;
