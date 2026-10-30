@@ -216,7 +216,7 @@
   <script src="season-8ball.js?v=1.00"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.07
+     player.html v1.08
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -401,7 +401,7 @@
         </div>
       </div>
       <div id="body"><div class="quiet">Reading this season's scoresheets&hellip;</div></div>
-      <p class="foot">Scores come from the FargoRate match sheets, read once and kept on this phone so it's quick next time.</p>`;
+      <p class="foot">Scores come from the FargoRate match sheets.</p>`;
 
     document.getElementById('share').addEventListener('click', share);
 
@@ -547,7 +547,6 @@
         <div class="tile">
           <div class="k">Shooting average</div>
           <div class="v"><span class="mono">${played ? (g.ptsFor / played).toFixed(2) : '\u2014'}</span></div>
-          <div class="n">Balls a game${g.nights[nights - 1] ? ' \u00b7 last out ' + fmtDate(g.nights[nights - 1].date) : ''}</div>
         </div>
         <div class="tile">
           <div class="k">Record</div>
