@@ -122,6 +122,11 @@
     .tbl tbody tr:last-child td { border-bottom: none; }
     .tbl tbody tr:hover td { background: rgba(244,239,228,.03); }
     .tbl .nm { color: var(--cream); font-weight: 600; }
+    /* Same as the stats pages: names are brass, white under the cursor. */
+    .plink { color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
+      text-decoration-color: rgba(212,161,60,.45); text-decoration-thickness: 1px; }
+    .plink:hover { color: var(--cream); text-decoration-color: var(--cream); }
+    .tbl .nm a:hover, .game .opp a:hover { color: var(--cream); }
     .tbl .num { font-family: 'Space Mono', monospace; text-align: center; white-space: nowrap; }
     .scroll { overflow-x: auto; }
 
@@ -216,7 +221,7 @@
   <script src="season-8ball.js?v=1.00"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.08
+     player.html v1.09
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -242,7 +247,7 @@
   const pLink = name => {
     const slug = FM.slugName(name || '');
     if (!slug) return esc(name || '—');
-    return `<a href="player.html?p=${encodeURIComponent(slug)}${LG !== '8ball' ? '&lg=' + LG : ''}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--text3)">${esc(name)}</a>`;
+    return `<a class="plink" href="player.html?p=${encodeURIComponent(slug)}${LG !== '8ball' ? '&lg=' + LG : ''}">${esc(name)}</a>`;
   };
   const fmtDate = s => {
     const d = FM.parseDate(s);
