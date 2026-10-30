@@ -216,7 +216,7 @@
   <script src="season-8ball.js?v=1.00"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.05
+     player.html v1.07
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -536,6 +536,7 @@
   /* ── the profile body ──────────────────────────────────────── */
   function summary(g, me) {
     const nights = g.nights.length;
+    const played = g.won + g.lost;          /* games with a result on them */
     const next = nextUp(me && me.team);
     const streakTxt = g.streak
       ? `${g.streak} ${g.streakWin ? 'win' : 'loss'}${g.streak > 1 ? 'es'.slice(g.streakWin ? 1 : 0) : ''}`
@@ -544,14 +545,14 @@
     return `
       <div class="tiles">
         <div class="tile">
+          <div class="k">Shooting average</div>
+          <div class="v"><span class="mono">${played ? (g.ptsFor / played).toFixed(2) : '\u2014'}</span></div>
+          <div class="n">Balls a game${g.nights[nights - 1] ? ' \u00b7 last out ' + fmtDate(g.nights[nights - 1].date) : ''}</div>
+        </div>
+        <div class="tile">
           <div class="k">Record</div>
           <div class="v"><span class="mono">${g.won}–${g.lost}</span></div>
           <div class="n">${pct(g.won, g.lost)} of ${g.won + g.lost} games</div>
-        </div>
-        <div class="tile">
-          <div class="k">Nights played</div>
-          <div class="v"><span class="mono">${nights}</span></div>
-          <div class="n">${esc(g.nights[nights - 1] ? 'Last out ' + fmtDate(g.nights[nights - 1].date) : '')}</div>
         </div>
         <div class="tile">
           <div class="k">Balls for / against</div>

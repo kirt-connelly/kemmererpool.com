@@ -592,7 +592,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.28</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.29</div>
   </div>
 </footer>
 
@@ -747,6 +747,14 @@ function playerSlug(name) {
   if (/^[^,]+,\s*.+$/.test(n)) n = n.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
   return n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
+/* Which column holds the player's name. Reports differ: the standings
+   lead with a rank, the ratings list leads with the name. */
+function nameColumn(headers, avoidIdx) {
+  let i = headers.findIndex(h => /^\s*(name|player)/i.test(h || ''));
+  if (i >= 0) return i;
+  i = headers.findIndex((h, n) => n !== avoidIdx && !/^\s*(#|rank|pos)/i.test(h || ''));
+  return i >= 0 ? i : 0;
+}
 function playerLink(name, label) {
   const slug = playerSlug(name);
   const text = label == null ? name : label;
@@ -850,6 +858,7 @@ function renderPlayers(data) {
   const t = data.live && data.html ? parseTable(data.html) : null;
   if (!t || !t.rows.length) return notice('Player standings will appear here once live data loads.');
   const winIdx = findWinPctIdx(t.headers);
+  const nameIdx = nameColumn(t.headers, winIdx);
   return `<div class="card">
     <div class="card-header">
       <span class="card-title">Player Standings</span>
@@ -863,7 +872,7 @@ function renderPlayers(data) {
       <tbody>${t.rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
-          if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
+          if (ci===nameIdx) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
           if (ci===winIdx && winIdx>0) {
             const pv = parseFloat(cell)||0;
             return `<td><div class="bar-wrap">
@@ -989,6 +998,10 @@ function renderList(data) {
   const t = data.live && data.html ? parseTable(data.html) : null;
   if (!t || !t.rows.length) return notice('Player list will appear here once live data loads.');
   const ratingIdx = t.headers.findIndex(h => /rating|fargo/i.test(h));
+  /* This report has no rank of its own, so the name sits in the first
+     column, not the second. Read it from the heading rather than
+     counting \u2014 otherwise the link lands on the rating. */
+  const nameIdx = nameColumn(t.headers, ratingIdx);
   const sorted = ratingIdx >= 0
     ? [...t.rows].sort((a,b) => (parseInt(b[ratingIdx])||0)-(parseInt(a[ratingIdx])||0))
     : t.rows;
@@ -1005,12 +1018,12 @@ function renderList(data) {
         return `<tr>
           <td><span class="rank-num">${i+1}</span></td>
           ${r.map((cell,ci) => {
-            if (ci===1) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
             if (ci===ratingIdx && ratingIdx>=0) return `<td>
               <div class="fargo-wrap">
                 <div class="fargo-track"><div class="fargo-fill" style="width:${pct*100}%;background:${fargoColor(rating)}"></div></div>
                 <span class="fargo-num" style="color:${fargoColor(rating)}">${cell}</span>
               </div></td>`;
+            if (ci===nameIdx) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
             return `<td style="color:var(--text2)">${cell}</td>`;
           }).join('')}
         </tr>`;
