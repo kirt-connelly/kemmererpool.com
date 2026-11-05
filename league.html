@@ -96,6 +96,29 @@
     .tbl { width: 100%; border-collapse: collapse; }
     /* A player's name is a way through to their season: brass like
        every other link on the site, white under the cursor. */
+    /* Week by week: every player's night-by-night balls, with the opponent
+       written up the column the way the printed sheet does it. */
+    .wbw-wrap { overflow-x: auto; }
+    .wbw th, .wbw td { text-align: center; padding: 8px 10px; }
+    .wbw .wbw-name {
+      position: sticky; left: 0; z-index: 2; text-align: left;
+      min-width: 150px; color: var(--cream); font-weight: 500; background: var(--bg2);
+      border-right: 1px solid var(--border);
+    }
+    .wbw thead .wbw-name { background: var(--bg); }
+    .wbw-date { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .06em; color: var(--text3); }
+    .wbw-wk { font-size: 10px; color: var(--text3); margin-top: 3px; white-space: nowrap; }
+    .wbw-h { color: var(--accent); font-weight: 700; }
+    .wbw-v { color: var(--text3); }
+    /* Tall enough for the longest team name, so it can't ride up over
+       the date above it. */
+    .wbw-opp { height: 158px; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; margin-top: 6px; }
+    .wbw-opp span {
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-size: 11px; line-height: 1; color: var(--text2); white-space: nowrap;
+    }
+    .wbw-val { color: var(--cream); font-weight: 600; }
+    .wbw-none { color: var(--border2); }
     .plink { color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
       text-decoration-color: rgba(212,161,60,.45); text-decoration-thickness: 1px; }
     .plink:hover { color: var(--cream); text-decoration-color: var(--cream); }
@@ -594,7 +617,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.34</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.36</div>
   </div>
 </footer>
 
@@ -749,6 +772,17 @@ function playerSlug(name) {
   if (/^[^,]+,\s*.+$/.test(n)) n = n.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
   return n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
+/* FargoRate carries the odd duplicate player record that has never been
+   put in a lineup \u2014 no games, no points, a dash for an average. It is
+   not a player who hasn't played yet so much as a leftover, and it only
+   clutters the stats tables. Anything with a number on it stays. */
+function hasPlayed(vals, skip) {
+  return vals.slice(skip === undefined ? 1 : skip).some(v => {
+    const t = String(v == null ? '' : v).replace(/\s/g, '');
+    return t !== '' && !/^(-|\u2013|\u2014|0|0\.0+|0%|0\.0+%|0\/0)$/.test(t);
+  });
+}
+
 /* Which column holds the player's name. Reports differ: the standings
    lead with a rank, the ratings list leads with the name. */
 function nameColumn(headers, avoidIdx) {
@@ -861,17 +895,19 @@ function renderPlayers(data) {
   if (!t || !t.rows.length) return notice('Player standings will appear here once live data loads.');
   const winIdx = findWinPctIdx(t.headers);
   const nameIdx = nameColumn(t.headers, winIdx);
+  /* Same leftovers as the other tables: no games, nothing to rank. */
+  const rows = t.rows.filter(r => hasPlayed(r, nameIdx + 1));
   return `<div class="card">
     <div class="card-header">
       <span class="card-title">Player Standings</span>
-      <span class="card-meta">${t.rows.length} players</span>
+      <span class="card-meta">${rows.length} players</span>
     </div>
     <div style="overflow-x:auto"><table class="tbl">
       <thead><tr>${t.headers.map(h=>{
           const label = h.replace(/^GMS WON$/i,'W/L').replace(/^WIN PCT$/i,'WIN %');
           return `<th>${label}</th>`;
         }).join('')}</tr></thead>
-      <tbody>${t.rows.map((r,i) => `<tr>
+      <tbody>${rows.map((r,i) => `<tr>
         ${r.map((cell,ci) => {
           if (ci===0) return `<td><span class="rank-num">${i+1}</span></td>`;
           if (ci===nameIdx) return `<td style="font-weight:500;color:var(--cream)">${playerLink(cell)}</td>`;
@@ -986,7 +1022,7 @@ function renderByTeam(data) {
       currentTeam = cells[0]?.textContent.trim();
     } else {
       const vals = cells.map(c => c.textContent.trim());
-      if (vals[0]) currentPlayers.push(vals);
+      if (vals[0] && hasPlayed(vals)) currentPlayers.push(vals);
     }
   });
   flushTeam();
@@ -1746,12 +1782,13 @@ function renderTeamDetail(html, teamName) {
       const t = nameCell.textContent.trim();
       // Exclude known stat/section labels
       if (skipRowLabels.test(t) || statLabelRe.test(t)) return false;
-      // Must look like a name (letters, spaces, hyphens, apostrophes)
-      if (/^[A-Za-zÀ-ÖØ-öø-ÿ'][\w\sÀ-ÖØ-öø-ÿ'\-]{1,}$/.test(t)) return true;
+      // Must look like a name: letters, spaces, hyphens, apostrophes, and
+      // the full stop in a middle initial — "Jeff S. Fox" is a player.
+      if (/^[A-Za-zÀ-ÖØ-öø-ÿ'][\w\sÀ-ÖØ-öø-ÿ'\-.,]{1,}$/.test(t)) return true;
     }
     // Fallback: two+ word string
     if (!firstText || skipRowLabels.test(firstText) || statLabelRe.test(firstText)) return false;
-    return /^[A-Za-zÀ-ÖØ-öø-ÿ][\w\sÀ-ÖØ-öø-ÿ'\-,]{2,}$/.test(firstText.trim()) &&
+    return /^[A-Za-zÀ-ÖØ-öø-ÿ][\w\sÀ-ÖØ-öø-ÿ'\-.,]{2,}$/.test(firstText.trim()) &&
            /\s/.test(firstText.trim());
   };
 
@@ -1783,6 +1820,7 @@ function renderTeamDetail(html, teamName) {
 
       playerRows.push({
         name:    vals[0].replace(/\s+/g, ' ').trim(),
+        weekVals: weekColStart >= 0 ? vals.slice(weekColStart, weekColEnd + 1) : [],
         gPlayed: get('played', -8),
         gWon:    get('won',    -7),
         winPct:  get('winPct', -6),
@@ -1794,6 +1832,33 @@ function renderTeamDetail(html, teamName) {
       });
     }
   });
+
+  // ── Step 4: the three rows that label the weeks ───────────────────────────
+  // Week numbers, home or away, and who they played — the spine of the
+  // week-by-week grid at the bottom of the page.
+  const sliceWeeks = row => {
+    const cells = [...row.querySelectorAll('td,th')].map(c => c.textContent.replace(/\s+/g,' ').trim());
+    return weekColStart >= 0 ? cells.slice(weekColStart, weekColEnd + 1) : cells.slice(1);
+  };
+  const rowStartingWith = re => allRows.find(r => {
+    const f = r.querySelector('td,th');
+    return f && re.test(f.textContent.replace(/\s+/g,' ').trim());
+  });
+  const weekNums = rowStartingWith(/^week$/i)     ? sliceWeeks(rowStartingWith(/^week$/i))     : [];
+  const weekLocs = rowStartingWith(/^location$/i) ? sliceWeeks(rowStartingWith(/^location$/i)) : [];
+  const oppRow   = allRows.find(r => r.querySelector('.rotate-270-200'));
+  const weekOpps = oppRow ? sliceWeeks(oppRow) : [];
+
+  // Drop the never-played duplicates before anything is drawn.
+  const realPlayers = playerRows.filter(p =>
+    hasPlayed([p.name, p.gPlayed, p.gWon, p.winPct, p.pts, p.oppPts, p.br, p.tr, p.weeks]));
+  playerRows.length = 0;
+  playerRows.push(...realPlayers);
+
+  // Players in order of win percentage, same as the By Team page.
+  const asPct = v => { const n = parseFloat(String(v).replace('%','')) || 0; return n > 1 ? n : n * 100; };
+  playerRows.sort((a, b) => asPct(b.winPct) - asPct(a.winPct) ||
+                            (parseInt(b.gWon) || 0) - (parseInt(a.gWon) || 0));
 
   // ── Render ────────────────────────────────────────────────────────────────
   return `
@@ -1859,6 +1924,34 @@ function renderTeamDetail(html, teamName) {
               const isL   = isWL && /^l$/i.test(v);
               const color = isW ? 'var(--green2)' : isL ? 'var(--loss)' : 'var(--text2)';
               return `<td class="num" style="text-align:center;color:${color};font-weight:${isW||isL?'700':'400'}">${v||'—'}</td>`;
+            }).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>` : ''}
+
+    ${playerRows.length && weekDates.length ? `
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">Week by Week</span>
+        <span class="card-meta">Balls each player scored</span>
+      </div>
+      <div class="wbw-wrap"><table class="tbl wbw">
+        <thead><tr>
+          <th class="wbw-name">Player</th>
+          ${weekDates.map((wd, i) => `<th>
+            <div class="wbw-date">${wd}</div>
+            <div class="wbw-wk">${weekNums[i] ? 'W' + weekNums[i] : ''}${
+              weekLocs[i] ? ` <span class="${/^h$/i.test(weekLocs[i]) ? 'wbw-h' : 'wbw-v'}">${weekLocs[i]}</span>` : ''}</div>
+            <div class="wbw-opp"><span>${weekOpps[i] || ''}</span></div>
+          </th>`).join('')}
+        </tr></thead>
+        <tbody>
+          ${playerRows.map(p => `<tr>
+            <td class="wbw-name">${p.name}</td>
+            ${weekDates.map((_, i) => {
+              const v = (p.weekVals[i] || '').trim();
+              return `<td class="num ${v ? 'wbw-val' : 'wbw-none'}">${v || '\u00b7'}</td>`;
             }).join('')}
           </tr>`).join('')}
         </tbody>

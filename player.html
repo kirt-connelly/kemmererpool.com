@@ -137,7 +137,9 @@
     .dot.on { color: var(--green2); }
     .dot.off { color: var(--border2); }
 
-    .form { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 7px; }
+    /* The last ten games, five to a row: the bottom row is the run they're
+       on, the top row is what came before it. */
+    .form { display: grid; grid-template-columns: repeat(5, 20px); gap: 4px; margin-top: 7px; }
     .pip {
       width: 20px; height: 20px; border-radius: 3px; display: grid; place-items: center;
       font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
@@ -221,7 +223,7 @@
   <script src="season-8ball.js?v=1.00"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.09
+     player.html v1.10
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -568,6 +570,7 @@
           <div class="v sm" style="color:${g.streak ? (g.streakWin ? 'var(--green2)' : 'var(--loss)') : 'var(--cream)'}">${esc(streakTxt)}</div>
           <div class="form">${g.flat.slice(-10).map(x =>
             `<span class="pip ${x.win ? 'w' : 'l'}">${x.win ? 'W' : 'L'}</span>`).join('')}</div>
+          <div class="n">${g.flat.length > 10 ? 'Last 10 games' : `${g.flat.length} game${g.flat.length === 1 ? '' : 's'}`}, oldest first</div>
         </div>
         ${g.best ? `
         <div class="tile">
