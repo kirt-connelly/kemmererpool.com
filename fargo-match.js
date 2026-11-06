@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────────────
-   fargo-match.js  v1.06
+   fargo-match.js  v1.07
 
    Everything the player pages need to read FargoRate's public reports.
    league.html still carries its own copy of this parsing for its own
@@ -73,8 +73,23 @@
   }
   const reportCached   = (name, divisionId, mins = 15) =>
     cached(`${name}.${divisionId}`, mins, () => report(name, divisionId));
-  const scheduleCached = (divisionId, mins = 15) =>
-    cached(`sched.${divisionId}`, mins, () => fetchSchedule(divisionId));
+  /* The schedule is the one report with the match ids on it, so when it
+     stops answering, every result on the site goes with it. The last
+     copy that did load is kept and used in its place — the ids on a
+     night already played don't change. */
+  async function scheduleCached(divisionId, mins = 15) {
+    const keep = `kpl.sched.${CACHE_V}.${divisionId}`;
+    const stored = () => { try { return localStorage.getItem(keep) || ''; } catch (e) { return ''; } };
+    let html = '';
+    try { html = await cached(`sched.${divisionId}`, mins, () => fetchSchedule(divisionId)); }
+    catch (e) { const old = stored(); if (old) return old; throw e; }
+
+    if (html && looksLikeSchedule(html)) {
+      try { localStorage.setItem(keep, html); } catch (e) { /* no room, no matter */ }
+      return html;
+    }
+    return stored() || html;
+  }
 
   /* The schedule wants a form post and won't say which field name it
      prefers, so try the ones that have worked and keep the first reply
@@ -209,7 +224,10 @@
   function parseDate(s) {
     if (!s) return null;
     if (s instanceof Date) return isNaN(s) ? null : s;
-    const t = String(s).replace(/^[a-z]+,\s*/i, '').trim();
+    /* A night now comes through as "Wednesday, October 21, 2026 - 6:00
+       PM"; the time on the end is what makes it unreadable. */
+    const t = String(s).split(/\s[-\u2013\u2014]\s/)[0]
+      .replace(/\s+at\s+\d.*$/i, '').replace(/^[a-z]+,\s*/i, '').trim();
 
     let m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp][Mm])?)?/);
     if (m) {

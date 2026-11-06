@@ -337,11 +337,12 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.19</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; schedule v2.21</div>
   </div>
 </footer>
 
-<script src="fargo-fixes.js?v=1.01"></script>
+<script src="fargo-fixes.js?v=1.02"></script>
+<script src="season-8ball.js?v=1.01"></script>
 <script>
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
@@ -444,11 +445,19 @@ function parseSchedule(html) {
   /* Nights split across two headings get merged and a match filed on
      the wrong night moves back — same corrections the other pages use. */
   const fixed = window.fixFargoBlocks ? window.fixFargoBlocks(weeks) : weeks;
-  return fixed.filter(w => w.matches.length);
+  const out = fixed.filter(w => w.matches.length);
+  /* Their report unreadable: print the season we keep ourselves. */
+  if (!out.length && window.SEASON_8BALL && SEASON_8BALL.blocks &&
+      (new URLSearchParams(location.search).get('league') || '8ball') === '8ball') {
+    return SEASON_8BALL.blocks();
+  }
+  return out;
 }
 
 function parseDate(str) {
-  const t = String(str || '').trim();
+  /* "Wednesday, October 21, 2026 - 6:00 PM" — the start time after the
+     hyphen is what keeps the browser from reading the date. */
+  const t = String(str || '').split(/\s[-\u2013\u2014]\s/)[0].replace(/\s+at\s+\d.*$/i, '').trim();
   const m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
   /* "WEDNESDAY, MAY 27, 2026" — drop the weekday, keep the rest. */

@@ -9,7 +9,7 @@
    Delete an entry the day it's fixed at the source; delete the file
    when the list is empty. Nothing else depends on it.
 
-   fargo-fixes v1.01
+   fargo-fixes v1.02
    ═══════════════════════════════════════════════════════════════ */
 
 window.FARGO_FIXES = [
@@ -52,7 +52,10 @@ function schedTeam(name) {
 }
 /* "Wednesday, December 2, 2026" → "2026-12-02". */
 function schedIso(text) {
-  const d = new Date(String(text || '').replace(/^[a-z]+,\s*/i, '').trim());
+  /* Same trailing start time as everywhere else: drop it before the
+     browser tries to make a date of the line. */
+  const d = new Date(String(text || '').split(/\s[-\u2013\u2014]\s/)[0]
+    .replace(/\s+at\s+\d.*$/i, '').replace(/^[a-z]+,\s*/i, '').trim());
   if (isNaN(d)) return '';
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

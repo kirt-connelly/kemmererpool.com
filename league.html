@@ -119,6 +119,13 @@
     }
     .wbw-val { color: var(--cream); font-weight: 600; }
     .wbw-none { color: var(--border2); }
+    /* Shown only when the live schedule couldn't be read and the page is
+       drawing the season from our own file instead. */
+    .sched-ours {
+      border: 1px solid rgba(212,161,60,.35); background: rgba(212,161,60,.07);
+      border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 10px;
+      color: var(--text2); font-size: 13px; line-height: 1.5;
+    }
     .plink { color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
       text-decoration-color: rgba(212,161,60,.45); text-decoration-thickness: 1px; }
     .plink:hover { color: var(--cream); text-decoration-color: var(--cream); }
@@ -617,11 +624,12 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.36</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.38</div>
   </div>
 </footer>
 
-<script src="fargo-fixes.js?v=1.01"></script>
+<script src="fargo-fixes.js?v=1.02"></script>
+<script src="season-8ball.js?v=1.01"></script>
 <script>
 const PROXY = '/proxy?url=';
 const BASE  = 'https://lms.fargorate.com/PublicReport';
@@ -1129,7 +1137,10 @@ function renderSchedule(data) {
   /* "5/27/2026" from the old report, "WEDNESDAY, MAY 27, 2026" from the
      table one. Take either. */
   function parseDate(str) {
-    const t = String(str || '').trim();
+    /* Their report now writes the night as "Wednesday, October 21, 2026
+       - 6:00 PM". Everything from the hyphen on is the start time, and
+       it is what stops the browser reading the date at all. */
+    const t = String(str || '').split(/\s[-\u2013\u2014]\s/)[0].replace(/\s+at\s+\d.*$/i, '').trim();
     const m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (m) return new Date(+m[3], +m[1] - 1, +m[2]);
     const dt = new Date(t.replace(/^[A-Za-z]+,\s*/, ''));
@@ -1256,7 +1267,14 @@ function renderSchedule(data) {
      the Thanksgiving week. fargo-fixes puts those back. */
   const weeks = window.fixFargoBlocks ? window.fixFargoBlocks(blocks) : blocks;
 
-  /* Fall back to the print sheet rather than leaving a dead end. */
+  /* When their report can't be read, fall back to the season we keep
+     ourselves rather than showing an empty page. Only the current
+     8-ball season has a local copy; older ones have nowhere to turn. */
+  let ours = false;
+  if (!weeks.length && league === '8ball' && window.SEASON_8BALL && SEASON_8BALL.blocks) {
+    weeks.push(...SEASON_8BALL.blocks());
+    ours = weeks.length > 0;
+  }
   if (!weeks.length) return notice('No schedule data found. Try the ' +
     `<a href="schedule.html?league=${league}">print sheet</a>.`);
 
@@ -1274,6 +1292,12 @@ function renderSchedule(data) {
     </div>
     <button class="print-btn" onclick="window.print()">Print this page</button>
   </div>
+
+  ${ours ? `<div class="sched-ours">
+    FargoRate's schedule isn't loading right now \u2014 this is the league's own copy
+    of the season. Nights and venues are right; the scoresheet links come back when
+    their report does.
+  </div>` : ''}
 
   <div style="display:flex;flex-direction:column;gap:10px">
     ${weeks.map((block, bi) => {

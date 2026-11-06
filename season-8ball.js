@@ -11,7 +11,7 @@
 
    When Jenkins has the division up on FargoRate, both pages can go
    back to reading it live and this file retires.
-   season-8ball v1.00
+   season-8ball v1.01
    ═══════════════════════════════════════════════════════════════ */
 
 window.SEASON_8BALL = {
@@ -54,6 +54,25 @@ window.SEASON_8BALL = {
   ],
 
   offNotes: { '2026-11-25': 'Thanksgiving week — no play' },
+
+  /* The season in the same shape the FargoRate schedule parses into,
+     so a page can fall back to our own copy when their report won't
+     load. No match ids: those only exist on their side. */
+  blocks() {
+    return this.weeks
+      .filter(([, games]) => games.length)
+      .map(([iso, games]) => ({
+        date: this.day(iso).toLocaleDateString('en-US',
+          { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+        iso,
+        matches: games.map(([h, a]) => ({
+          home: this.teams[h].name,
+          away: this.teams[a].name,
+          venue: this.teams[h].bar,
+          matchId: null,
+        })),
+      }));
+  },
 
   /* A date with no time zone in it, so a Wednesday never slides a day. */
   day(iso) { const p = iso.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); },
