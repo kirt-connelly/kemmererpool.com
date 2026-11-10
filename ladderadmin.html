@@ -32,11 +32,16 @@
 
     label { display: block; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; }
     input, select, textarea {
-      width: 100%; background: var(--night); border: 1px solid var(--edge-in); color: var(--bone);
+      width: 100%; min-width: 0; max-width: 100%;
+      background: var(--night); border: 1px solid var(--edge-in); color: var(--bone);
       border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'Barlow', sans-serif; font-size: 15px;
     }
+    /* Same trap as the public form: a date box carries a wide intrinsic
+       width that a grid cell honours unless told not to. */
+    input[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; display: block; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brass); }
-    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 12px; }
+    .row > * { min-width: 0; }
     .row + .row { margin-top: 12px; }
 
     button {
@@ -86,7 +91,12 @@
     .foot { margin-top: 26px; color: var(--faint); font-size: 13px; }
     .seedlist { font-size: 14px; color: var(--dim); line-height: 1.8; }
     .seedlist span { color: var(--bone); }
-    @media (max-width: 560px) { .wrap { padding-top: 18px; } h1 { font-size: 23px; } }
+    @media (max-width: 560px) {
+      .wrap { padding-top: 18px; } h1 { font-size: 23px; }
+      .row { grid-template-columns: 1fr; }
+      .pend .acts { gap: 6px; }
+      .pend .acts button { flex: 1; }
+    }
   </style>
 </head>
 <body>
@@ -235,7 +245,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.02 — officers only.
+     ladderadmin.html v1.03 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
