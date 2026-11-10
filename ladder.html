@@ -98,6 +98,18 @@
     .num { font-family: 'Space Mono', monospace; text-align: center; white-space: nowrap; }
     .scroll { overflow-x: auto; }
 
+    /* ── How it works: folded shut until somebody taps it ── */
+    details.fold > summary { cursor: pointer; list-style: none; user-select: none; }
+    details.fold > summary::-webkit-details-marker { display: none; }
+    details.fold > summary::marker { content: ''; }
+    details.fold > summary:hover .t { color: var(--bone); }
+    details.fold:not([open]) > summary { border-bottom: none; }
+    .caret {
+      display: inline-block; margin-left: 7px; color: var(--brass); font-size: 10px;
+      transition: transform .18s ease;
+    }
+    details.fold[open] .caret { transform: rotate(180deg); }
+
     .rules { padding: 4px 0 2px; }
     .rules li {
       list-style: none; padding: 11px 16px; border-bottom: 1px solid var(--edge);
@@ -155,7 +167,7 @@
   </header>
 
   <main class="wrap">
-    <div class="eyebrow">Side competition</div>
+    <div class="eyebrow">Challenge Competition</div>
     <h1>Top 15 Ladder</h1>
     <p class="lede">
       Fifteen places, and the only way up is to take someone else&rsquo;s. Every match is a
@@ -165,8 +177,11 @@
 
     <div class="tiles" id="tiles"></div>
 
-    <div class="card">
-      <div class="card-hd"><span class="t">How it works</span></div>
+    <details class="card fold">
+      <summary class="card-hd">
+        <span class="t">How it works</span>
+        <span class="m">The rules <span class="caret" aria-hidden="true">&#9662;</span></span>
+      </summary>
       <ul class="rules">
         <li><span class="n">1</span><span>The ladder started with the <b>top 15 shooting averages</b> in the league. After that it&rsquo;s won and lost on the table &mdash; league stats don&rsquo;t move anybody.</span></li>
         <li><span class="n">2</span><span>You may challenge <b>one place above you</b>, and only one. Win and you swap; lose and nothing moves.</span></li>
@@ -176,7 +191,7 @@
         <li><span class="n">6</span><span>The loser pays <b>$20</b>: <b>$15</b> to the winner, <b>$5</b> into the envelope.</span></li>
         <li><span class="n">7</span><span>A week runs <b>Wednesday to Tuesday</b>. The envelope goes to <b>whoever is sitting at #1</b> when it closes &mdash; twenty matches in a week is $100 on top of the ladder.</span></li>
       </ul>
-    </div>
+    </details>
 
     <div class="card">
       <div class="card-hd">
@@ -207,7 +222,7 @@
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.01 — the public side of the challenge ladder.
+     ladder.html v1.02 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>

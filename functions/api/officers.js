@@ -8,8 +8,7 @@
  *
  * Add a page: add a line to the right section below. That's all.
  *
- * officers v1.01 — report-a-win off the list for now, everything Tri City
- * in one section.
+ * officers v1.02 — Challenge Competition (Top 15 ladder) section added.
  */
 
 const DEFAULT_PW = 'ktown';
@@ -20,6 +19,13 @@ const SECTIONS = [
     links: [
       { href: 'leagueadmin.html', name: 'League Signup Admin', note: '8-Ball Fall/Winter 2026\u201327 teams, players looking and subs' },
       { href: 'league-signup.html', name: '8-Ball Signup', note: 'Public form: team, player or sub', public: true },
+    ],
+  },
+  {
+    title: 'Challenge Competition',
+    links: [
+      { href: 'ladderadmin.html', name: 'Ladder Admin', note: 'Record matches and forfeits, move players, close out the week and pay the envelope' },
+      { href: 'ladder.html', name: 'Top 15 Ladder', note: 'Public page: rules, the ladder, match history and payouts', public: true },
     ],
   },
   {
