@@ -106,10 +106,10 @@
     details.fold:not([open]) > summary { border-bottom: none; }
     .caret {
       display: inline-block; margin-left: 9px; color: var(--brass);
-      font-size: 17px; line-height: 0; vertical-align: -1px;
+      font-size: 17px; line-height: 0; vertical-align: -2px;
       transition: transform .18s ease;
     }
-    details.fold[open] .caret { transform: rotate(180deg); }
+    details.fold[open] .caret { transform: rotate(90deg); }
 
     .rules { padding: 4px 0 2px; }
     .rules li {
@@ -208,7 +208,8 @@
 
     <details class="card fold">
       <summary class="card-hd">
-        <span class="t">How it works <span class="caret" aria-hidden="true">&#9662;</span></span>
+        <span class="t">How it works <span class="caret" aria-hidden="true">&#9656;</span></span>
+        <span class="m">The rules</span>
       </summary>
       <ul class="rules">
         <li><span class="n">1</span><span>The ladder started with the <b>top 15 shooting averages</b> in the league. After that it&rsquo;s won and lost on the table &mdash; league stats don&rsquo;t move anybody.</span></li>
@@ -288,7 +289,7 @@
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.03 — the public side of the challenge ladder.
+     ladder.html v1.04 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
