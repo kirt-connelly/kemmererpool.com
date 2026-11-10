@@ -200,7 +200,7 @@
     <h1>Top 15 Ladder</h1>
     <p class="lede">
       Fifteen places, and the only way up is to take someone else&rsquo;s. Every match is a
-      race to five &mdash; no spots, no handicaps, whatever anyone&rsquo;s rating says.
+      race to five &mdash; no spots, no handicaps.
     </p>
     <div id="notice"></div>
 
@@ -289,7 +289,7 @@
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.04 — the public side of the challenge ladder.
+     ladder.html v1.05 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
