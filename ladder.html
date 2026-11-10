@@ -172,6 +172,8 @@
       padding-right: 32px;
     }
     .form input:focus, .form select:focus { outline: none; border-color: var(--brass); }
+    .form .other { margin-top: 8px; }
+    .form .hide { display: none; }
     .form .btns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
     .form button {
       font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .12em;
@@ -188,6 +190,23 @@
 
     .quiet { padding: 22px 16px; text-align: center; color: var(--faint); font-size: 14px; }
     .foot { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--edge); color: var(--faint); font-size: 13px; }
+
+    /* ── the site footer ── */
+    footer {
+      border-top: 1px solid rgba(244,239,228,.1); background: var(--night2);
+      padding: 24px 0; text-align: center; font-family: 'Space Mono', monospace;
+      font-size: 11px; color: var(--faint); letter-spacing: .06em;
+    }
+    footer .wrap { padding-top: 0; padding-bottom: 0; }
+    .foot-marks { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
+    .foot-marks a {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #f4efe4; border-radius: 4px; padding: 5px 9px; transition: transform .15s;
+    }
+    .foot-marks a:hover { transform: translateY(-1px); }
+    .foot-marks img { display: block; height: 44px; width: auto; }
+    footer a { color: var(--dim); text-decoration: none; }
+    footer a:hover { color: var(--brass); text-decoration: none; }
 
     @media (max-width: 560px) {
       .mast-in { flex-direction: column; justify-content: center; gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px; }
@@ -261,11 +280,13 @@
         <div class="grid">
           <div>
             <label for="f-win">Winner</label>
-            <input id="f-win" list="f-names" placeholder="Name" autocomplete="off" />
+            <select id="f-win"></select>
+            <input id="f-win-other" class="other hide" placeholder="Name" autocomplete="off" />
           </div>
           <div>
             <label for="f-lose">Loser</label>
-            <input id="f-lose" list="f-names" placeholder="Name" autocomplete="off" />
+            <select id="f-lose"></select>
+            <input id="f-lose-other" class="other hide" placeholder="Name" autocomplete="off" />
           </div>
           <div>
             <label for="f-date">Date played</label>
@@ -281,7 +302,6 @@
             </select>
           </div>
         </div>
-        <datalist id="f-names"></datalist>
         <div class="btns">
           <button id="f-send">Send it in</button>
           <span class="note">An officer checks it before it moves anybody.</span>
@@ -309,9 +329,23 @@
     </p>
   </main>
 
+  <footer>
+    <div class="wrap">
+      <div class="foot-marks">
+        <a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener" title="Jenkins Music of Wyoming">
+          <img src="images/jenkins-music.png" alt="Jenkins Music of Wyoming" loading="lazy">
+        </a>
+        <a href="https://www.jenkinsmusic.net/product-page/bca-pool-league-sanction" target="_blank" rel="noopener" title="BCA Pool League">
+          <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
+        </a>
+      </div>
+      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.07</div>
+    </div>
+  </footer>
+
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.06 — the public side of the challenge ladder.
+     ladder.html v1.07 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -387,10 +421,20 @@
       </table>`
       : '<div class="quiet">The ladder hasn’t been started yet.</div>';
 
-    /* Both name boxes offer the ladder, but neither insists on it —
-       somebody challenging their way on isn't there yet. */
-    document.getElementById('f-names').innerHTML =
-      L.players.map(p => `<option value="${esc(p.name)}">`).join('');
+    /* Real dropdowns rather than a datalist: Safari hides datalist
+       suggestions behind the keyboard and most people never see them.
+       The last option is for somebody challenging their way on, who
+       isn't up there yet. */
+    const opts = '<option value="">Pick a player</option>'
+      + L.players.map(p => `<option value="${esc(p.name)}">#${p.rank} &nbsp;${esc(p.name)}</option>`).join('')
+      + '<option value="__other">Not on the ladder…</option>';
+    ['f-win', 'f-lose'].forEach(id => {
+      const sel = document.getElementById(id);
+      const had = sel.value;
+      sel.innerHTML = opts;
+      if (had && [...sel.options].some(o => o.value === had)) sel.value = had;
+    });
+
     document.getElementById('waiting').textContent =
       L.waiting ? `${L.waiting} waiting on an officer` : '';
 
@@ -438,9 +482,15 @@
     box.textContent = msg;
   }
 
+  /* Whichever of the two the player used. */
+  const picked = id => {
+    const v = $(id).value;
+    return v === '__other' ? $(id + '-other').value.trim() : v.trim();
+  };
+
   async function send() {
-    const winner = $('f-win').value.trim();
-    const loser  = $('f-lose').value.trim();
+    const winner = picked('f-win');
+    const loser  = picked('f-lose');
     const date   = $('f-date').value;
     if (!winner || !loser) return tell('Who won and who lost?', true);
     if (!date) return tell('The date it was played is needed.', true);
@@ -458,7 +508,12 @@
       const d = await r.json().catch(() => ({ ok: false, error: 'The server didn’t answer.' }));
       if (!d.ok) { tell(d.error || 'That didn’t go through.', true); return; }
       tell(d.said || 'Sent.', false);
-      $('f-win').value = ''; $('f-lose').value = ''; $('f-score').value = '';
+      ['f-win', 'f-lose'].forEach(id => {
+        $(id).value = '';
+        $(id + '-other').value = '';
+        $(id + '-other').classList.add('hide');
+      });
+      $('f-score').value = '';
       load();
     } catch (e) {
       tell('Couldn’t reach the server. Try again in a minute.', true);
@@ -468,9 +523,14 @@
   }
 
   $('f-send').addEventListener('click', send);
-  ['f-win', 'f-lose'].forEach(id => $(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') send();
-  }));
+  ['f-win', 'f-lose'].forEach(id => {
+    $(id).addEventListener('change', () => {
+      const box = $(id + '-other');
+      box.classList.toggle('hide', $(id).value !== '__other');
+      if ($(id).value === '__other') box.focus();
+    });
+    $(id + '-other').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+  });
   $('f-date').value = new Date().toLocaleDateString('en-CA');
   $('f-date').max = $('f-date').value;
 
