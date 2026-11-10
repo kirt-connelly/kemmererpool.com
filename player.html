@@ -223,7 +223,7 @@
   <script src="season-8ball.js?v=1.01"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.13
+     player.html v1.14
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -570,7 +570,7 @@
           <div class="v sm" style="color:${g.streak ? (g.streakWin ? 'var(--green2)' : 'var(--loss)') : 'var(--cream)'}">${esc(streakTxt)}</div>
           <div class="form">${g.flat.slice(-10).reverse().map(x =>
             `<span class="pip ${x.win ? 'w' : 'l'}">${x.win ? 'W' : 'L'}</span>`).join('')}</div>
-          <div class="n">${g.flat.length > 10 ? 'Last 10 games' : `${g.flat.length} game${g.flat.length === 1 ? '' : 's'}`}, newest first</div>
+          <div class="n">${g.flat.length > 10 ? 'Last 10' : `${g.flat.length} game${g.flat.length === 1 ? '' : 's'}`}, newest first</div>
         </div>
         ${g.best ? `
         <div class="tile">
