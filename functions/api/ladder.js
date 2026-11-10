@@ -13,7 +13,11 @@
    season of matches — small enough that a single document keeps every
    write atomic and makes undo a matter of keeping the last few copies.
 
-   ladder v1.02
+   Players may put a match up themselves (POST action 'submit', no
+   password): it waits in doc.pending until an officer approves it.
+   Nothing a player submits touches the ladder on its own.
+
+   ladder v1.03
    ──────────────────────────────────────────────────────────────── */
 
 const DOC      = 'ladder:v1';
@@ -21,6 +25,7 @@ const SIZE     = 15;          /* places on the ladder */
 const RACE_TO  = 5;           /* every match, whatever anyone's rating */
 const PER_MATCH = 5;          /* dollars into the envelope per match */
 const UNDO_DEPTH = 20;
+const MAX_PENDING = 60;       /* a lid on the public queue */
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status,
@@ -57,13 +62,20 @@ function weekOf(iso) {
 }
 
 const clean = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 60);
+/* Nobody has to remember the score. Blank stays blank rather than
+   turning into a 5\u20130 nobody played. */
+const parseScore = v => {
+  if (v === '' || v == null) return null;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? Math.max(0, Math.min(RACE_TO - 1, n)) : null;
+};
 const key   = s => clean(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 const today = () => new Date().toISOString().slice(0, 10);
 
 function blank() {
   return {
     v: 1, seededAt: null, players: [], matches: [], payouts: [],
-    potMatches: 0, updatedAt: null, undo: [],
+    pending: [], potMatches: 0, updatedAt: null, undo: [],
   };
 }
 
@@ -95,7 +107,7 @@ async function write(env, doc, snapshot) {
    envelope worked out from the matches rather than a running counter,
    so a backdated match or an undo can't leave the total adrift. */
 function publicView(doc) {
-  const { undo, ...rest } = doc;
+  const { undo, pending, ...rest } = doc;
   const week = weekOf(today());
   const paidThrough = doc.paidThrough || '';
   /* Paid is marked on the match itself, not worked out from a cut-off
@@ -118,9 +130,13 @@ function publicView(doc) {
     potMatches: unpaid.length,
     pot: unpaid.length * PER_MATCH,
     paidThrough,
+    waiting: (pending || []).length,
     undoDepth: (undo || []).length,
   };
 }
+
+/* Officers also see the queue itself. */
+const adminView = doc => ({ ...publicView(doc), pending: doc.pending || [] });
 
 const find = (doc, name) => doc.players.find(p => key(p.name) === key(name)) || null;
 const renumber = doc => { doc.players.forEach((p, i) => { p.rank = i + 1; }); return doc; };
@@ -179,7 +195,7 @@ function applyMatch(doc, m) {
     date: m.date || today(),
     winner: w ? w.name : clean(m.winner),
     loser:  l ? l.name : clean(m.loser),
-    score: m.forfeit ? null : Math.max(0, Math.min(RACE_TO - 1, parseInt(m.score) || 0)),
+    score: m.forfeit ? null : parseScore(m.score),
     note: clean(m.note || ''),
     forfeit: !!m.forfeit,
     forced: !!m.force && !check.ok,
@@ -214,6 +230,51 @@ function applyMatch(doc, m) {
   return { match: rec, detail: check.detail || '' };
 }
 
+/* ── a player puts their own match up ───────────────────────────────
+   No password: anyone who played may report it. It goes nowhere near
+   the ladder until an officer approves it, so the worst a bad entry
+   can do is waste an officer ten seconds. The rules are checked here
+   all the same, so the player is told straight away if the challenge
+   wasn't a legal one. */
+async function submit(env, doc, body) {
+  const winner = clean(body.winner), loser = clean(body.loser);
+  if (!winner || !loser) return json({ ok: false, error: 'Both names are needed.' }, 400);
+  if (key(winner) === key(loser)) return json({ ok: false, error: 'That\u2019s the same player twice.' }, 400);
+
+  const date = String(body.date || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !asDate(date)) {
+    return json({ ok: false, error: 'The date the match was played is needed.' }, 400);
+  }
+  if (date > today()) return json({ ok: false, error: 'That date hasn\u2019t happened yet.' }, 400);
+
+  const check = ruleCheck(doc, winner, loser);
+  if (!check.ok) return json({ ok: false, error: check.why }, 400);
+
+  const already = (doc.pending || []).some(x =>
+    key(x.winner) === key(winner) && key(x.loser) === key(loser) && x.date === date);
+  if (already) return json({ ok: false, error: 'That match is already waiting on an officer.' }, 409);
+  if ((doc.pending || []).length >= MAX_PENDING) {
+    return json({ ok: false, error: 'There are too many matches waiting already \u2014 catch an officer.' }, 429);
+  }
+
+  doc.pending = [{
+    id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    winner, loser, date,
+    score: parseScore(body.score),
+    at: new Date().toISOString(),
+    will: check.detail || '',
+  }, ...(doc.pending || [])];
+
+  /* Not on the undo stack: a submission changes nothing an officer
+     would want to roll back. */
+  await write(env, doc, null);
+  return json({
+    ok: true,
+    said: 'Thanks \u2014 an officer will check it, then it shows up on the ladder.',
+    ladder: publicView(doc),
+  });
+}
+
 export async function onRequestOptions() { return json({ ok: true }); }
 
 export async function onRequestGet({ env }) {
@@ -225,10 +286,6 @@ export async function onRequestGet({ env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if ((request.headers.get('X-League-Pass') || '') !== pass(env)) {
-    return json({ ok: false, error: 'Wrong password.' }, 401);
-  }
-
   let body;
   try { body = await request.json(); }
   catch (e) { return json({ ok: false, error: 'Bad request.' }, 400); }
@@ -237,15 +294,26 @@ export async function onRequestPost({ request, env }) {
   try { doc = await read(env); }
   catch (e) { return json({ ok: false, error: e.message }, 500); }
 
-  const before = JSON.parse(JSON.stringify(doc));
   const action = String(body.action || '');
+
+  /* The one thing the public may post. */
+  if (action === 'submit') {
+    try { return await submit(env, doc, body); }
+    catch (e) { return json({ ok: false, error: e.message }, 500); }
+  }
+
+  if ((request.headers.get('X-League-Pass') || '') !== pass(env)) {
+    return json({ ok: false, error: 'Wrong password.' }, 401);
+  }
+
+  const before = JSON.parse(JSON.stringify(doc));
   let said = '';
 
   switch (action) {
 
     /* Does this password work? Changes nothing. */
     case 'ping':
-      return json({ ok: true, said: '', ladder: publicView(doc) });
+      return json({ ok: true, said: '', ladder: adminView(doc) });
 
     /* Start the ladder from the names the officer picked off the
        standings. Only allowed on an empty ladder unless they mean it. */
@@ -282,6 +350,34 @@ export async function onRequestPost({ request, env }) {
       const out = applyMatch(doc, body);
       if (out.error) return json({ ok: false, error: out.error }, 400);
       said = out.detail || 'Match recorded.';
+      break;
+    }
+
+    /* A match a player put up, now signed off. The officer may fix the
+       score or the date on the way through. */
+    case 'approve': {
+      const at = (doc.pending || []).findIndex(x => x.id === String(body.id || ''));
+      if (at < 0) return json({ ok: false, error: 'That one is gone \u2014 another officer may have handled it.' }, 404);
+      const p = doc.pending[at];
+      const out = applyMatch(doc, {
+        winner: p.winner, loser: p.loser,
+        date: body.date || p.date,
+        score: body.score === undefined ? p.score : body.score,
+        force: body.force,
+      });
+      if (out.error) return json({ ok: false, error: out.error }, 400);
+      doc.pending.splice(at, 1);
+      said = `${p.winner} over ${p.loser} approved. ` + (out.detail || '');
+      break;
+    }
+
+    /* Didn't happen, or didn't happen like that. */
+    case 'decline': {
+      const at = (doc.pending || []).findIndex(x => x.id === String(body.id || ''));
+      if (at < 0) return json({ ok: false, error: 'That one is gone \u2014 another officer may have handled it.' }, 404);
+      const p = doc.pending[at];
+      doc.pending.splice(at, 1);
+      said = `${p.winner} over ${p.loser} turned down.`;
       break;
     }
 
@@ -354,7 +450,7 @@ export async function onRequestPost({ request, env }) {
       const prev = JSON.parse(stack[0]);
       prev.undo = stack.slice(1);
       await write(env, prev, null);
-      return json({ ok: true, said: 'Last change undone.', ladder: publicView(prev) });
+      return json({ ok: true, said: 'Last change undone.', ladder: adminView(prev) });
     }
 
     /* The note at the top of the public page. */
@@ -369,5 +465,5 @@ export async function onRequestPost({ request, env }) {
   }
 
   await write(env, doc, before);
-  return json({ ok: true, said, ladder: publicView(doc) });
+  return json({ ok: true, said, ladder: adminView(doc) });
 }

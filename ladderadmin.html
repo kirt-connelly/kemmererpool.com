@@ -66,6 +66,21 @@
     td.act { text-align: right; white-space: nowrap; }
     td.act button { padding: 5px 9px; font-size: 10px; }
 
+    /* ── the approval queue ── */
+    .pend { padding: 14px 16px; border-bottom: 1px solid var(--edge); }
+    .pend:last-child { border-bottom: none; }
+    .pend .line { font-size: 16px; color: var(--dim); }
+    .pend .line b { color: var(--bone); font-weight: 700; }
+    .pend .meta { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--faint); margin-top: 4px; }
+    .pend .will { font-size: 13.5px; color: var(--dim); margin-top: 6px; }
+    .pend .will.no { color: var(--loss); }
+    .pend .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    .pend .acts select { width: auto; padding: 6px 9px; font-size: 13px; }
+    .pend .acts button { padding: 7px 12px; font-size: 10px; }
+    .pend button.ok { color: var(--green); border-color: rgba(79,174,134,.45); background: rgba(79,174,134,.1); }
+    .pend button.ok:hover { background: rgba(79,174,134,.22); color: var(--bone); }
+    .queue-count { color: var(--brass); font-weight: 700; }
+
     .gate { max-width: 360px; margin: 60px auto; }
     .hide { display: none; }
     .foot { margin-top: 26px; color: var(--faint); font-size: 13px; }
@@ -96,6 +111,15 @@
         One place up per challenge; off the ladder, it's #14 or #15 only.
       </p>
 
+      <!-- ── waiting on an officer ─────────────────────────────── -->
+      <div class="card hide" id="queuecard">
+        <div class="card-hd">
+          <span class="t">Waiting for approval</span>
+          <span class="m" id="queuecount"></span>
+        </div>
+        <div id="queue"></div>
+      </div>
+
       <!-- ── record a match ────────────────────────────────────── -->
       <div class="card">
         <div class="card-hd"><span class="t">Record a match</span><span class="m">Race to 5</span></div>
@@ -110,11 +134,12 @@
               <input id="loser" list="names" placeholder="Name" autocomplete="off" />
             </div>
             <div>
-              <label for="score">Loser's games</label>
+              <label for="score">Score <span style="color:var(--edge-in)">&mdash; optional</span></label>
               <select id="score">
+                <option value="" selected>Not given</option>
                 <option value="0">5&ndash;0</option><option value="1">5&ndash;1</option>
                 <option value="2">5&ndash;2</option><option value="3">5&ndash;3</option>
-                <option value="4" selected>5&ndash;4</option>
+                <option value="4">5&ndash;4</option>
               </select>
             </div>
             <div>
@@ -210,7 +235,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.01 — officers only.
+     ladderadmin.html v1.02 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
@@ -245,11 +270,18 @@
     return d;
   }
 
+  /* Signed in, the ping is the one to use: it comes back with the
+     queue on it, which the public GET doesn't carry. */
   async function load() {
+    if (PASS) {
+      const d = await api({ action: 'ping' });
+      if (d.ok) return true;
+    }
     const r = await fetch('/api/ladder');
     const d = await r.json();
     if (!d.ok) throw new Error(d.error || 'not available');
     L = d.ladder; draw();
+    return false;
   }
 
   /* ── the board ─────────────────────────────────────────────── */
@@ -292,39 +324,96 @@
       say($('say'), d.ok ? d.said : d.error, !d.ok);
     }));
     preview();
+    drawQueue();
   }
 
-  /* ── what this match would do, before it's saved ───────────── */
-  function preview() {
-    const w = $('winner').value.trim(), l = $('loser').value.trim();
-    const box = $('preview');
-    if (!w || !l || !L) { box.textContent = ''; return; }
+  /* ── what a match would do to the ladder ───────────────────────
+     The same answer the API gives, worked out here so the officer
+     reads it before saving and beside every match waiting in the
+     queue. { ok } says whether it needs the override box. */
+  function outcome(w, l) {
+    if (!w || !l || !L) return { ok: false, html: '' };
     const pw = L.players.find(p => key(p.name) === key(w));
     const pl = L.players.find(p => key(p.name) === key(l));
     const at = p => p ? `#${p.rank}` : 'not on the ladder';
 
-    if (key(w) === key(l)) { box.innerHTML = 'Same player twice.'; return; }
-    if (!pw && !pl) { box.innerHTML = 'Neither name is on the ladder.'; return; }
+    if (key(w) === key(l)) return { ok: false, html: 'Same player twice.' };
+    if (!pw && !pl) return { ok: false, html: 'Neither name is on the ladder.' };
 
     if (pw && pl) {
       const d = pl.rank - pw.rank;
-      box.innerHTML = d === -1
-        ? `<b>${esc(pw.name)}</b> (${at(pw)}) takes ${at(pl)}; <b>${esc(pl.name)}</b> drops to #${pw.rank}.`
-        : d === 1
-          ? `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.`
-          : `Those two are ${Math.abs(d)} places apart. A challenge only goes up one.`;
-      return;
+      if (d === -1) return { ok: true, html: `<b>${esc(pw.name)}</b> (${at(pw)}) takes ${at(pl)}; <b>${esc(pl.name)}</b> drops to #${pw.rank}.` };
+      if (d === 1)  return { ok: true, html: `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.` };
+      return { ok: false, html: `Those two are ${Math.abs(d)} places apart. A challenge only goes up one.` };
     }
+
     const onBoard = pw || pl;
     const newcomer = pw ? l : w;
     if (onBoard.rank < SIZE - 1) {
-      box.innerHTML = `${esc(newcomer)} isn’t on the ladder, so the challenge has to be to #${SIZE-1} or #${SIZE}.`;
-      return;
+      return { ok: false, html: `${esc(newcomer)} isn’t on the ladder, so the challenge has to be to #${SIZE-1} or #${SIZE}.` };
     }
-    box.innerHTML = pw
-      ? `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.`
-      : `<b>${esc(w)}</b> takes #${pl.rank}; <b>${esc(pl.name)}</b> comes off the ladder.`;
+    return pw
+      ? { ok: true, html: `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.` }
+      : { ok: true, html: `<b>${esc(w)}</b> takes #${pl.rank}; <b>${esc(pl.name)}</b> comes off the ladder.` };
   }
+
+  function preview() {
+    $('preview').innerHTML = outcome($('winner').value.trim(), $('loser').value.trim()).html;
+  }
+
+  /* ── matches players put up themselves ─────────────────────────
+     Nothing here has touched the ladder yet. Approve moves it through
+     the same rules as a match typed in above; decline drops it. */
+  const SCORES = ['', '0', '1', '2', '3', '4'];
+  const scoreText = v => v == null || v === '' ? 'no score given' : `5–${v}`;
+
+  function drawQueue() {
+    const q = (L && L.pending) || [];
+    $('queuecard').classList.toggle('hide', !q.length);
+    $('queuecount').innerHTML = q.length
+      ? `<span class="queue-count">${q.length}</span> sent in by players` : '';
+    if (!q.length) { $('queue').innerHTML = ''; return; }
+
+    $('queue').innerHTML = q.map(p => {
+      const o = outcome(p.winner, p.loser);
+      const opts = SCORES.map(v =>
+        `<option value="${v}"${String(p.score == null ? '' : p.score) === v ? ' selected' : ''}>${
+          v === '' ? 'No score' : '5–' + v}</option>`).join('');
+      return `<div class="pend">
+        <div class="line"><b>${esc(p.winner)}</b> beat <b>${esc(p.loser)}</b></div>
+        <div class="meta">${esc(fmt(p.date))} · ${esc(scoreText(p.score))}${
+          p.at ? ' · sent ' + esc(fmt(p.at.slice(0, 10))) : ''}</div>
+        <div class="will${o.ok ? '' : ' no'}">${o.html || ''}</div>
+        <div class="acts">
+          <select data-sc="${esc(p.id)}">${opts}</select>
+          <button class="ok" data-ok="${esc(p.id)}">Approve</button>
+          <button class="danger" data-no="${esc(p.id)}">Decline</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    $('queue').querySelectorAll('[data-ok]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.ok;
+      const sel = $('queue').querySelector(`[data-sc="${CSS.escape(id)}"]`);
+      b.disabled = true;
+      const d = await api({ action: 'approve', id, score: sel ? sel.value : '', force: $('force').checked });
+      say($('say'), d.ok ? d.said : d.error, !d.ok);
+      if (!d.ok) b.disabled = false;
+    }));
+    $('queue').querySelectorAll('[data-no]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Turn this one down? It disappears off the list.')) return;
+      b.disabled = true;
+      const d = await api({ action: 'decline', id: b.dataset.no });
+      say($('say'), d.ok ? d.said : d.error, !d.ok);
+      if (!d.ok) b.disabled = false;
+    }));
+  }
+
+  const fmt = iso => {
+    const p = String(iso || '').slice(0, 10).split('-').map(Number);
+    if (p.length < 3 || !p[0]) return String(iso || '');
+    return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
   /* ── seeding from the league's own numbers ─────────────────── */
   let seedNames = [];
@@ -415,12 +504,9 @@
 
   $('mdate').value = today();
   $('paydate').value = today();
-  load().catch(() => {});
-  if (PASS) {
-    api({ action: 'ping' }).then(d => {
-      if (d.ok) { $('gate').classList.add('hide'); $('app').classList.remove('hide'); }
-    });
-  }
+  load().then(signedIn => {
+    if (signedIn) { $('gate').classList.add('hide'); $('app').classList.remove('hide'); }
+  }).catch(() => {});
   </script>
 </body>
 </html>

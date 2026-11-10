@@ -105,7 +105,8 @@
     details.fold > summary:hover .t { color: var(--bone); }
     details.fold:not([open]) > summary { border-bottom: none; }
     .caret {
-      display: inline-block; margin-left: 7px; color: var(--brass); font-size: 10px;
+      display: inline-block; margin-left: 9px; color: var(--brass);
+      font-size: 17px; line-height: 0; vertical-align: -1px;
       transition: transform .18s ease;
     }
     details.fold[open] .caret { transform: rotate(180deg); }
@@ -138,6 +139,34 @@
       letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px;
       background: rgba(244,239,228,.08); color: var(--dim);
     }
+
+    /* ── report a match ── */
+    .form { padding: 16px; }
+    .form .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .form label {
+      display: block; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px;
+    }
+    .form label .opt { color: var(--edge-in); letter-spacing: .06em; }
+    .form input, .form select {
+      width: 100%; background: var(--night); border: 1px solid var(--edge-in); color: var(--bone);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      font-family: 'Barlow', system-ui, sans-serif; font-size: 15px;
+    }
+    .form input:focus, .form select:focus { outline: none; border-color: var(--brass); }
+    .form .btns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+    .form button {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--brass); background: rgba(212,161,60,.1);
+      border: 1px solid rgba(212,161,60,.4); border-radius: var(--radius-sm);
+      padding: 11px 16px; cursor: pointer;
+    }
+    .form button:hover { background: rgba(212,161,60,.22); color: var(--bone); }
+    .form button[disabled] { opacity: .45; cursor: default; }
+    .form .note { font-size: 13px; color: var(--faint); }
+    .form .say { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 14.5px; display: none; }
+    .form .say.ok  { display: block; background: rgba(79,174,134,.12); border: 1px solid rgba(79,174,134,.35); color: var(--green); }
+    .form .say.bad { display: block; background: rgba(192,85,63,.12); border: 1px solid rgba(192,85,63,.35); color: var(--loss); }
 
     .quiet { padding: 22px 16px; text-align: center; color: var(--faint); font-size: 14px; }
     .foot { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--edge); color: var(--faint); font-size: 13px; }
@@ -179,8 +208,7 @@
 
     <details class="card fold">
       <summary class="card-hd">
-        <span class="t">How it works</span>
-        <span class="m">The rules <span class="caret" aria-hidden="true">&#9662;</span></span>
+        <span class="t">How it works <span class="caret" aria-hidden="true">&#9662;</span></span>
       </summary>
       <ul class="rules">
         <li><span class="n">1</span><span>The ladder started with the <b>top 15 shooting averages</b> in the league. After that it&rsquo;s won and lost on the table &mdash; league stats don&rsquo;t move anybody.</span></li>
@@ -199,6 +227,44 @@
         <span class="m" id="asof"></span>
       </div>
       <div class="scroll" id="board"><div class="quiet">Loading&hellip;</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <span class="t">Report a match</span>
+        <span class="m" id="waiting"></span>
+      </div>
+      <div class="form">
+        <div class="grid">
+          <div>
+            <label for="f-win">Winner</label>
+            <input id="f-win" list="f-names" placeholder="Name" autocomplete="off" />
+          </div>
+          <div>
+            <label for="f-lose">Loser</label>
+            <input id="f-lose" list="f-names" placeholder="Name" autocomplete="off" />
+          </div>
+          <div>
+            <label for="f-date">Date played</label>
+            <input id="f-date" type="date" />
+          </div>
+          <div>
+            <label for="f-score">Score <span class="opt">&mdash; optional</span></label>
+            <select id="f-score">
+              <option value="">Didn&rsquo;t keep track</option>
+              <option value="0">5&ndash;0</option><option value="1">5&ndash;1</option>
+              <option value="2">5&ndash;2</option><option value="3">5&ndash;3</option>
+              <option value="4">5&ndash;4</option>
+            </select>
+          </div>
+        </div>
+        <datalist id="f-names"></datalist>
+        <div class="btns">
+          <button id="f-send">Send it in</button>
+          <span class="note">An officer checks it before it moves anybody.</span>
+        </div>
+        <div class="say" id="f-say"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -222,7 +288,7 @@
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.02 — the public side of the challenge ladder.
+     ladder.html v1.03 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -289,16 +355,21 @@
         <thead><tr>
           <th>#</th><th>Player</th>
           <th class="num">W–L</th>
-          <th class="num">Held since</th>
         </tr></thead>
         <tbody>${L.players.map(p => `<tr class="${p.rank === 1 ? 'top' : ''}">
           <td class="rank">${p.rank}</td>
           <td class="who">${esc(p.name)}</td>
           <td class="num">${p.w || 0}–${p.l || 0}</td>
-          <td class="num" style="color:var(--faint)">${fmtDate(p.since)}</td>
         </tr>`).join('')}</tbody>
       </table>`
       : '<div class="quiet">The ladder hasn’t been started yet.</div>';
+
+    /* Both name boxes offer the ladder, but neither insists on it —
+       somebody challenging their way on isn't there yet. */
+    document.getElementById('f-names').innerHTML =
+      L.players.map(p => `<option value="${esc(p.name)}">`).join('');
+    document.getElementById('waiting').textContent =
+      L.waiting ? `${L.waiting} waiting on an officer` : '';
 
     const hist = document.getElementById('hist');
     document.getElementById('histmeta').textContent =
@@ -315,7 +386,9 @@
       return `<div class="mrow">
         <span class="d">${fmtDate(m.date)}</span>
         <span class="line">${line}</span>
-        <span class="sc">${m.forfeit ? '<span class="tag">Forfeit</span>' : `5–${m.score == null ? 0 : m.score}`}</span>
+        <span class="sc">${m.forfeit
+          ? '<span class="tag">Forfeit</span>'
+          : m.score == null ? '<span class="tag">Win</span>' : `5–${m.score}`}</span>
         ${move ? `<span class="mv">${move}</span>` : ''}
       </div>`;
     }).join('') : '<div class="quiet">No matches yet. First challenge gets the ball rolling.</div>';
@@ -332,6 +405,51 @@
       </div>`).join('');
     }
   }
+
+  /* ── a player reporting their own match ───────────────────────── */
+  const $ = id => document.getElementById(id);
+
+  function tell(msg, bad) {
+    const box = $('f-say');
+    box.className = 'say ' + (bad ? 'bad' : 'ok');
+    box.textContent = msg;
+  }
+
+  async function send() {
+    const winner = $('f-win').value.trim();
+    const loser  = $('f-lose').value.trim();
+    const date   = $('f-date').value;
+    if (!winner || !loser) return tell('Who won and who lost?', true);
+    if (!date) return tell('The date it was played is needed.', true);
+
+    const btn = $('f-send');
+    btn.disabled = true;
+    const was = btn.textContent;
+    btn.textContent = 'Sending…';
+    try {
+      const r = await fetch('/api/ladder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'submit', winner, loser, date, score: $('f-score').value }),
+      });
+      const d = await r.json().catch(() => ({ ok: false, error: 'The server didn’t answer.' }));
+      if (!d.ok) { tell(d.error || 'That didn’t go through.', true); return; }
+      tell(d.said || 'Sent.', false);
+      $('f-win').value = ''; $('f-lose').value = ''; $('f-score').value = '';
+      load();
+    } catch (e) {
+      tell('Couldn’t reach the server. Try again in a minute.', true);
+    } finally {
+      btn.disabled = false; btn.textContent = was;
+    }
+  }
+
+  $('f-send').addEventListener('click', send);
+  ['f-win', 'f-lose'].forEach(id => $(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') send();
+  }));
+  $('f-date').value = new Date().toLocaleDateString('en-CA');
+  $('f-date').max = $('f-date').value;
 
   load();
   </script>
