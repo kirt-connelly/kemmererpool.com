@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top 15 Ladder &mdash; Kemmerer Pool League</title>
+  <meta name="description" content="The Kemmerer Pool League top 15 challenge ladder — current standings, how to challenge, match history and the weekly envelope." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --night: #14100c; --night2: #1d1712; --night3: #251d15;
+      --edge: #33291f; --edge-in: #473829;
+      --bone: #f4efe4; --dim: #9d9282; --faint: #8d8172;
+      --brass: #d4a13c; --green: #4fae86; --loss: #c0553f;
+      --radius: 6px; --radius-sm: 4px;
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      background: var(--night); color: var(--bone);
+      font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5;
+    }
+    a { color: var(--brass); text-decoration: none; }
+    a:hover { color: var(--bone); text-decoration: underline; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    .mast { background: #100d09; border-bottom: 1px solid var(--edge); position: sticky; top: 0; z-index: 20; }
+    .mast-in { max-width: 1000px; margin: 0 auto; padding: 0 20px; height: 54px; display: flex; align-items: center; gap: 14px; }
+    .mark { display: flex; align-items: center; gap: 10px; }
+    .mark .ball {
+      width: 24px; height: 24px; border-radius: 50%; background: #0b0908;
+      display: grid; place-items: center; border: 1px solid var(--edge-in);
+      font-size: 11px; font-weight: 700; color: var(--bone);
+    }
+    .mark b { font-size: 15px; font-weight: 700; color: var(--bone); }
+    .mast nav { margin-left: auto; display: flex; gap: 2px; flex-wrap: wrap; }
+    .mast nav a {
+      font-family: 'Space Mono', monospace; font-size: 10.5px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
+      padding: 7px 9px; border-radius: var(--radius-sm);
+    }
+    .mast nav a:hover { color: var(--bone); background: var(--night3); text-decoration: none; }
+
+    .wrap { max-width: 1000px; margin: 0 auto; padding-left: 20px; padding-right: 20px; padding-top: 26px; padding-bottom: 60px; }
+
+    .eyebrow {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--brass);
+    }
+    h1 { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin-top: 8px; }
+    .lede { color: var(--dim); margin-top: 8px; max-width: 60ch; }
+
+    .notice {
+      margin-top: 16px; border: 1px solid rgba(212,161,60,.35); background: rgba(212,161,60,.07);
+      border-radius: var(--radius-sm); padding: 11px 14px; color: var(--bone); font-size: 15px;
+    }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 20px; }
+    .tile { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); padding: 14px 16px; }
+    .tile .k {
+      font-family: 'Space Mono', monospace; font-size: 9.5px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--faint);
+    }
+    .tile .v { font-size: 25px; font-weight: 800; margin-top: 6px; line-height: 1.15; }
+    .tile .v.sm { font-size: 18px; font-weight: 700; }
+    .tile .n { font-size: 13px; color: var(--dim); margin-top: 3px; }
+    .tile.pot .v { color: var(--brass); font-family: 'Space Mono', monospace; }
+
+    .card { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); margin-top: 20px; overflow: hidden; }
+    .card-hd {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 16px; background: var(--night); border-bottom: 1px solid var(--edge);
+    }
+    .card-hd .t {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .13em; text-transform: uppercase; color: var(--brass);
+    }
+    .card-hd .m { font-size: 12px; color: var(--faint); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; padding: 9px 14px; font-family: 'Space Mono', monospace;
+      font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--faint); background: var(--night); border-bottom: 1px solid var(--edge); white-space: nowrap;
+    }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--edge); font-size: 15px; color: var(--dim); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(244,239,228,.03); }
+    .rank {
+      font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700;
+      color: var(--faint); width: 54px;
+    }
+    tr.top .rank, tr.top .who { color: var(--brass); }
+    .who { color: var(--bone); font-weight: 600; }
+    .num { font-family: 'Space Mono', monospace; text-align: center; white-space: nowrap; }
+    .scroll { overflow-x: auto; }
+
+    .rules { padding: 4px 0 2px; }
+    .rules li {
+      list-style: none; padding: 11px 16px; border-bottom: 1px solid var(--edge);
+      display: flex; gap: 12px; align-items: flex-start; font-size: 15px; color: var(--dim);
+    }
+    .rules li:last-child { border-bottom: none; }
+    .rules b { color: var(--bone); font-weight: 600; }
+    .rules .n {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      color: var(--brass); padding-top: 3px; min-width: 18px;
+    }
+
+    .hist { padding: 0; }
+    .mrow {
+      display: grid; grid-template-columns: 74px 1fr auto; gap: 4px 12px;
+      align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--edge);
+    }
+    .mrow:last-child { border-bottom: none; }
+    .mrow .d { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--faint); }
+    .mrow .line { font-size: 15px; color: var(--dim); }
+    .mrow .line b { color: var(--bone); font-weight: 600; }
+    .mrow .sc { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--brass); white-space: nowrap; }
+    .mrow .mv { grid-column: 2 / -1; font-size: 12.5px; color: var(--faint); }
+    .tag {
+      font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px;
+      background: rgba(244,239,228,.08); color: var(--dim);
+    }
+
+    .quiet { padding: 22px 16px; text-align: center; color: var(--faint); font-size: 14px; }
+    .foot { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--edge); color: var(--faint); font-size: 13px; }
+
+    @media (max-width: 560px) {
+      .mast-in { flex-direction: column; justify-content: center; gap: 2px; height: auto; padding-top: 9px; padding-bottom: 7px; }
+      .mast nav { margin-left: 0; justify-content: center; }
+      h1 { font-size: 27px; }
+      .wrap { padding-top: 18px; }
+      td, th { padding: 9px 10px; }
+      .mrow { grid-template-columns: 1fr auto; }
+      .mrow .d { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="mast">
+    <div class="mast-in">
+      <a class="mark" href="index.html"><span class="ball">8</span><b>Kemmerer Pool League</b></a>
+      <nav>
+        <a href="league.html?lg=8ball">Stats</a>
+        <a href="player.html">Players</a>
+        <a href="schedule.html">Schedule</a>
+        <a href="index.html">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="eyebrow">Side competition</div>
+    <h1>Top 15 Ladder</h1>
+    <p class="lede">
+      Fifteen places, and the only way up is to take someone else&rsquo;s. Every match is a
+      race to five &mdash; no spots, no handicaps, whatever anyone&rsquo;s rating says.
+    </p>
+    <div id="notice"></div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card">
+      <div class="card-hd"><span class="t">How it works</span></div>
+      <ul class="rules">
+        <li><span class="n">1</span><span>The ladder started with the <b>top 15 shooting averages</b> in the league. After that it&rsquo;s won and lost on the table &mdash; league stats don&rsquo;t move anybody.</span></li>
+        <li><span class="n">2</span><span>You may challenge <b>one place above you</b>, and only one. Win and you swap; lose and nothing moves.</span></li>
+        <li><span class="n">3</span><span>Not on the ladder yet? You can challenge <b>#14 or #15</b>. Win and you take their place &mdash; they come off the ladder and have to work their way back on the same way.</span></li>
+        <li><span class="n">4</span><span>Put the challenge out <b>on our Facebook page or straight to the player</b>. They have <b>48 hours</b> to answer and get a night in the book, or they forfeit the place.</span></li>
+        <li><span class="n">5</span><span>Every match is a <b>race to 5</b>. Ratings don&rsquo;t matter.</span></li>
+        <li><span class="n">6</span><span>The loser pays <b>$20</b>: <b>$15</b> to the winner, <b>$5</b> into the envelope.</span></li>
+        <li><span class="n">7</span><span>A week runs <b>Wednesday to Tuesday</b>. The envelope goes to <b>whoever is sitting at #1</b> when it closes &mdash; twenty matches in a week is $100 on top of the ladder.</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <span class="t">The ladder</span>
+        <span class="m" id="asof"></span>
+      </div>
+      <div class="scroll" id="board"><div class="quiet">Loading&hellip;</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <span class="t">Match history</span>
+        <span class="m" id="histmeta"></span>
+      </div>
+      <div class="hist" id="hist"><div class="quiet">Loading&hellip;</div></div>
+    </div>
+
+    <div class="card" id="paidcard" hidden>
+      <div class="card-hd"><span class="t">Envelope paid out</span></div>
+      <div class="hist" id="paid"></div>
+    </div>
+
+    <p class="foot">
+      Run by the league officers. Challenges go out on Facebook or straight to the player &mdash;
+      questions to <a href="mailto:officers@kemmererpool.com">officers@kemmererpool.com</a>.
+    </p>
+  </main>
+
+  <script>
+  /* ────────────────────────────────────────────────────────────────
+     ladder.html v1.01 — the public side of the challenge ladder.
+     Reads /api/ladder, which anyone may read and only officers write.
+     ──────────────────────────────────────────────────────────────── */
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const fmtDate = iso => {
+    if (!iso) return '';
+    const p = String(iso).slice(0, 10).split('-').map(Number);
+    if (p.length < 3 || !p[0]) return esc(iso);
+    return new Date(p[0], p[1] - 1, p[2])
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+  };
+
+  /* "NOV 11 \u2013 NOV 17" */
+  const span = (a, b) => `${fmtDate(a)} \u2013 ${fmtDate(b)}`;
+
+  async function load() {
+    let d;
+    try {
+      const r = await fetch('/api/ladder', { headers: { Accept: 'application/json' } });
+      d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'not available');
+    } catch (e) {
+      document.getElementById('board').innerHTML =
+        `<div class="quiet">The ladder isn’t loading right now. ${esc(e.message)}</div>`;
+      document.getElementById('hist').innerHTML = '';
+      return;
+    }
+    const L = d.ladder;
+
+    document.getElementById('notice').innerHTML = L.notice
+      ? `<div class="notice">${esc(L.notice)}</div>` : '';
+
+    const top = L.players[0];
+    const played = L.matches.filter(m => !m.forfeit).length;
+    document.getElementById('tiles').innerHTML = `
+      <div class="tile">
+        <div class="k">Sitting at #1</div>
+        <div class="v sm">${top ? esc(top.name) : '—'}</div>
+        <div class="n">${top && top.since ? 'Since ' + fmtDate(top.since) : 'Ladder not started yet'}</div>
+      </div>
+      <div class="tile pot">
+        <div class="k">In the envelope</div>
+        <div class="v">$${L.pot || 0}</div>
+        <div class="n">${L.weekMatches || 0} match${(L.weekMatches || 0) === 1 ? '' : 'es'} this week${
+          L.priorPot ? ` \u00b7 $${L.priorPot} still owed from before` : ''}</div>
+      </div>
+      <div class="tile">
+        <div class="k">Matches played</div>
+        <div class="v">${played}</div>
+        <div class="n">${L.seededAt ? 'Ladder opened ' + fmtDate(L.seededAt) : ''}</div>
+      </div>
+      <div class="tile">
+        <div class="k">This week</div>
+        <div class="v sm">${L.week ? span(L.week.start, L.week.end) : '\u2014'}</div>
+        <div class="n">Wednesday through Tuesday</div>
+      </div>`;
+
+    document.getElementById('asof').textContent =
+      L.updatedAt ? 'Updated ' + fmtDate(L.updatedAt) : '';
+
+    document.getElementById('board').innerHTML = L.players.length ? `
+      <table>
+        <thead><tr>
+          <th>#</th><th>Player</th>
+          <th class="num">W–L</th>
+          <th class="num">Held since</th>
+        </tr></thead>
+        <tbody>${L.players.map(p => `<tr class="${p.rank === 1 ? 'top' : ''}">
+          <td class="rank">${p.rank}</td>
+          <td class="who">${esc(p.name)}</td>
+          <td class="num">${p.w || 0}–${p.l || 0}</td>
+          <td class="num" style="color:var(--faint)">${fmtDate(p.since)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`
+      : '<div class="quiet">The ladder hasn’t been started yet.</div>';
+
+    const hist = document.getElementById('hist');
+    document.getElementById('histmeta').textContent =
+      L.matches.length ? `${L.matches.length} recorded` : '';
+    hist.innerHTML = L.matches.length ? L.matches.map(m => {
+      const moved = m.to && m.from !== m.to;
+      const line = m.forfeit
+        ? `<b>${esc(m.winner)}</b> took #${m.to} &mdash; <b>${esc(m.loser)}</b> didn’t answer the challenge`
+        : `<b>${esc(m.winner)}</b> beat <b>${esc(m.loser)}</b>`;
+      const move = m.dropped
+        ? `Takes #${m.to}. ${esc(m.dropped)} comes off the ladder.`
+        : moved ? `Moves up to #${m.to}.`
+        : m.forfeit ? '' : `No change — ${esc(m.winner)} holds #${m.to || ''}.`;
+      return `<div class="mrow">
+        <span class="d">${fmtDate(m.date)}</span>
+        <span class="line">${line}</span>
+        <span class="sc">${m.forfeit ? '<span class="tag">Forfeit</span>' : `5–${m.score == null ? 0 : m.score}`}</span>
+        ${move ? `<span class="mv">${move}</span>` : ''}
+      </div>`;
+    }).join('') : '<div class="quiet">No matches yet. First challenge gets the ball rolling.</div>';
+
+    const paid = document.getElementById('paid');
+    if (L.payouts && L.payouts.length) {
+      document.getElementById('paidcard').hidden = false;
+      paid.innerHTML = L.payouts.map(p => `<div class="mrow">
+        <span class="d">${fmtDate(p.date)}</span>
+        <span class="line"><b>${esc(p.winner)}</b> took the envelope</span>
+        <span class="sc">$${p.amount}</span>
+        ${p.matches ? `<span class="mv">${p.matches} match${p.matches === 1 ? '' : 'es'}${
+          p.weekStart ? ', week of ' + fmtDate(p.weekStart) : ''}.</span>` : ''}
+      </div>`).join('');
+    }
+  }
+
+  load();
+  </script>
+</body>
+</html>

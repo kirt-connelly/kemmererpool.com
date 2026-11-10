@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Ladder Admin &mdash; Kemmerer Pool League</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --night: #14100c; --night2: #1d1712; --night3: #251d15;
+      --edge: #33291f; --edge-in: #473829;
+      --bone: #f4efe4; --dim: #9d9282; --faint: #8d8172;
+      --brass: #d4a13c; --green: #4fae86; --loss: #c0553f;
+      --radius: 6px; --radius-sm: 4px;
+    }
+    body { background: var(--night); color: var(--bone); font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+    a { color: var(--brass); text-decoration: none; }
+    .wrap { max-width: 900px; margin: 0 auto; padding-left: 20px; padding-right: 20px; padding-top: 26px; padding-bottom: 70px; }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brass); }
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-top: 6px; }
+    .sub { color: var(--dim); margin-top: 6px; font-size: 15px; }
+
+    .card { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); margin-top: 18px; overflow: hidden; }
+    .card-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; background: var(--night); border-bottom: 1px solid var(--edge); }
+    .card-hd .t { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--brass); }
+    .card-hd .m { font-size: 12px; color: var(--faint); }
+    .body { padding: 16px; }
+
+    label { display: block; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%; background: var(--night); border: 1px solid var(--edge-in); color: var(--bone);
+      border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'Barlow', sans-serif; font-size: 15px;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brass); }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+    .row + .row { margin-top: 12px; }
+
+    button {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--brass); background: rgba(212,161,60,.1);
+      border: 1px solid rgba(212,161,60,.4); border-radius: var(--radius-sm);
+      padding: 10px 14px; cursor: pointer;
+    }
+    button:hover { background: rgba(212,161,60,.22); color: var(--bone); }
+    button[disabled] { opacity: .45; cursor: default; }
+    button.quietbtn { color: var(--dim); border-color: var(--edge-in); background: transparent; }
+    button.danger { color: var(--loss); border-color: rgba(192,85,63,.45); background: rgba(192,85,63,.08); }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+
+    .say { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 14px; display: none; }
+    .say.ok { display: block; background: rgba(79,174,134,.12); border: 1px solid rgba(79,174,134,.35); color: var(--green); }
+    .say.bad { display: block; background: rgba(192,85,63,.12); border: 1px solid rgba(192,85,63,.35); color: var(--loss); }
+    .preview { margin-top: 10px; font-size: 14px; color: var(--dim); min-height: 20px; }
+    .preview b { color: var(--bone); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 9px 12px; font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); border-bottom: 1px solid var(--edge); }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--edge); font-size: 15px; color: var(--dim); }
+    tbody tr:last-child td { border-bottom: none; }
+    td.who { color: var(--bone); font-weight: 600; }
+    td.rank { font-family: 'Space Mono', monospace; color: var(--faint); width: 44px; }
+    td.act { text-align: right; white-space: nowrap; }
+    td.act button { padding: 5px 9px; font-size: 10px; }
+
+    .gate { max-width: 360px; margin: 60px auto; }
+    .hide { display: none; }
+    .foot { margin-top: 26px; color: var(--faint); font-size: 13px; }
+    .seedlist { font-size: 14px; color: var(--dim); line-height: 1.8; }
+    .seedlist span { color: var(--bone); }
+    @media (max-width: 560px) { .wrap { padding-top: 18px; } h1 { font-size: 23px; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div id="gate" class="gate">
+      <div class="eyebrow">Officers</div>
+      <h1>Ladder admin</h1>
+      <div class="card"><div class="body">
+        <label for="pw">League password</label>
+        <input id="pw" type="password" autocomplete="current-password" />
+        <div class="btns"><button id="go">Open</button></div>
+        <div id="gatesay" class="say"></div>
+      </div></div>
+      <p class="foot"><a href="ladder.html">&larr; the public ladder page</a></p>
+    </div>
+
+    <div id="app" class="hide">
+      <div class="eyebrow">Officers</div>
+      <h1>Ladder admin</h1>
+      <p class="sub">
+        Everything here shows up on <a href="ladder.html">the public page</a> straight away.
+        One place up per challenge; off the ladder, it's #14 or #15 only.
+      </p>
+
+      <!-- ── record a match ────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-hd"><span class="t">Record a match</span><span class="m">Race to 5</span></div>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label for="winner">Winner</label>
+              <input id="winner" list="names" placeholder="Name" autocomplete="off" />
+            </div>
+            <div>
+              <label for="loser">Loser</label>
+              <input id="loser" list="names" placeholder="Name" autocomplete="off" />
+            </div>
+            <div>
+              <label for="score">Loser's games</label>
+              <select id="score">
+                <option value="0">5&ndash;0</option><option value="1">5&ndash;1</option>
+                <option value="2">5&ndash;2</option><option value="3">5&ndash;3</option>
+                <option value="4" selected>5&ndash;4</option>
+              </select>
+            </div>
+            <div>
+              <label for="mdate">Date played</label>
+              <input id="mdate" type="date" />
+            </div>
+          </div>
+          <datalist id="names"></datalist>
+          <div class="preview" id="preview"></div>
+          <div class="btns">
+            <button id="save">Record match</button>
+            <button id="forfeit" class="quietbtn" title="No answer within 48 hours">Record a forfeit</button>
+            <label style="display:flex;align-items:center;gap:6px;margin:0;text-transform:none;letter-spacing:0;font-family:Barlow,sans-serif;font-size:13px;color:var(--dim)">
+              <input id="force" type="checkbox" style="width:auto" /> override the rules
+            </label>
+          </div>
+          <div id="say" class="say"></div>
+        </div>
+      </div>
+
+      <!-- ── the ladder ────────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-hd">
+          <span class="t">The ladder</span>
+          <span class="m" id="potline"></span>
+        </div>
+        <div id="board"></div>
+        <div class="body" style="border-top:1px solid var(--edge)">
+          <div class="row">
+            <div>
+              <label for="addname">Add a player</label>
+              <input id="addname" placeholder="Name" autocomplete="off" />
+            </div>
+            <div>
+              <label for="addrank">At place</label>
+              <input id="addrank" type="number" min="1" max="15" placeholder="bottom" />
+            </div>
+          </div>
+          <div class="btns"><button id="add" class="quietbtn">Add</button></div>
+        </div>
+      </div>
+
+      <!-- ── the envelope ──────────────────────────────────────── -->
+      <div class="card">
+        <div class="card-hd"><span class="t">Close out the week</span><span class="m" id="potline2"></span></div>
+        <div class="body">
+          <p class="sub" style="margin-top:0">
+            A week runs Wednesday to Tuesday. This pays whoever is at #1 for every match up
+            to that Tuesday and empties the envelope &mdash; anything written up afterwards
+            rolls into the next week. Change the amount if the cash doesn't match.
+          </p>
+          <div class="row">
+            <div><label for="payamt">Amount</label><input id="payamt" type="number" min="0" /></div>
+            <div><label for="paywho">Paid to</label><input id="paywho" list="names" /></div>
+            <div><label for="paydate">Date</label><input id="paydate" type="date" /></div>
+          </div>
+          <div class="btns"><button id="pay">Pay out and reset</button></div>
+        </div>
+      </div>
+
+      <!-- ── start it / notice / undo ──────────────────────────── -->
+      <div class="card">
+        <div class="card-hd"><span class="t">Housekeeping</span></div>
+        <div class="body">
+          <label for="notice">Note at the top of the public page</label>
+          <input id="notice" placeholder="e.g. No challenges the week of the Tri City" />
+          <div class="btns"><button id="savenotice" class="quietbtn">Save note</button>
+            <button id="undo" class="quietbtn">Undo last change</button></div>
+
+          <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--edge)">
+            <label>Start the ladder from the league's shooting averages</label>
+            <p class="sub" style="margin-top:0">
+              Takes the top 15 by AVG off the Players report. Only needed once — after
+              that the ladder is yours, not FargoRate's.
+            </p>
+            <div class="btns"><button id="pull" class="quietbtn">Fetch the top 15</button></div>
+            <div class="seedlist" id="seedlist"></div>
+            <div class="btns hide" id="seedbtns">
+              <button id="seed" class="danger">Start the ladder with these 15</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="foot">
+        <a href="ladder.html">The public page</a> &nbsp;&middot;&nbsp;
+        <a href="league.html?lg=8ball&view=players">Players report</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="fargo-fixes.js?v=1.02"></script>
+  <script src="fargo-match.js?v=1.07"></script>
+  <script>
+  /* ────────────────────────────────────────────────────────────────
+     ladderadmin.html v1.01 — officers only.
+
+     The rules are enforced by /api/ladder; this page shows what a
+     match would do before it's saved, and says why when the answer is
+     no. "Override the rules" is there for the night something happens
+     that the rules didn't plan for.
+     ──────────────────────────────────────────────────────────────── */
+  const DIVISION = '6e366095-3e94-426d-ad45-b4ea0013fc17';   /* 8-Ball 2026-27 */
+  const SIZE = 15;
+  let PASS = sessionStorage.getItem('kpl.ladderpw') || '';
+  let L = null;
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const key = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const today = () => new Date().toLocaleDateString('en-CA');
+
+  function say(el, msg, bad) {
+    el.className = 'say ' + (bad ? 'bad' : 'ok');
+    el.innerHTML = esc(msg);
+    if (!bad) setTimeout(() => { if (el.innerHTML === esc(msg)) el.className = 'say'; }, 6000);
+  }
+
+  async function api(body) {
+    const r = await fetch('/api/ladder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-League-Pass': PASS },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json().catch(() => ({ ok: false, error: 'Server didn’t answer.' }));
+    if (d.ok && d.ladder) { L = d.ladder; draw(); }
+    return d;
+  }
+
+  async function load() {
+    const r = await fetch('/api/ladder');
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'not available');
+    L = d.ladder; draw();
+  }
+
+  /* ── the board ─────────────────────────────────────────────── */
+  function draw() {
+    const wk = L.week ? `${L.week.start} → ${L.week.end}` : '';
+    const pot = `$${L.pot || 0} in the envelope · ${L.weekMatches || 0} this week` +
+      (L.priorPot ? ` · $${L.priorPot} owed from before` : '');
+    $('potline').textContent = pot;
+    $('potline2').textContent = wk ? `Week of ${wk}` : pot;
+    $('payamt').value = L.pot || 0;
+    $('paywho').value = L.players[0] ? L.players[0].name : '';
+    $('notice').value = L.notice || '';
+    $('undo').disabled = !L.undoDepth;
+
+    $('names').innerHTML = L.players.map(p => `<option value="${esc(p.name)}">`).join('');
+
+    $('board').innerHTML = L.players.length ? `<table>
+      <thead><tr><th>#</th><th>Player</th><th>W–L</th><th></th></tr></thead>
+      <tbody>${L.players.map(p => `<tr>
+        <td class="rank">${p.rank}</td>
+        <td class="who">${esc(p.name)}</td>
+        <td>${p.w || 0}–${p.l || 0}</td>
+        <td class="act">
+          <button class="quietbtn" data-up="${esc(p.name)}" ${p.rank === 1 ? 'disabled' : ''}>Move up</button>
+          <button class="danger" data-rm="${esc(p.name)}">Remove</button>
+        </td>
+      </tr>`).join('')}</tbody></table>`
+      : '<div class="body" style="color:var(--faint)">Nobody on the ladder yet — start it below.</div>';
+
+    /* Names never go into onclick strings; the buttons carry them. */
+    $('board').querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm(`Take ${b.dataset.rm} off the ladder?`)) return;
+      const d = await api({ action: 'remove', name: b.dataset.rm });
+      say($('say'), d.ok ? d.said : d.error, !d.ok);
+    }));
+    $('board').querySelectorAll('[data-up]').forEach(b => b.addEventListener('click', async () => {
+      const p = L.players.find(x => key(x.name) === key(b.dataset.up));
+      if (!p || p.rank === 1) return;
+      const d = await api({ action: 'move', name: p.name, rank: p.rank - 1 });
+      say($('say'), d.ok ? d.said : d.error, !d.ok);
+    }));
+    preview();
+  }
+
+  /* ── what this match would do, before it's saved ───────────── */
+  function preview() {
+    const w = $('winner').value.trim(), l = $('loser').value.trim();
+    const box = $('preview');
+    if (!w || !l || !L) { box.textContent = ''; return; }
+    const pw = L.players.find(p => key(p.name) === key(w));
+    const pl = L.players.find(p => key(p.name) === key(l));
+    const at = p => p ? `#${p.rank}` : 'not on the ladder';
+
+    if (key(w) === key(l)) { box.innerHTML = 'Same player twice.'; return; }
+    if (!pw && !pl) { box.innerHTML = 'Neither name is on the ladder.'; return; }
+
+    if (pw && pl) {
+      const d = pl.rank - pw.rank;
+      box.innerHTML = d === -1
+        ? `<b>${esc(pw.name)}</b> (${at(pw)}) takes ${at(pl)}; <b>${esc(pl.name)}</b> drops to #${pw.rank}.`
+        : d === 1
+          ? `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.`
+          : `Those two are ${Math.abs(d)} places apart. A challenge only goes up one.`;
+      return;
+    }
+    const onBoard = pw || pl;
+    const newcomer = pw ? l : w;
+    if (onBoard.rank < SIZE - 1) {
+      box.innerHTML = `${esc(newcomer)} isn’t on the ladder, so the challenge has to be to #${SIZE-1} or #${SIZE}.`;
+      return;
+    }
+    box.innerHTML = pw
+      ? `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.`
+      : `<b>${esc(w)}</b> takes #${pl.rank}; <b>${esc(pl.name)}</b> comes off the ladder.`;
+  }
+
+  /* ── seeding from the league's own numbers ─────────────────── */
+  let seedNames = [];
+  async function pullTop15() {
+    const box = $('seedlist');
+    box.textContent = 'Reading the Players report…';
+    try {
+      const html = await FargoMatch.reportCached('GeneratePlayerStandingsReport', DIVISION);
+      const t = FargoMatch.parseTable(html);
+      const nameIdx = t.headers.findIndex(h => /^(name|player)/i.test(h));
+      const avgIdx  = t.headers.findIndex(h => /^avg/i.test(h));
+      if (nameIdx < 0 || avgIdx < 0) throw new Error('couldn’t find the NAME and AVG columns');
+      seedNames = t.rows
+        .map(r => ({ name: FargoMatch.cleanName(r[nameIdx]), avg: parseFloat(r[avgIdx]) || 0 }))
+        .filter(p => p.name && p.avg > 0)
+        .sort((a, b) => b.avg - a.avg)
+        .slice(0, SIZE);
+      box.innerHTML = seedNames.map((p, i) =>
+        `${i + 1}. <span>${esc(p.name)}</span> &nbsp;${p.avg.toFixed(2)}`).join('<br>');
+      $('seedbtns').classList.remove('hide');
+    } catch (e) {
+      box.innerHTML = `Couldn’t read the report — ${esc(e.message)}.`;
+      $('seedbtns').classList.add('hide');
+    }
+  }
+
+  /* ── wiring ────────────────────────────────────────────────── */
+  $('go').addEventListener('click', async () => {
+    PASS = $('pw').value;
+    const d = await api({ action: 'ping' });
+    if (!d.ok) { say($('gatesay'), d.error || 'No.', true); return; }
+    sessionStorage.setItem('kpl.ladderpw', PASS);
+    $('gate').classList.add('hide');
+    $('app').classList.remove('hide');
+  });
+  $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').click(); });
+
+  ['winner', 'loser'].forEach(id => $(id).addEventListener('input', preview));
+
+  $('save').addEventListener('click', async () => {
+    const d = await api({
+      action: 'match', winner: $('winner').value.trim(), loser: $('loser').value.trim(),
+      score: $('score').value, date: $('mdate').value || today(), force: $('force').checked,
+    });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+    if (d.ok) { $('winner').value = ''; $('loser').value = ''; $('force').checked = false; preview(); }
+  });
+
+  $('forfeit').addEventListener('click', async () => {
+    const challenger = $('winner').value.trim(), holder = $('loser').value.trim();
+    if (!challenger || !holder) { say($('say'), 'Put the challenger in Winner and the player who didn’t answer in Loser.', true); return; }
+    if (!confirm(`${holder} didn’t answer inside 48 hours — hand the place to ${challenger}?`)) return;
+    const d = await api({ action: 'forfeit', challenger, holder, date: $('mdate').value || today(), force: $('force').checked });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+    if (d.ok) { $('winner').value = ''; $('loser').value = ''; preview(); }
+  });
+
+  $('add').addEventListener('click', async () => {
+    const d = await api({ action: 'add', name: $('addname').value.trim(), rank: $('addrank').value });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+    if (d.ok) { $('addname').value = ''; $('addrank').value = ''; }
+  });
+
+  $('pay').addEventListener('click', async () => {
+    if (!confirm(`Pay $${$('payamt').value} to ${$('paywho').value} and empty the envelope?`)) return;
+    const d = await api({ action: 'payout', amount: $('payamt').value, winner: $('paywho').value.trim(), date: $('paydate').value || today() });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+  });
+
+  $('savenotice').addEventListener('click', async () => {
+    const d = await api({ action: 'notice', notice: $('notice').value });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+  });
+
+  $('undo').addEventListener('click', async () => {
+    if (!confirm('Undo the last change?')) return;
+    const d = await api({ action: 'undo' });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+  });
+
+  $('pull').addEventListener('click', pullTop15);
+  $('seed').addEventListener('click', async () => {
+    if (!confirm('Start the ladder with these 15? Any current order and match history is wiped.')) return;
+    const d = await api({ action: 'seed', players: seedNames.map(p => p.name), force: true });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+    if (d.ok) { $('seedbtns').classList.add('hide'); $('seedlist').textContent = ''; }
+  });
+
+  $('mdate').value = today();
+  $('paydate').value = today();
+  load().catch(() => {});
+  if (PASS) {
+    api({ action: 'ping' }).then(d => {
+      if (d.ok) { $('gate').classList.add('hide'); $('app').classList.remove('hide'); }
+    });
+  }
+  </script>
+</body>
+</html>
