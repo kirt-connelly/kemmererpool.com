@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Top 15 Ladder &mdash; Kemmerer Pool League</title>
-  <meta name="description" content="The Kemmerer Pool League top 15 challenge ladder — current standings, how to challenge, match history and the weekly envelope." />
+  <meta name="description" content="The Kemmerer Pool League top 15 challenge ladder — current standings, how to challenge, match history and the monthly envelope." />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -241,7 +241,7 @@
     <h1>Top 15 Ladder</h1>
     <p class="lede">
       Fifteen places, and the only way up is to take someone else&rsquo;s. Every match is a
-      race to five &mdash; no spots, no handicaps.
+      race to five &mdash; no spots, no handicaps. Starts <b>Monday, November 30</b>.
     </p>
     <div id="notice"></div>
 
@@ -254,12 +254,12 @@
       </summary>
       <ul class="rules">
         <li><span class="n">1</span><span>The ladder started with the <b>top 15 shooting averages</b> in the league. After that it&rsquo;s won and lost on the table &mdash; league stats don&rsquo;t move anybody.</span></li>
-        <li><span class="n">2</span><span>You may challenge <b>one place above you</b>, and only one. Win and you swap; lose and nothing moves.</span></li>
+        <li><span class="n">2</span><span>You may challenge <b>one or two places above you</b>, no further. Win and you take their place &mdash; anybody in between slides down one. Lose and nothing moves.</span></li>
         <li><span class="n">3</span><span>Not on the ladder yet? You can challenge <b>#14 or #15</b>. Win and you take their place &mdash; they come off the ladder and have to work their way back on the same way.</span></li>
         <li><span class="n">4</span><span>Put the challenge out <b>on our Facebook page or straight to the player</b>. They have <b>48 hours</b> to answer and get a night in the book, or they forfeit the place.</span></li>
         <li><span class="n">5</span><span>Every match is a <b>race to 5</b>. Ratings don&rsquo;t matter.</span></li>
         <li><span class="n">6</span><span>The loser pays <b>$20</b>: <b>$15</b> to the winner, <b>$5</b> into the envelope.</span></li>
-        <li><span class="n">7</span><span>A week runs <b>Wednesday to Tuesday</b>. The envelope goes to <b>whoever is sitting at #1</b> when it closes &mdash; twenty matches in a week is $100 on top of the ladder.</span></li>
+        <li><span class="n">7</span><span>The envelope is paid out at the <b>end of every month</b>, starting <b>December 31</b>. It goes to <b>whoever is sitting at #1</b> that day &mdash; twenty matches in a month is $100 on top of the ladder.</span></li>
       </ul>
     </details>
 
@@ -339,13 +339,13 @@
           <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
         </a>
       </div>
-      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.07</div>
+      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.08</div>
     </div>
   </footer>
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.07 — the public side of the challenge ladder.
+     ladder.html v1.08 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -390,7 +390,7 @@
       <div class="tile pot">
         <div class="k">In the envelope</div>
         <div class="v">$${L.pot || 0}</div>
-        <div class="n">${L.weekMatches || 0} match${(L.weekMatches || 0) === 1 ? '' : 'es'} this week${
+        <div class="n">${L.monthMatches || 0} match${(L.monthMatches || 0) === 1 ? '' : 'es'} this month${
           L.priorPot ? ` \u00b7 $${L.priorPot} still owed from before` : ''}</div>
       </div>
       <div class="tile">
@@ -399,9 +399,9 @@
         <div class="n">${L.seededAt ? 'Ladder opened ' + fmtDate(L.seededAt) : ''}</div>
       </div>
       <div class="tile">
-        <div class="k">This week</div>
-        <div class="v sm">${L.week ? span(L.week.start, L.week.end) : '\u2014'}</div>
-        <div class="n">Wednesday through Tuesday</div>
+        <div class="k">Paid out</div>
+        <div class="v sm">${L.month ? fmtDate(L.month.end) : '\u2014'}</div>
+        <div class="n">${L.month ? 'Covering ' + span(L.month.start, L.month.end) : 'End of each month'}</div>
       </div>`;
 
     document.getElementById('asof').textContent =
@@ -468,7 +468,8 @@
         <span class="line"><b>${esc(p.winner)}</b> took the envelope</span>
         <span class="sc">$${p.amount}</span>
         ${p.matches ? `<span class="mv">${p.matches} match${p.matches === 1 ? '' : 'es'}${
-          p.weekStart ? ', week of ' + fmtDate(p.weekStart) : ''}.</span>` : ''}
+          p.monthEnd ? ', month ending ' + fmtDate(p.monthEnd)
+            : p.weekStart ? ', week of ' + fmtDate(p.weekStart) : ''}.</span>` : ''}
       </div>`).join('');
     }
   }

@@ -118,7 +118,7 @@
       <h1>Ladder admin</h1>
       <p class="sub">
         Everything here shows up on <a href="ladder.html">the public page</a> straight away.
-        One place up per challenge; off the ladder, it's #14 or #15 only.
+        Up to two places per challenge; off the ladder, it's #14 or #15 only.
       </p>
 
       <!-- ── waiting on an officer ─────────────────────────────── -->
@@ -194,12 +194,13 @@
 
       <!-- ── the envelope ──────────────────────────────────────── -->
       <div class="card">
-        <div class="card-hd"><span class="t">Close out the week</span><span class="m" id="potline2"></span></div>
+        <div class="card-hd"><span class="t">Close out the month</span><span class="m" id="potline2"></span></div>
         <div class="body">
           <p class="sub" style="margin-top:0">
-            A week runs Wednesday to Tuesday. This pays whoever is at #1 for every match up
-            to that Tuesday and empties the envelope &mdash; anything written up afterwards
-            rolls into the next week. Change the amount if the cash doesn't match.
+            The envelope is paid out at the end of each month, first one <b>December 31</b>.
+            This pays whoever is at #1 for every match up to the last day of the month and
+            empties the envelope &mdash; anything written up afterwards rolls into the next
+            month. Change the amount if the cash doesn't match.
           </p>
           <div class="row">
             <div><label for="payamt">Amount</label><input id="payamt" type="number" min="0" /></div>
@@ -231,6 +232,16 @@
               <button id="seed" class="danger">Start the ladder with these 15</button>
             </div>
           </div>
+
+          <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--edge)">
+            <label>Clear everything out</label>
+            <p class="sub" style="margin-top:0">
+              Wipes the players, every match, the envelope and anything waiting for
+              approval &mdash; back to an empty ladder. For clearing out test runs before
+              the season starts. There's no getting it back except Undo.
+            </p>
+            <div class="btns"><button id="wipe" class="danger">Start over from nothing</button></div>
+          </div>
         </div>
       </div>
 
@@ -238,7 +249,7 @@
         <a href="ladder.html">The public page</a> &nbsp;&middot;&nbsp;
         <a href="officers.html">Officers</a> &nbsp;&middot;&nbsp;
         <a href="league.html?lg=8ball&view=players">Players report</a>
-        &nbsp;&middot;&nbsp; ladder admin v1.04
+        &nbsp;&middot;&nbsp; ladder admin v1.05
       </p>
     </div>
   </main>
@@ -247,7 +258,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.04 — officers only.
+     ladderadmin.html v1.05 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
@@ -256,6 +267,7 @@
      ──────────────────────────────────────────────────────────────── */
   const DIVISION = '6e366095-3e94-426d-ad45-b4ea0013fc17';   /* 8-Ball 2026-27 */
   const SIZE = 15;
+  let REACH = 2;            /* how many places a challenge reaches; the API is the authority */
   let PASS = sessionStorage.getItem('kpl.ladderpw') || '';
   let L = null;
 
@@ -298,11 +310,12 @@
 
   /* ── the board ─────────────────────────────────────────────── */
   function draw() {
-    const wk = L.week ? `${L.week.start} → ${L.week.end}` : '';
-    const pot = `$${L.pot || 0} in the envelope · ${L.weekMatches || 0} this week` +
+    if (L && Number.isFinite(L.reach)) REACH = L.reach;
+    const wk = L.month ? `${L.month.start} → ${L.month.end}` : '';
+    const pot = `$${L.pot || 0} in the envelope · ${L.monthMatches || 0} this month` +
       (L.priorPot ? ` · $${L.priorPot} owed from before` : '');
     $('potline').textContent = pot;
-    $('potline2').textContent = wk ? `Week of ${wk}` : pot;
+    $('potline2').textContent = wk ? `Month of ${wk}` : pot;
     $('payamt').value = L.pot || 0;
     $('paywho').value = L.players[0] ? L.players[0].name : '';
     $('notice').value = L.notice || '';
@@ -353,10 +366,14 @@
     if (!pw && !pl) return { ok: false, html: 'Neither name is on the ladder.' };
 
     if (pw && pl) {
-      const d = pl.rank - pw.rank;
-      if (d === -1) return { ok: true, html: `<b>${esc(pw.name)}</b> (${at(pw)}) takes ${at(pl)}; <b>${esc(pl.name)}</b> drops to #${pw.rank}.` };
-      if (d === 1)  return { ok: true, html: `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.` };
-      return { ok: false, html: `Those two are ${Math.abs(d)} places apart. A challenge only goes up one.` };
+      const d = pl.rank - pw.rank;          /* negative: the winner came from below */
+      if (d < 0 && -d <= REACH) {
+        const passed = pw.rank - pl.rank - 1;
+        return { ok: true, html: `<b>${esc(pw.name)}</b> (${at(pw)}) takes ${at(pl)}; <b>${esc(pl.name)}</b> drops to #${pl.rank + 1}`
+          + (passed > 0 ? `, and the player in between slides down one.` : '.') };
+      }
+      if (d > 0 && d <= REACH) return { ok: true, html: `<b>${esc(pw.name)}</b> holds ${at(pw)} — no movement.` };
+      return { ok: false, html: `Those two are ${Math.abs(d)} places apart. A challenge only goes up ${REACH}.` };
     }
 
     const onBoard = pw || pl;
@@ -497,6 +514,13 @@
 
   $('savenotice').addEventListener('click', async () => {
     const d = await api({ action: 'notice', notice: $('notice').value });
+    say($('say'), d.ok ? d.said : d.error, !d.ok);
+  });
+
+  $('wipe').addEventListener('click', async () => {
+    if (!confirm('Wipe the ladder completely?\n\nPlayers, matches, the envelope and the approval queue all go. Undo is the only way back.')) return;
+    if (!confirm('Last check — clear everything?')) return;
+    const d = await api({ action: 'reset', confirm: 'RESET' });
     say($('say'), d.ok ? d.said : d.error, !d.ok);
   });
 

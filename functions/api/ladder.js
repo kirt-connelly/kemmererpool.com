@@ -17,13 +17,19 @@
    password): it waits in doc.pending until an officer approves it.
    Nothing a player submits touches the ladder on its own.
 
-   ladder v1.03
+   ladder v1.04
    ──────────────────────────────────────────────────────────────── */
 
 const DOC      = 'ladder:v1';
 const SIZE     = 15;          /* places on the ladder */
 const RACE_TO  = 5;           /* every match, whatever anyone's rating */
 const PER_MATCH = 5;          /* dollars into the envelope per match */
+const REACH    = 2;           /* how many places a challenge may go up */
+/* The ladder opens on the 30th. It isn't enforced \u2014 officers run
+   test matches through before then \u2014 it anchors the first envelope
+   and it's what the page tells players. */
+const OPENS    = '2026-11-30';
+const FIRST_MONTH = '2026-12';/* the opening days fold into December */
 const UNDO_DEPTH = 20;
 const MAX_PENDING = 60;       /* a lid on the public queue */
 
@@ -45,20 +51,25 @@ const store = env => env.TOURNAMENTS || env.LEAGUE || env.KV || env.SIGNUPS || n
 
 const pass = env => env.LEAGUE_ADMIN_PW || env.LEAGUE_KEY || 'ktown';
 
-/* A league week runs Wednesday to Tuesday: matches land on Wednesday
-   night, and the envelope is handed over before the next one. */
-const WEEK_START_DAY = 3;                       /* 0 Sun \u2026 3 Wed */
-const DAY = 86400000;
 const asDate = iso => {
   const p = String(iso || '').slice(0, 10).split('-').map(Number);
   return (p.length === 3 && p[0]) ? new Date(Date.UTC(p[0], p[1] - 1, p[2])) : null;
 };
 const isoOf = d => d.toISOString().slice(0, 10);
-function weekOf(iso) {
-  const d = asDate(iso) || new Date();
-  const back = (d.getUTCDay() - WEEK_START_DAY + 7) % 7;
-  const start = new Date(d.getTime() - back * DAY);
-  return { start: isoOf(start), end: isoOf(new Date(start.getTime() + 6 * DAY)) };
+
+/* The envelope is handed over at the end of each month. The ladder
+   opens on the 30th of November, so those opening days belong to the
+   first envelope rather than to a November of their own \u2014 the first
+   payout is the 31st of December. */
+function monthOf(iso) {
+  let ym = String(iso || today()).slice(0, 7);
+  if (ym < FIRST_MONTH) ym = FIRST_MONTH;
+  const [y, m] = ym.split('-').map(Number);
+  return {
+    ym,
+    start: ym === FIRST_MONTH ? OPENS : `${ym}-01`,
+    end: isoOf(new Date(Date.UTC(y, m, 0))),
+  };
 }
 
 const clean = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, 60);
@@ -108,23 +119,30 @@ async function write(env, doc, snapshot) {
    so a backdated match or an undo can't leave the total adrift. */
 function publicView(doc) {
   const { undo, pending, ...rest } = doc;
-  const week = weekOf(today());
+  const month = monthOf(today());
   const paidThrough = doc.paidThrough || '';
   /* Paid is marked on the match itself, not worked out from a cut-off
-     date \u2014 so a match written up after its week was closed out still
+     date \u2014 so a match written up after its month was closed out still
      counts, it just counts towards the next envelope. */
   const unpaid = (doc.matches || []).filter(m => !m.forfeit && !m.paid);
-  const thisWeek = unpaid.filter(m => m.date >= week.start && m.date <= week.end);
-  const earlier  = unpaid.filter(m => m.date < week.start);
+  /* The first envelope has no month before it, so anything dated
+     earlier \u2014 a test match, a late write-up \u2014 belongs to it rather
+     than showing as owed from a month that never ran. */
+  const floor = month.ym === FIRST_MONTH ? '' : month.start;
+  const thisMonth = unpaid.filter(m => m.date >= floor && m.date <= month.end);
+  const earlier   = unpaid.filter(m => m.date < floor);
 
   return {
     ...rest,
     size: SIZE,
     raceTo: RACE_TO,
     perMatch: PER_MATCH,
-    week,
-    weekMatches: thisWeek.length,
-    weekPot: thisWeek.length * PER_MATCH,
+    reach: REACH,
+    opensOn: OPENS,
+    open: today() >= OPENS,
+    month,
+    monthMatches: thisMonth.length,
+    monthPot: thisMonth.length * PER_MATCH,
     priorMatches: earlier.length,
     priorPot: earlier.length * PER_MATCH,
     potMatches: unpaid.length,
@@ -142,10 +160,10 @@ const find = (doc, name) => doc.players.find(p => key(p.name) === key(name)) || 
 const renumber = doc => { doc.players.forEach((p, i) => { p.rank = i + 1; }); return doc; };
 
 /* ── the rules ──────────────────────────────────────────────────────
-   A challenge comes from below: one place, no further. Someone off the
-   ladder may only knock on the bottom two doors, and taking that place
-   puts the player who held it off the ladder — they come back the same
-   way everyone else gets on. */
+   A challenge comes from below and may reach up two places, no
+   further. Someone off the ladder may only knock on the bottom two
+   doors, and taking that place puts the player who held it off the
+   ladder — they come back the same way everyone else gets on. */
 function ruleCheck(doc, winnerName, loserName) {
   const w = find(doc, winnerName), l = find(doc, loserName);
   if (!winnerName || !loserName) return { ok: false, why: 'Both players are needed.' };
@@ -155,11 +173,16 @@ function ruleCheck(doc, winnerName, loserName) {
   if (w && l) {
     const low = w.rank > l.rank ? w : l;      /* the challenger */
     const high = low === w ? l : w;
-    if (low.rank - high.rank !== 1) {
-      return { ok: false, why: `${low.name} is #${low.rank} and ${high.name} is #${high.rank} — a challenge can only go up one place.` };
+    const gap = low.rank - high.rank;
+    if (gap < 1 || gap > REACH) {
+      return { ok: false, why: `${low.name} is #${low.rank} and ${high.name} is #${high.rank} — a challenge can only go up ${REACH} place${REACH === 1 ? '' : 's'}.` };
     }
     return low === w
-      ? { ok: true, effect: 'swap', detail: `${w.name} takes #${high.rank}, ${l.name} drops to #${low.rank}.` }
+      /* The loser slides down one; they don't trade places, or the
+         player passed over would be left behind. */
+      ? { ok: true, effect: 'swap',
+          detail: `${w.name} takes #${high.rank}, ${l.name} drops to #${high.rank + 1}`
+            + (gap > 1 ? ', and the player in between slides down one.' : '.') }
       : { ok: true, effect: 'hold', detail: `${w.name} holds #${w.rank}.` };
   }
 
@@ -204,9 +227,13 @@ function applyMatch(doc, m) {
   const effect = check.ok ? check.effect : (w && l ? (w.rank > l.rank ? 'swap' : 'hold') : (w ? 'hold' : 'enter'));
 
   if (effect === 'swap' && w && l) {
+    /* The winner takes the loser's place and everyone in between slides
+       down one. Over a single place that is the same as trading, but
+       across two it must not leave the player in the middle behind. */
     rec.from = w.rank; rec.to = l.rank;
-    const wi = doc.players.indexOf(w), li = doc.players.indexOf(l);
-    doc.players[wi] = l; doc.players[li] = w;
+    const to = doc.players.indexOf(l);
+    doc.players.splice(doc.players.indexOf(w), 1);
+    doc.players.splice(to, 0, w);
     renumber(doc);
   } else if (effect === 'enter' && l) {
     rec.from = null; rec.to = l.rank; rec.dropped = l.name;
@@ -418,14 +445,15 @@ export async function onRequestPost({ request, env }) {
       break;
     }
 
-    /* Close the week out: the envelope goes to whoever is on top. */
+    /* Close the month out: the envelope goes to whoever is on top on
+       the last day of it. */
     case 'payout': {
       const on = body.date || today();
-      const week = weekOf(on);
-      /* Everything still unpaid that was played on or before the
-         Tuesday being closed out. */
+      const month = monthOf(on);
+      /* Everything still unpaid that was played on or before the last
+         day of the month being closed out. */
       const covered = (doc.matches || []).filter(m =>
-        !m.forfeit && !m.paid && String(m.date || '') <= week.end);
+        !m.forfeit && !m.paid && String(m.date || '') <= month.end);
       const amount = body.amount != null
         ? Math.max(0, parseInt(body.amount) || 0)
         : covered.length * PER_MATCH;
@@ -433,14 +461,29 @@ export async function onRequestPost({ request, env }) {
       if (!winner) return json({ ok: false, error: 'Nobody on the ladder to pay.' }, 400);
       doc.payouts.unshift({
         date: on, amount, winner, matches: covered.length,
-        weekStart: week.start, weekEnd: week.end, note: clean(body.note || ''),
+        monthStart: month.start, monthEnd: month.end, ym: month.ym,
+        note: clean(body.note || ''),
       });
-      const stamp = `${week.start}:${on}`;
+      const stamp = `${month.ym}:${on}`;
       covered.forEach(m => { m.paid = stamp; });
-      doc.paidThrough = week.end;
+      doc.paidThrough = month.end;
       doc.potMatches = 0;
-      said = `$${amount} to ${winner} for the week of ${week.start}.`;
+      said = `$${amount} to ${winner} for ${month.ym}.`;
       break;
+    }
+
+    /* Wipe it and start from nothing: no players, no matches, no
+       envelope, no queue. Asked for in as many words, so a stray click
+       can't do it. */
+    case 'reset': {
+      if (String(body.confirm || '') !== 'RESET') {
+        return json({ ok: false, error: 'Reset needs confirming.' }, 400);
+      }
+      const keep = doc.undo || [];
+      const fresh = blank();
+      fresh.undo = keep;
+      await write(env, fresh, before);
+      return json({ ok: true, said: 'Ladder wiped — players, matches, envelope and queue all cleared.', ladder: adminView(fresh) });
     }
 
     /* Straight back to how it was before the last change. */
