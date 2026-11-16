@@ -624,7 +624,7 @@
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.38</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; league v1.39</div>
   </div>
 </footer>
 
@@ -2106,6 +2106,7 @@ function switchView(vw) {
 }
 
 let pendingMatch = null;
+let pendingTeam = null;
 
 async function loadView() {
   inDrillDown = false;
@@ -2124,6 +2125,11 @@ async function loadView() {
   if (pendingMatch) {
     const m = pendingMatch; pendingMatch = null;
     loadMatchResult(m.id, m.title);
+  }
+  /* Or name a team, which the front page standings do. */
+  else if (pendingTeam) {
+    const t = pendingTeam; pendingTeam = null;
+    loadTeamDetail(t.id, t.name);
   }
 }
 
@@ -2150,6 +2156,14 @@ function scrollToNextMatch() {
   const wantMatch = (q.get('match') || '').trim();
   if (/^[a-f0-9-]{36}$/i.test(wantMatch)) {
     pendingMatch = { id: wantMatch, title: q.get('m') || 'Match result' };
+  }
+
+  /* A team can be linked to from anywhere now — the front page
+     standings do. Held until the division's data is in, because the
+     detail needs FargoRate's own team id. */
+  const wantTeam = (q.get('team') || '').trim();
+  if (/^[a-f0-9-]{36}$/i.test(wantTeam)) {
+    pendingTeam = { id: wantTeam, name: q.get('tn') || 'Team' };
   }
 
   const wantView = q.get('view');

@@ -340,6 +340,13 @@ h2.head {
 .panel.cloth-panel .panel-hd { background: rgba(11,33,27,.72); }
 
 /* ═══ STANDINGS ══════════════════════════════════════════════ */
+/* Team names link through to that team's stats. Clickable names are
+   brass everywhere else on the site; here they stay white on purpose
+   — the standings panel is the thing this page is meant to carry, and
+   a column of brass would hand that weight to the links instead. */
+.stand .team .tlink { color: var(--bone); text-decoration: none; }
+.stand .team .tlink:hover,
+.stand .team .tlink:focus-visible { color: var(--brass); }
 .stand { width: 100%; border-collapse: collapse; }
 #standings-frame, #standings-8ball { overflow-x: auto; }
 .stand thead th {
@@ -1213,7 +1220,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.75</span>
+        <span>v1.76</span>
       </div>
 
     </div>
@@ -1279,8 +1286,19 @@ async function loadStandings(divisionId = DIVISION, frameId = 'standings-frame')
   try {
     const r = await fetch(PROXY + encodeURIComponent(BASE + '/GenerateTeamStandingsReport/' + divisionId));
     if (!r.ok) throw new Error(r.status);
-    const t = parseTable(fixFargoHtml(await r.text()));
+    const raw = fixFargoHtml(await r.text());
+    const t = parseTable(raw);
     if (!t || !t.body.length) throw new Error('empty');
+
+    /* The report links each team to its own FargoRate page; we keep
+       the id so the name here can open that team's stats. */
+    const ids = {};
+    const holder = document.createElement('div');
+    holder.innerHTML = raw;
+    holder.querySelectorAll('a[href*="teamId"]').forEach(a => {
+      const m = a.getAttribute('href').match(/teamId=([a-f0-9-]+)/i);
+      if (m) ids[a.textContent.trim()] = m[1];
+    });
 
     const pct = findPctIdx(t.headers);
 
@@ -1309,7 +1327,13 @@ async function loadStandings(divisionId = DIVISION, frameId = 'standings-frame')
               const v = Math.max(0, Math.min(100, parseFloat(row[pct]) || 0));
               bar = '<span class="wbar"><i style="width:' + Math.max(2, v).toFixed(1) + '%"></i></span>';
             }
-            return '<td class="team">' + esc(cell) + bar + '</td>';
+            var id = ids[String(cell).trim()];
+            var lg = frameId === 'standings-8ball' ? '8ball' : '10ball';
+            var nm = id
+              ? '<a class="tlink" href="league.html?lg=' + lg + '&view=teams&team=' + id +
+                '&tn=' + encodeURIComponent(cell) + '">' + esc(cell) + '</a>'
+              : esc(cell);
+            return '<td class="team">' + nm + bar + '</td>';
           }
           return '<td class="num' + (ci === pct ? ' pct' : '') + '">' + esc(cell) + '</td>';
         }).join('') +

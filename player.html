@@ -223,7 +223,7 @@
   <script src="season-8ball.js?v=1.01"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.14
+     player.html v1.15
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -262,10 +262,19 @@
      both and merge on the name. */
   async function loadRoster() {
     const byName = {};
+    /* Subs turn out for more than one team, and the by-team report
+       lists them under each. Keep every team rather than letting the
+       last one read win — their games are spread across all of them. */
     const put = (name, patch) => {
       const k = FM.normName(name);
       if (!k) return;
-      byName[k] = Object.assign({ name: FM.cleanName(name), team: '', rating: 0 }, byName[k], patch);
+      const team = patch.team;
+      const rest = Object.assign({}, patch);
+      delete rest.team;
+      byName[k] = Object.assign({ name: FM.cleanName(name), teams: [], rating: 0 }, byName[k], rest);
+      if (team && !byName[k].teams.some(t => FM.normTeam(t) === FM.normTeam(team))) {
+        byName[k].teams.push(team);
+      }
       if (patch.name) byName[k].name = FM.cleanName(patch.name);
     };
 
@@ -311,6 +320,7 @@
 
     return Object.values(byName)
       .filter(p => p.name)
+      .map(p => Object.assign(p, { team: p.teams[0] || '' }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
@@ -322,7 +332,7 @@
     catch (e) { main.innerHTML = notice('Player list couldn\'t load. ' + esc(e.message)); return; }
     if (!roster.length) { main.innerHTML = notice('No players posted for this season yet.'); return; }
 
-    const teams = [...new Set(roster.map(p => p.team).filter(Boolean))].sort();
+    const teams = [...new Set(roster.flatMap(p => p.teams || [p.team]).filter(Boolean))].sort();
     main.innerHTML = `
       <div class="crumb"><a href="index.html">Home</a> &rsaquo; Players</div>
       <div class="hero">
@@ -358,13 +368,13 @@
       const needle = FM.normName(q.value);
       const team = tf.value;
       const hits = roster.filter(p =>
-        (!team || p.team === team) &&
+        (!team || (p.teams || [p.team]).includes(team)) &&
         (!needle || FM.normName(p.name).includes(needle)));
       count.textContent = `${hits.length} shown`;
       rows.innerHTML = hits.length ? hits.map(p => `
         <tr>
           <td class="nm"><a href="player.html?p=${encodeURIComponent(FM.slugName(p.name))}${LG !== '8ball' ? '&lg=' + LG : ''}">${esc(p.name)}</a></td>
-          <td>${esc(p.team || '—')}</td>
+          <td>${(p.teams && p.teams.length ? p.teams : [p.team]).filter(Boolean).map(esc).join(' &middot; ') || '—'}</td>
           <td class="num" style="color:var(--accent);font-weight:700">${p.rating || '—'}</td>
         </tr>`).join('')
         : `<tr><td colspan="3" class="quiet">Nobody by that name.</td></tr>`;
@@ -387,23 +397,26 @@
     document.title = `${name} — Kemmerer Pool League`;
 
     /* Shell first so the page isn't blank while the scoresheets load. */
-    const teamSlug = seasonSlug(me && me.team);
+    const myTeams = (me && me.teams && me.teams.length ? me.teams : (me && me.team ? [me.team] : []));
+    const teamSlug = seasonSlug(myTeams[0]);
+    const teamLink = t => {
+      const sl = seasonSlug(t);
+      return sl ? `<a href="team-schedule.html?t=${esc(sl)}">${esc(t)}</a>` : esc(t);
+    };
     main.innerHTML = `
       <div class="crumb"><a href="index.html">Home</a> &rsaquo; <a href="player.html${LG !== '8ball' ? '?lg=' + LG : ''}">Players</a> &rsaquo; ${esc(name)}</div>
       <div class="hero">
         <div>
           <h1>${esc(name)}</h1>
           <div class="sub">
-            ${me && me.team
-              ? (teamSlug ? `<a href="team-schedule.html?t=${esc(teamSlug)}">${esc(me.team)}</a>` : esc(me.team))
-              : 'Kemmerer Pool League'}
+            ${myTeams.length ? myTeams.map(teamLink).join(' &middot; ') : 'Kemmerer Pool League'}
             · ${esc(DIVISIONS[LG].label)}
           </div>
         </div>
         ${me && me.rating ? `<div class="rating"><div class="n">${me.rating}</div><div class="l">Fargo</div></div>` : ''}
         <div class="hero-actions">
           <button class="btn" id="share">Share</button>
-          ${teamSlug ? `<a class="btn" href="team-schedule.html?t=${esc(teamSlug)}">Team schedule</a>` : ''}
+          ${myTeams.length === 1 && teamSlug ? `<a class="btn" href="team-schedule.html?t=${esc(teamSlug)}">Team schedule</a>` : ''}
           <a class="btn" href="league.html?lg=${esc(LG)}">Full stats</a>
         </div>
       </div>
@@ -414,7 +427,7 @@
 
     const body = document.getElementById('body');
     try {
-      const games = await gatherGames(name, me && me.team);
+      const games = await gatherGames(name, myTeams);
       body.innerHTML = games.nights.length ? summary(games, me) : notice(
         'No games logged yet. Once this player’s team plays a night and the scores post, it all fills in here.');
     } catch (e) {
@@ -432,13 +445,18 @@
   }
 
   /* ── the season, game by game ──────────────────────────────── */
-  async function gatherGames(name, teamName) {
+  async function gatherGames(name, teamNames) {
     const want = FM.normName(name);
     const blocks = FM.parseSchedule(await FM.scheduleCached(DIV));
 
-    /* Every match their team has on the calendar that carries an id.
+    /* A sub plays for whoever is short that night, so narrow the
+       calendar to every team they turn out for, not just one. */
+    const mine = (Array.isArray(teamNames) ? teamNames : [teamNames])
+      .filter(Boolean).map(FM.normTeam);
+    const ours = t => !!t && mine.includes(FM.normTeam(t));
+
+    /* Every match those teams have on the calendar that carries an id.
        Unplayed ones come back with no games and simply drop out. */
-    const wantTeam = FM.normTeam(teamName || '');
     const today = new Date(); today.setHours(23, 59, 59, 999);
     const wanted = [];
     blocks.forEach(b => {
@@ -446,14 +464,14 @@
       if (d && d > today) return;
       b.matches.forEach(m => {
         if (!m.matchId) return;
-        if (wantTeam && FM.normTeam(m.home) !== wantTeam && FM.normTeam(m.away) !== wantTeam) return;
+        if (mine.length && !ours(m.home) && !ours(m.away)) return;
         wanted.push({ date: b.date, when: d, ...m });
       });
     });
 
     /* Without a team we can't narrow the list, so cap it rather than
        pulling the whole division's season down a phone. */
-    const ids = (wantTeam ? wanted : wanted.slice(-16)).map(m => m.matchId);
+    const ids = (mine.length ? wanted : wanted.slice(-16)).map(m => m.matchId);
     const loaded = await FM.loadMatches(ids);
     const byId = {};
     loaded.forEach(m => { if (m && m.matchId) byId[m.matchId] = m; });
@@ -467,11 +485,13 @@
       const data = byId[m.matchId];
       if (!data || !data.games.length) return;
       const mine = [];
+      let onHomeSide = null;          /* side 1 of the sheet is the home team */
       data.games.forEach(g => {
         if (g.scored === false) return;      /* lineup posted, score not in yet */
         const onOne = g.side1.some(p => FM.normName(p.name) === want);
         const onTwo = g.side2.some(p => FM.normName(p.name) === want);
         if (!onOne && !onTwo) return;
+        if (onHomeSide === null) onHomeSide = onOne;
         const me   = onOne ? g.side1 : g.side2;
         const them = onOne ? g.side2 : g.side1;
         const win  = onOne ? g.win1 : g.win2;
@@ -504,17 +524,21 @@
       });
       if (!mine.length) return;
       /* The sheet itself says who played and when, which beats the
-         posted schedule whenever the two disagree. */
-      const sheetHome = data.team1 && FM.normTeam(data.team1) === wantTeam;
-      const oppTeam = data.team1 && data.team2
-        ? (sheetHome ? data.team2 : data.team1)
-        : (FM.normTeam(m.home) === wantTeam ? m.away : m.home);
+         posted schedule whenever the two disagree. Which team they
+         turned out for that night comes from the side they were on,
+         not from the roster — a sub is on neither reliably. */
+      const bothNamed = !!(data.team1 && data.team2);
+      const sheetHome = bothNamed ? !!onHomeSide : ours(m.home);
+      const myTeam  = bothNamed ? (sheetHome ? data.team1 : data.team2)
+                                : (sheetHome ? m.home : m.away);
+      const oppTeam = bothNamed ? (sheetHome ? data.team2 : data.team1)
+                                : (sheetHome ? m.away : m.home);
       const when = FM.parseDate(data.date) || m.when;
       mine.sort((a, b) => a.round - b.round);
       nights.push({
         matchId: m.matchId,
-        date: data.date || m.date, when, oppTeam, venue: m.venue,
-        home: data.team1 ? sheetHome : FM.normTeam(m.home) === wantTeam,
+        date: data.date || m.date, when, oppTeam, myTeam, venue: m.venue,
+        home: sheetHome,
         games: mine,
         won: mine.filter(g => g.win).length,
         lost: mine.filter(g => g.loss).length,
@@ -542,9 +566,14 @@
 
   /* ── the profile body ──────────────────────────────────────── */
   function summary(g, me) {
+    /* Only worth naming the team on each night when they turned out
+       for more than one. */
+    const manyTeams = new Set(g.nights.map(n => FM.normTeam(n.myTeam || '')).filter(Boolean)).size > 1;
     const nights = g.nights.length;
     const played = g.won + g.lost;          /* games with a result on them */
-    const next = nextUp(me && me.team);
+    const myTeams = me && me.teams && me.teams.length ? me.teams : (me && me.team ? [me.team] : []);
+    const next = nextUp(myTeams);
+    const showTeam = myTeams.length > 1;
     const streakTxt = g.streak
       ? `${g.streak} ${g.streakWin ? 'win' : 'loss'}${g.streak > 1 ? 'es'.slice(g.streakWin ? 1 : 0) : ''}`
       : '—';
@@ -586,7 +615,7 @@
         <div class="scroll"><table class="tbl"><tbody>
           ${next.map(n => `<tr>
             <td class="num" style="text-align:left;color:var(--accent)">${esc(n.date)}</td>
-            <td class="nm">${n.home ? 'vs' : 'at'} ${esc(n.opp)}</td>
+            <td class="nm">${showTeam && n.team ? `<span style="color:var(--text3)">${esc(n.team)}</span> ` : ''}${n.home ? 'vs' : 'at'} ${esc(n.opp)}</td>
             <td style="text-align:right;color:var(--text3)">${esc(n.bar)}</td>
           </tr>`).join('')}
         </tbody></table></div>
@@ -601,7 +630,7 @@
           <div class="night">
             <div class="night-hd">
               <span class="d">${fmtDate(n.date)}</span>
-              <span class="vs">${n.home ? 'vs' : 'at'} ${esc(n.oppTeam)}${n.venue ? ' · ' + esc(n.venue) : ''}</span>
+              <span class="vs">${manyTeams && n.myTeam ? `${esc(n.myTeam)} ` : ''}${n.home ? 'vs' : 'at'} ${esc(n.oppTeam)}${n.venue ? ' · ' + esc(n.venue) : ''}</span>
               <span class="tot">${n.won}–${n.lost}</span>
               ${n.matchId ? `<a class="sheet" href="league.html?lg=${esc(LG)}&view=schedule&match=${encodeURIComponent(n.matchId)}">Scoresheet →</a>` : ''}
             </div>
@@ -638,22 +667,40 @@
   }
 
   /* Their team's next three nights, from our own fixture list. */
-  function nextUp(teamName) {
+  /* A sub has a fixture list for each team they turn out for. Merge
+     them and take the next three nights overall, naming the team when
+     there's more than one — otherwise the row reads "vs Three Dads"
+     to a player who plays for Three Dads. */
+  function nextUp(teamNames) {
     const S = window.SEASON_8BALL;
-    if (!S || !teamName || LG !== '8ball') return [];
-    const want = FM.normTeam(teamName);
-    const entry = Object.entries(S.teams).find(([, t]) => FM.normTeam(t.name) === want);
-    if (!entry) return [];
-    const season = S.season(Number(entry[0]));
+    const list = (Array.isArray(teamNames) ? teamNames : [teamNames]).filter(Boolean);
+    if (!S || !list.length || LG !== '8ball') return [];
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    return season
-      .filter(x => !x.off && S.day(x.iso) >= today)
-      .slice(0, 3)
-      .map(x => ({
-        date: S.day(x.iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        opp: S.teams[x.opp] ? S.teams[x.opp].name : '',
-        home: x.home, bar: x.bar || '',
-      }));
+    const out = [];
+    list.forEach(teamName => {
+      const want = FM.normTeam(teamName);
+      const entry = Object.entries(S.teams).find(([, t]) => FM.normTeam(t.name) === want);
+      if (!entry) return;
+      S.season(Number(entry[0]))
+        .filter(x => !x.off && S.day(x.iso) >= today)
+        .forEach(x => out.push({
+          when: S.day(x.iso),
+          date: S.day(x.iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          team: entry[1].name,
+          opp: S.teams[x.opp] ? S.teams[x.opp].name : '',
+          home: x.home, bar: x.bar || '',
+        }));
+    });
+    /* When both their teams meet each other, it's one night, not two. */
+    const seen = new Set();
+    const once = out.filter(x => {
+      const k = x.date + '|' + [FM.normTeam(x.team), FM.normTeam(x.opp)].sort().join('|');
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+    once.sort((a, b) => a.when - b.when);
+    return once.slice(0, 3);
   }
 
   function share() {
