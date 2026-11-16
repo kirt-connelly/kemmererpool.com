@@ -396,7 +396,6 @@ a:focus-visible, button:focus-visible {
     <section class="panel" id="past">
       <div class="panel-hd">
         <span class="eyebrow">Past Events</span>
-        <span class="panel-note" id="past-note">2025&ndash;26 season</span>
       </div>
 
       <div class="ev" data-ends="2026-04-26">
@@ -508,20 +507,6 @@ a:focus-visible, button:focus-visible {
   var foot = up.querySelector('.panel-foot');
   ahead.forEach(function (ev) { foot ? up.insertBefore(ev, foot) : up.appendChild(ev); });
   done.forEach(function (ev) { retire(ev); past.appendChild(ev); });
-
-  /* The note under "Past Events" named one season. Now that rows move
-     in on their own it has to say what's actually down there. */
-  var note = document.getElementById('past-note');
-  if (note && done.length) {
-    var season = function (d) {
-      var y = d.getFullYear();
-      return d.getMonth() >= 7 ? y : y - 1;      /* August starts a season */
-    };
-    var label = function (y) { return y + '\u2013' + String(y + 1).slice(2); };
-    var years = done.map(dayOf).filter(Boolean).map(season);
-    var lo = Math.min.apply(null, years), hi = Math.max.apply(null, years);
-    note.innerHTML = lo === hi ? label(lo) + ' season' : label(lo) + ' to ' + label(hi);
-  }
 })();
 
 /* The flyers are photos of paper taped up in the bars, so they open

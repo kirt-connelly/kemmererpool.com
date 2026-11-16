@@ -1009,60 +1009,61 @@ a:focus-visible, button:focus-visible {
       </div>
 
       <div class="dates">
-        <div class="date-row">
+        <div class="date-row" data-ends="2026-11-08">
           <span class="d">Nov 6&ndash;8, 2026</span>
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Rock Springs</span>
           <span class="lnks"><button type="button" onclick="openFlyer('images/courtney-ellifritz-2026.jpg','Courtney Ellifritz Memorial 8-Ball Singles Tournament flyer')">Flyer &nearr;</button><span class="sep">&middot;</span><a href="https://www.jenkinsmusic.net/" target="_blank" rel="noopener">Sign up &nearr;</a></span>
         </div>
-        <div class="date-row">
+        <div class="date-row" data-ends="2026-12-06">
           <span class="d">Dec 4&ndash;6, 2026</span>
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Bridger Valley</span>
           <span class="lnks"><button type="button" onclick="openFlyer('images/bridger-valley-open-2026.jpg','Bridger Valley Open Singles Pool Tournament flyer')">Flyer &nearr;</button></span>
         </div>
-        <div class="date-row">
+        <div class="date-row" data-ends="2027-01-10">
           <span class="d">Jan 8&ndash;10, 2027</span>
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Pinedale</span>
           <span class="s">Expected</span>
         </div>
-        <div class="date-row tri">
+        <div class="date-row tri" data-ends="2027-01-17">
           <span class="d">Jan 16&ndash;17, 2027</span>
           <span class="n">Red Short Memorial Tri City</span>
           <span class="w">Kemmerer</span>
           <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button></span>
         </div>
-        <div class="date-row tri">
+        <div class="date-row tri" data-ends="2027-02-07">
           <span class="d">Feb 6&ndash;7, 2027</span>
           <span class="n">Evanston Tri City</span>
           <span class="w">Evanston</span>
           <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Evanston Tri City flyer')">Flyer &nearr;</button></span>
         </div>
-        <div class="date-row tri">
+        <div class="date-row tri" data-ends="2027-03-07">
           <span class="d">Mar 6&ndash;7, 2027</span>
           <span class="n">Bridger Valley Tri City</span>
           <span class="w">Bridger Valley</span>
           <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Bridger Valley Tri City flyer')">Flyer &nearr;</button></span>
         </div>
-        <div class="date-row">
+        <div class="date-row" data-ends="2027-03-21">
           <span class="d">Mar 15&ndash;21, 2027</span>
           <span class="n">AMOW Wyoming State 8-Ball</span>
           <span class="w">Casper</span>
           <span class="s">Estimated</span>
         </div>
-        <div class="date-row">
+        <div class="date-row" data-ends="2027-04-11">
           <span class="d">Apr 8&ndash;11, 2027</span>
           <span class="n">Jenkins End of Year/Cup Tournament</span>
           <span class="w">Rock Springs</span>
           <span class="s set">Confirmed</span>
         </div>
-        <div class="date-row">
+        <div class="date-row" data-ends="2027-05-02">
           <span class="d">Apr 30 &ndash; May 2, 2027</span>
           <span class="n">Jenkins Cup Tournament</span>
           <span class="w">Dubois</span>
           <span class="s set">Confirmed</span>
         </div>
+        
       </div>
 
       <div class="league-go" style="margin-top:18px">
@@ -1212,7 +1213,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.74</span>
+        <span>v1.75</span>
       </div>
 
     </div>
@@ -1606,6 +1607,47 @@ loadLastWeek();
 </div>
 
 <script>
+/* ── the front page only looks forward ───────────────────────────
+   Each row carries the day it finishes. Anything already played comes
+   off this list entirely — there's no Past section here, that's what
+   the tournaments page is for. Dates are read as local days, so an
+   event stays up through the whole of its last day. */
+(function () {
+  var box = document.querySelector('#tournaments .dates');
+  if (!box) return;
+
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var dayOf = function (el) {
+    var p = (el.getAttribute('data-ends') || '').split('-');
+    return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null;
+  };
+
+  var ahead = [];
+  [].slice.call(box.querySelectorAll('.date-row')).forEach(function (row) {
+    var d = dayOf(row);
+    if (d && d < today) { row.parentNode.removeChild(row); return; }
+    ahead.push(row);
+  });
+
+  ahead.sort(function (a, b) {
+    var x = dayOf(a), y = dayOf(b);
+    if (!x) return 1;
+    if (!y) return -1;
+    return x - y;
+  }).forEach(function (row) { box.appendChild(row); });
+
+  /* Come the end of a season the list empties out. Better to say so
+     than to leave a heading over nothing. */
+  if (!ahead.length) {
+    var p = document.createElement('p');
+    p.className = 'lede';
+    p.style.margin = '0';
+    p.textContent = 'Nothing on the calendar right now. Last season\u2019s results are on the tournaments page.';
+    box.appendChild(p);
+  }
+})();
+
 /* Flyers open full size here the same way they do on the tournaments
    page — they're photos of paper taped up in the bars. */
 function openFlyer(src, alt) {
