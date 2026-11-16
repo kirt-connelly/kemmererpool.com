@@ -223,7 +223,7 @@
   <script src="season-8ball.js?v=1.01"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     player.html v1.15
+     player.html v1.16
 
      Two pages in one file. No ?p= gives the directory — everyone in
      the division with their team and rating. With ?p=<slug> it's one
@@ -572,8 +572,10 @@
     const nights = g.nights.length;
     const played = g.won + g.lost;          /* games with a result on them */
     const myTeams = me && me.teams && me.teams.length ? me.teams : (me && me.team ? [me.team] : []);
-    const next = nextUp(myTeams);
-    const showTeam = myTeams.length > 1;
+    /* On more than one roster there's no telling which team they'll
+       turn out for on a given night, so the panel is left off rather
+       than guessing at it. */
+    const next = myTeams.length === 1 ? nextUp(myTeams[0]) : [];
     const streakTxt = g.streak
       ? `${g.streak} ${g.streakWin ? 'win' : 'loss'}${g.streak > 1 ? 'es'.slice(g.streakWin ? 1 : 0) : ''}`
       : '—';
@@ -615,7 +617,7 @@
         <div class="scroll"><table class="tbl"><tbody>
           ${next.map(n => `<tr>
             <td class="num" style="text-align:left;color:var(--accent)">${esc(n.date)}</td>
-            <td class="nm">${showTeam && n.team ? `<span style="color:var(--text3)">${esc(n.team)}</span> ` : ''}${n.home ? 'vs' : 'at'} ${esc(n.opp)}</td>
+            <td class="nm">${n.home ? 'vs' : 'at'} ${esc(n.opp)}</td>
             <td style="text-align:right;color:var(--text3)">${esc(n.bar)}</td>
           </tr>`).join('')}
         </tbody></table></div>
@@ -667,40 +669,22 @@
   }
 
   /* Their team's next three nights, from our own fixture list. */
-  /* A sub has a fixture list for each team they turn out for. Merge
-     them and take the next three nights overall, naming the team when
-     there's more than one — otherwise the row reads "vs Three Dads"
-     to a player who plays for Three Dads. */
-  function nextUp(teamNames) {
+  function nextUp(teamName) {
     const S = window.SEASON_8BALL;
-    const list = (Array.isArray(teamNames) ? teamNames : [teamNames]).filter(Boolean);
-    if (!S || !list.length || LG !== '8ball') return [];
+    if (!S || !teamName || LG !== '8ball') return [];
+    const want = FM.normTeam(teamName);
+    const entry = Object.entries(S.teams).find(([, t]) => FM.normTeam(t.name) === want);
+    if (!entry) return [];
+    const season = S.season(Number(entry[0]));
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const out = [];
-    list.forEach(teamName => {
-      const want = FM.normTeam(teamName);
-      const entry = Object.entries(S.teams).find(([, t]) => FM.normTeam(t.name) === want);
-      if (!entry) return;
-      S.season(Number(entry[0]))
-        .filter(x => !x.off && S.day(x.iso) >= today)
-        .forEach(x => out.push({
-          when: S.day(x.iso),
-          date: S.day(x.iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          team: entry[1].name,
-          opp: S.teams[x.opp] ? S.teams[x.opp].name : '',
-          home: x.home, bar: x.bar || '',
-        }));
-    });
-    /* When both their teams meet each other, it's one night, not two. */
-    const seen = new Set();
-    const once = out.filter(x => {
-      const k = x.date + '|' + [FM.normTeam(x.team), FM.normTeam(x.opp)].sort().join('|');
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-    once.sort((a, b) => a.when - b.when);
-    return once.slice(0, 3);
+    return season
+      .filter(x => !x.off && S.day(x.iso) >= today)
+      .slice(0, 3)
+      .map(x => ({
+        date: S.day(x.iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        opp: S.teams[x.opp] ? S.teams[x.opp].name : '',
+        home: x.home, bar: x.bar || '',
+      }));
   }
 
   function share() {
