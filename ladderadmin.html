@@ -15,9 +15,13 @@
       --edge: #33291f; --edge-in: #473829;
       --bone: #f4efe4; --dim: #9d9282; --faint: #8d8172;
       --brass: #d4a13c; --green: #4fae86; --loss: #c0553f;
+      --felt: #1c5142; --felt-lo: #102e26;
       --radius: 6px; --radius-sm: 4px;
     }
-    body { background: var(--night); color: var(--bone); font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5; }
+    body {
+      background: var(--night) linear-gradient(180deg, rgba(28,81,66,.26), rgba(28,81,66,.05) 55%, transparent 440px) no-repeat;
+      color: var(--bone); font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5;
+    }
     a { color: var(--brass); text-decoration: none; }
     .wrap { max-width: 900px; margin: 0 auto; padding-left: 20px; padding-right: 20px; padding-top: 26px; padding-bottom: 70px; }
     .eyebrow { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--brass); }
@@ -25,6 +29,23 @@
     .sub { color: var(--dim); margin-top: 6px; font-size: 15px; }
 
     .card { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); margin-top: 18px; overflow: hidden; }
+
+    /* Same felt cloth the public ladder and the front page use, on the
+       board itself so an officer is looking at the same thing the
+       players are. */
+    .card.cloth {
+      position: relative;
+      background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.58));
+      border-color: rgba(79,174,134,.22);
+    }
+    .card.cloth::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+      background-image:
+        repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+    }
+    .card.cloth > * { position: relative; z-index: 1; }
+    .card.cloth .card-hd { background: rgba(11,33,27,.72); border-bottom-color: rgba(79,174,134,.18); }
     .card-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; background: var(--night); border-bottom: 1px solid var(--edge); }
     .card-hd .t { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--brass); }
     .card-hd .m { font-size: 12px; color: var(--faint); }
@@ -171,7 +192,7 @@
       </div>
 
       <!-- ── the ladder ────────────────────────────────────────── -->
-      <div class="card">
+      <div class="card cloth">
         <div class="card-hd">
           <span class="t">The ladder</span>
           <span class="m" id="potline"></span>
@@ -249,7 +270,7 @@
         <a href="ladder.html">The public page</a> &nbsp;&middot;&nbsp;
         <a href="officers.html">Officers</a> &nbsp;&middot;&nbsp;
         <a href="league.html?lg=8ball&view=players">Players report</a>
-        &nbsp;&middot;&nbsp; ladder admin v1.05
+        &nbsp;&middot;&nbsp; ladder admin v1.06
       </p>
     </div>
   </main>
@@ -258,7 +279,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.05 — officers only.
+     ladderadmin.html v1.06 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
