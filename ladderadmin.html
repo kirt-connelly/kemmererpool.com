@@ -12,7 +12,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --night: #14100c; --night2: #1d1712; --night3: #251d15;
-      --edge: #33291f; --edge-in: #473829;
+      /* Translucent bone, the way the front page does it. Solid brown
+         hex here was what made every line and panel muddy. */
+      --edge: rgba(244,239,228,.13); --edge-in: rgba(244,239,228,.10);
       --bone: #f4efe4; --dim: #9d9282; --faint: #8d8172;
       --brass: #d4a13c; --green: #4fae86; --loss: #c0553f;
       --felt: #1c5142; --felt-lo: #102e26;
@@ -28,9 +30,9 @@
     h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; margin-top: 6px; }
     .sub { color: var(--dim); margin-top: 6px; font-size: 15px; }
 
-    .card { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); margin-top: 18px; overflow: hidden; }
+    .card { background: rgba(0,0,0,.18); border: 1px solid var(--edge); border-radius: var(--radius); margin-top: 18px; overflow: hidden; }
 
-    .card-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; background: var(--night); border-bottom: 1px solid var(--edge); }
+    .card-hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 15px; background: rgba(0,0,0,.28); border-bottom: 1px solid var(--edge-in); }
     .card-hd .t { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--brass); }
     .card-hd .m { font-size: 12px; color: var(--faint); }
     .body { padding: 16px; }
@@ -254,7 +256,7 @@
         <a href="ladder.html">The public page</a> &nbsp;&middot;&nbsp;
         <a href="officers.html">Officers</a> &nbsp;&middot;&nbsp;
         <a href="league.html?lg=8ball&view=players">Players report</a>
-        &nbsp;&middot;&nbsp; ladder admin v1.07
+        &nbsp;&middot;&nbsp; ladder admin v1.08
       </p>
     </div>
   </main>
@@ -263,7 +265,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.07 — officers only.
+     ladderadmin.html v1.08 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
