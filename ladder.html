@@ -21,9 +21,14 @@
     }
     html { -webkit-text-size-adjust: 100%; }
     body {
-      /* The same wash the front page puts behind the running season:
-         rgba(28,81,66,.20) at the top, gone by halfway down. */
-      background: var(--night) linear-gradient(180deg, rgba(28,81,66,.20), rgba(244,239,228,.02) 55%, transparent 420px) no-repeat;
+      /* The wash the front page puts behind the running season. Its
+         own 460px box with percentage stops inside it — mixing % and
+         px stops in one gradient leaves a hard line where the browser
+         clamps them against each other. */
+      background-color: var(--night);
+      background-image: linear-gradient(180deg, rgba(28,81,66,.22), rgba(28,81,66,.07) 58%, rgba(28,81,66,0));
+      background-repeat: no-repeat;
+      background-size: 100% 460px;
       color: var(--bone);
       font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5;
     }
@@ -97,17 +102,27 @@
       font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
       color: var(--faint); background: var(--night); border-bottom: 1px solid var(--edge); white-space: nowrap;
     }
-    td { padding: 11px 14px; border-bottom: 1px solid var(--edge); font-size: 15px; color: var(--dim); }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--edge-in); font-size: 15px; color: var(--dim); }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover td { background: rgba(244,239,228,.03); }
     .rank {
-      font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700;
-      color: var(--faint); width: 54px;
+      font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
+      color: var(--faint); width: 46px;
     }
     tr.top .rank, tr.top .who { color: var(--brass); }
     tr.top { background: rgba(79,174,134,.07); }
-    .who { color: var(--bone); font-weight: 600; }
-    .num { font-family: 'Space Mono', monospace; text-align: center; white-space: nowrap; }
+    .who { color: var(--bone); font-weight: 600; font-size: 16px; }
+
+    /* The same win bar the front page runs under each team in the
+       standings. It gives every row something to read across the
+       middle instead of a long empty gap, and it's how far up the
+       ladder they are rather than a record. */
+    .wbar { display: block; height: 5px; border-radius: 3px; background: rgba(244,239,228,.09); margin-top: 7px; max-width: 420px; }
+    .wbar i { display: block; height: 100%; border-radius: 3px; background: var(--felt); filter: brightness(1.5); }
+    tr.top .wbar i { background: var(--brass); filter: none; }
+
+    .num { font-family: 'Space Mono', monospace; font-size: 14px; text-align: right; white-space: nowrap; }
+    .num.rec { color: var(--dim); }
     .scroll { overflow-x: auto; }
 
     /* ── How it works: folded shut until somebody taps it ── */
@@ -353,13 +368,13 @@
           <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
         </a>
       </div>
-      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.10</div>
+      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.11</div>
     </div>
   </footer>
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.10 — the public side of the challenge ladder.
+     ladder.html v1.11 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -427,11 +442,16 @@
           <th>#</th><th>Player</th>
           <th class="num">W–L</th>
         </tr></thead>
-        <tbody>${L.players.map(p => `<tr class="${p.rank === 1 ? 'top' : ''}">
-          <td class="rank">${p.rank}</td>
-          <td class="who">${esc(p.name)}</td>
-          <td class="num">${p.w || 0}–${p.l || 0}</td>
-        </tr>`).join('')}</tbody>
+        <tbody>${L.players.map(p => {
+          /* Full bar at the top of the ladder, shortest at the bottom. */
+          const climb = L.players.length > 1
+            ? 100 - ((p.rank - 1) / (L.players.length - 1)) * 88
+            : 100;
+          return `<tr class="${p.rank === 1 ? 'top' : ''}">
+          <td class="rank">${String(p.rank).padStart(2, '0')}</td>
+          <td class="who">${esc(p.name)}<span class="wbar"><i style="width:${climb.toFixed(1)}%"></i></span></td>
+          <td class="num rec">${p.w || 0}–${p.l || 0}</td>
+        </tr>`; }).join('')}</tbody>
       </table>`
       : '<div class="quiet">The ladder hasn’t been started yet.</div>';
 
