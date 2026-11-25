@@ -21,7 +21,9 @@
     }
     html { -webkit-text-size-adjust: 100%; }
     body {
-      background: var(--night) linear-gradient(180deg, rgba(28,81,66,.26), rgba(28,81,66,.05) 55%, transparent 440px) no-repeat;
+      /* The same wash the front page puts behind the running season:
+         rgba(28,81,66,.20) at the top, gone by halfway down. */
+      background: var(--night) linear-gradient(180deg, rgba(28,81,66,.20), rgba(244,239,228,.02) 55%, transparent 420px) no-repeat;
       color: var(--bone);
       font-family: 'Barlow', system-ui, sans-serif; font-size: 16px; line-height: 1.5;
     }
@@ -61,7 +63,13 @@
     }
 
     .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 20px; }
-    .tile { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); padding: 14px 16px; }
+    /* The four tiles are the at-a-glance strip, so the felt lives
+       here. Below them the page stays plain, the way the front page
+       leaves Standings and the teams table alone. */
+    .tile {
+      background: linear-gradient(180deg, rgba(28,81,66,.30), rgba(16,46,38,.22));
+      border: 1px solid rgba(79,174,134,.22); border-radius: var(--radius); padding: 14px 16px;
+    }
     .tile .k {
       font-family: 'Space Mono', monospace; font-size: 9.5px; font-weight: 700;
       letter-spacing: .14em; text-transform: uppercase; color: var(--faint);
@@ -70,28 +78,9 @@
     .tile .v.sm { font-size: 18px; font-weight: 700; }
     .tile .n { font-size: 13px; color: var(--dim); margin-top: 3px; }
     .tile.pot .v { color: var(--brass); font-family: 'Space Mono', monospace; }
-    .tile.pot { background: linear-gradient(180deg, rgba(28,81,66,.30), rgba(16,46,38,.22)); border-color: rgba(79,174,134,.22); }
 
     .card { background: var(--night2); border: 1px solid var(--edge); border-radius: var(--radius); margin-top: 20px; overflow: hidden; }
 
-    /* The ladder is what the page is for, so it gets the felt-cloth
-       panel the front page uses for Next up — same gradient, same
-       weave — rather than sitting in the same brown box as everything
-       else. */
-    .card.cloth {
-      position: relative;
-      background: linear-gradient(180deg, rgba(28,81,66,.42), rgba(16,46,38,.58));
-      border-color: rgba(79,174,134,.22);
-    }
-    .card.cloth::before {
-      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
-      background-image:
-        repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px),
-        repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
-    }
-    .card.cloth > * { position: relative; z-index: 1; }
-    .card.cloth .card-hd { background: rgba(11,33,27,.72); border-bottom-color: rgba(79,174,134,.18); }
-    .card.cloth tbody tr + tr { border-top-color: rgba(244,239,228,.08); }
     .card-hd {
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 12px 16px; background: var(--night); border-bottom: 1px solid var(--edge);
@@ -116,7 +105,7 @@
       color: var(--faint); width: 54px;
     }
     tr.top .rank, tr.top .who { color: var(--brass); }
-    tr.top { background: rgba(79,174,134,.10); }
+    tr.top { background: rgba(79,174,134,.07); }
     .who { color: var(--bone); font-weight: 600; }
     .num { font-family: 'Space Mono', monospace; text-align: center; white-space: nowrap; }
     .scroll { overflow-x: auto; }
@@ -288,7 +277,7 @@
       </ul>
     </details>
 
-    <div class="card cloth">
+    <div class="card">
       <div class="card-hd">
         <span class="t">The ladder</span>
         <span class="m" id="asof"></span>
@@ -364,13 +353,13 @@
           <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
         </a>
       </div>
-      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.09</div>
+      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.10</div>
     </div>
   </footer>
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.09 — the public side of the challenge ladder.
+     ladder.html v1.10 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
