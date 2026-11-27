@@ -191,15 +191,20 @@
         <div class="body" style="border-top:1px solid var(--edge)">
           <div class="row">
             <div>
-              <label for="addname">Add a player</label>
-              <input id="addname" placeholder="Name" autocomplete="off" />
+              <label for="addpick">Add a player</label>
+              <select id="addpick"></select>
+              <input id="addname" class="hide" placeholder="Name" autocomplete="off" style="margin-top:8px" />
             </div>
             <div>
               <label for="addrank">At place</label>
               <input id="addrank" type="number" min="1" max="15" placeholder="bottom" />
             </div>
           </div>
-          <div class="btns"><button id="add" class="quietbtn">Add</button></div>
+          <div class="btns">
+            <button id="add" class="quietbtn">Add</button>
+            <button id="refresh" class="quietbtn">Refresh the player list</button>
+            <span class="sub" id="leaguecount" style="margin:0"></span>
+          </div>
         </div>
       </div>
 
@@ -260,7 +265,7 @@
         <a href="ladder.html">The public page</a> &nbsp;&middot;&nbsp;
         <a href="officers.html">Officers</a> &nbsp;&middot;&nbsp;
         <a href="league.html?lg=8ball&view=players">Players report</a>
-        &nbsp;&middot;&nbsp; ladder admin v1.08
+        &nbsp;&middot;&nbsp; ladder admin v1.09
       </p>
     </div>
   </main>
@@ -269,7 +274,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.08 — officers only.
+     ladderadmin.html v1.09 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
@@ -332,7 +337,6 @@
     $('notice').value = L.notice || '';
     $('undo').disabled = !L.undoDepth;
 
-    $('names').innerHTML = L.players.map(p => `<option value="${esc(p.name)}">`).join('');
 
     $('board').innerHTML = L.players.length ? `<table>
       <thead><tr><th>#</th><th>Player</th><th>W–L</th><th></th></tr></thead>
@@ -361,6 +365,7 @@
     }));
     preview();
     drawQueue();
+    fillPickers();
   }
 
   /* ── what a match would do to the ladder ───────────────────────
@@ -455,22 +460,61 @@
     return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  /* ── everyone shooting in the league ───────────────────────────
+     One read of the Players report serves both jobs: the dropdown for
+     adding somebody, and the top-15 seed. Refresh re-reads it, for
+     when a new player has shot their first night since the page was
+     opened. */
+  let league = [];
+  let leagueNote = '';        /* survives a redraw, unlike the box itself */
+  async function loadLeague(fresh) {
+    const html = await FargoMatch.reportCached('GeneratePlayerStandingsReport', DIVISION, fresh ? 0 : 15);
+    const t = FargoMatch.parseTable(html);
+    const nameIdx = t.headers.findIndex(h => /^(name|player)/i.test(h));
+    const avgIdx  = t.headers.findIndex(h => /^avg/i.test(h));
+    if (nameIdx < 0 || avgIdx < 0) throw new Error('couldn’t find the NAME and AVG columns');
+    league = t.rows
+      .map(r => ({ name: FargoMatch.cleanName(r[nameIdx]), avg: parseFloat(r[avgIdx]) || 0 }))
+      .filter(p => p.name);
+    fillPickers();
+    return league;
+  }
+
+  /* The dropdown offers the league minus whoever is already up there,
+     and "someone else" for a player the report hasn't caught up with. */
+  function fillPickers() {
+    const on = new Set((L && L.players ? L.players : []).map(p => key(p.name)));
+    const free = league.filter(p => !on.has(key(p.name)))
+                       .sort((a, b) => a.name.localeCompare(b.name));
+    const sel = $('addpick');
+    const had = sel.value;
+    sel.innerHTML = '<option value="">Pick a player</option>'
+      + free.map(p => `<option value="${esc(p.name)}">${esc(p.name)}${p.avg ? ' · ' + p.avg.toFixed(2) : ''}</option>`).join('')
+      + '<option value="__other">Someone else…</option>';
+    if (had && [...sel.options].some(o => o.value === had)) sel.value = had;
+    $('addname').classList.toggle('hide', sel.value !== '__other');
+
+    $('leaguecount').textContent = league.length
+      ? `${free.length} in the league not on the ladder`
+      : leagueNote;
+
+    /* The match boxes offer everyone, not just the fifteen — a
+       challenger coming from outside has to be typeable too. */
+    const all = [...new Set([...(L && L.players ? L.players.map(p => p.name) : []),
+                             ...league.map(p => p.name)])].sort();
+    $('names').innerHTML = all.map(n => `<option value="${esc(n)}">`).join('');
+  }
+
   /* ── seeding from the league's own numbers ─────────────────── */
   let seedNames = [];
   async function pullTop15() {
     const box = $('seedlist');
     box.textContent = 'Reading the Players report…';
     try {
-      const html = await FargoMatch.reportCached('GeneratePlayerStandingsReport', DIVISION);
-      const t = FargoMatch.parseTable(html);
-      const nameIdx = t.headers.findIndex(h => /^(name|player)/i.test(h));
-      const avgIdx  = t.headers.findIndex(h => /^avg/i.test(h));
-      if (nameIdx < 0 || avgIdx < 0) throw new Error('couldn’t find the NAME and AVG columns');
-      seedNames = t.rows
-        .map(r => ({ name: FargoMatch.cleanName(r[nameIdx]), avg: parseFloat(r[avgIdx]) || 0 }))
-        .filter(p => p.name && p.avg > 0)
-        .sort((a, b) => b.avg - a.avg)
-        .slice(0, SIZE);
+      if (!league.length) await loadLeague(false);
+      seedNames = league.filter(p => p.avg > 0)
+        .slice().sort((a, b) => b.avg - a.avg).slice(0, SIZE);
+      if (!seedNames.length) throw new Error('nobody has an average yet');
       box.innerHTML = seedNames.map((p, i) =>
         `${i + 1}. <span>${esc(p.name)}</span> &nbsp;${p.avg.toFixed(2)}`).join('<br>');
       $('seedbtns').classList.remove('hide');
@@ -481,13 +525,25 @@
   }
 
   /* ── wiring ────────────────────────────────────────────────── */
+  /* Whether they typed the password or the browser remembered it,
+     the same things have to happen on the way in. */
+  function opened() {
+    $('gate').classList.add('hide');
+    $('app').classList.remove('hide');
+    /* In the background: a slow report shouldn't hold up the board,
+       and the dropdown fills itself in when it lands. */
+    loadLeague(false).catch(e => {
+      leagueNote = 'Player list didn’t load — use “Someone else”.';
+      $('leaguecount').textContent = leagueNote;
+    });
+  }
+
   $('go').addEventListener('click', async () => {
     PASS = $('pw').value;
     const d = await api({ action: 'ping' });
     if (!d.ok) { say($('gatesay'), d.error || 'No.', true); return; }
     sessionStorage.setItem('kpl.ladderpw', PASS);
-    $('gate').classList.add('hide');
-    $('app').classList.remove('hide');
+    opened();
   });
   $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').click(); });
 
@@ -511,10 +567,34 @@
     if (d.ok) { $('winner').value = ''; $('loser').value = ''; preview(); }
   });
 
+  $('addpick').addEventListener('change', () => {
+    const other = $('addpick').value === '__other';
+    $('addname').classList.toggle('hide', !other);
+    if (other) $('addname').focus();
+  });
+
+  $('refresh').addEventListener('click', async () => {
+    const b = $('refresh'); b.disabled = true;
+    const was = b.textContent; b.textContent = 'Reading…';
+    try {
+      leagueNote = '';
+      await loadLeague(true);
+      say($('say'), `Player list refreshed — ${league.length} shooting this season.`, false);
+    } catch (e) {
+      say($('say'), `Couldn’t read the Players report — ${e.message}.`, true);
+    } finally { b.disabled = false; b.textContent = was; }
+  });
+
   $('add').addEventListener('click', async () => {
-    const d = await api({ action: 'add', name: $('addname').value.trim(), rank: $('addrank').value });
+    const pick = $('addpick').value;
+    const name = pick === '__other' ? $('addname').value.trim() : pick;
+    if (!name) return say($('say'), 'Pick a player, or choose “Someone else” and type a name.', true);
+    const d = await api({ action: 'add', name, rank: $('addrank').value });
     say($('say'), d.ok ? d.said : d.error, !d.ok);
-    if (d.ok) { $('addname').value = ''; $('addrank').value = ''; }
+    if (d.ok) {
+      $('addname').value = ''; $('addrank').value = '';
+      $('addpick').value = ''; $('addname').classList.add('hide');
+    }
   });
 
   $('pay').addEventListener('click', async () => {
@@ -551,9 +631,7 @@
 
   $('mdate').value = today();
   $('paydate').value = today();
-  load().then(signedIn => {
-    if (signedIn) { $('gate').classList.add('hide'); $('app').classList.remove('hide'); }
-  }).catch(() => {});
+  load().then(signedIn => { if (signedIn) opened(); }).catch(() => {});
   </script>
 </body>
 </html>
