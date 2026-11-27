@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Officer tools and scoreboards — nothing for a search engine here.
+Disallow: /admin.html
+Disallow: /bracket.html
+Disallow: /calcutta.html
+Disallow: /chip.html
+Disallow: /ladderadmin.html
+Disallow: /leagueadmin.html
+Disallow: /officers.html
+Disallow: /tournament.html
+Disallow: /tricity-match.html
+Disallow: /tricity-roster.html
+Disallow: /tricity-win.html
+Disallow: /tricityadmin.html
+Disallow: /tv.html
+Disallow: /api/
+Disallow: /proxy
+
+Sitemap: https://kemmererpool.com/sitemap.xml

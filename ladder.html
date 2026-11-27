@@ -3,9 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Top 15 Ladder &mdash; Kemmerer Pool League</title>
-  <meta name="description" content="The Kemmerer Pool League top 15 challenge ladder — current standings, how to challenge, match history and the monthly envelope." />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23111'/><circle cx='50' cy='50' r='22' fill='white'/><text x='50' y='58' font-size='24' font-family='Arial' font-weight='bold' text-anchor='middle' fill='%23111'>8</text></svg>" />
+  <title>Top 15 Ladder — Kemmerer Pool League</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="canonical" href="https://kemmererpool.com/ladder.html" />
+  <meta name="description" content="The Kemmerer Pool League top 15 challenge ladder — current places, how to challenge, match history and the monthly envelope." />
+  <meta name="theme-color" content="#14100c" />
+  <meta property="og:site_name" content="Kemmerer Pool League" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Top 15 Ladder — Kemmerer Pool League" />
+  <meta property="og:description" content="The Kemmerer Pool League top 15 challenge ladder — current places, how to challenge, match history and the monthly envelope." />
+  <meta property="og:url" content="https://kemmererpool.com/ladder.html" />
+  <meta property="og:image" content="https://kemmererpool.com/images/og-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Top 15 Ladder — Kemmerer Pool League" />
+  <meta name="twitter:description" content="The Kemmerer Pool League top 15 challenge ladder — current places, how to challenge, match history and the monthly envelope." />
+  <meta name="twitter:image" content="https://kemmererpool.com/images/og-card.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -363,13 +379,13 @@
           <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
         </a>
       </div>
-      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.12</div>
+      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.13</div>
     </div>
   </footer>
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.12 — the public side of the challenge ladder.
+     ladder.html v1.13 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -435,12 +451,10 @@
       <table>
         <thead><tr>
           <th>#</th><th>Player</th>
-          <th class="num">W–L</th>
         </tr></thead>
         <tbody>${L.players.map(p => `<tr class="${p.rank === 1 ? 'top' : ''}">
           <td class="rank">${String(p.rank).padStart(2, '0')}</td>
           <td class="who">${esc(p.name)}</td>
-          <td class="num rec">${p.w || 0}–${p.l || 0}</td>
         </tr>`).join('')}</tbody>
       </table>`
       : '<div class="quiet">The ladder hasn’t been started yet.</div>';

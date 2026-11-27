@@ -23,3 +23,22 @@
 # Pictures don't change under the same name.
 /images/*
   Cache-Control: public, max-age=86400
+
+# Icons: crawlers and browsers ask for these constantly and they never
+# change, so let them sit. Replacing one means renaming it.
+/favicon.ico
+  Cache-Control: public, max-age=604800
+/favicon.svg
+  Cache-Control: public, max-age=604800
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
+/icon-192.png
+  Cache-Control: public, max-age=604800
+/icon-512.png
+  Cache-Control: public, max-age=604800
+
+# Let Google re-read these without waiting a day.
+/robots.txt
+  Cache-Control: public, max-age=3600
+/sitemap.xml
+  Cache-Control: public, max-age=3600

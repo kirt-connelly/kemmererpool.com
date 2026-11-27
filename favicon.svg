@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="8 ball">
+  <circle cx="50" cy="50" r="50" fill="#111"/>
+  <circle cx="33" cy="30" r="15" fill="#fff" opacity=".10"/>
+  <circle cx="50" cy="50" r="30" fill="#fff"/>
+  <text x="50" y="50" font-family="Helvetica,Arial,sans-serif" font-size="44" font-weight="bold"
+        text-anchor="middle" dominant-baseline="central" fill="#111">8</text>
+</svg>
