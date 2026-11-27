@@ -379,13 +379,13 @@
           <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
         </a>
       </div>
-      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.13</div>
+      <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; ladder v1.14</div>
     </div>
   </footer>
 
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladder.html v1.13 — the public side of the challenge ladder.
+     ladder.html v1.14 — the public side of the challenge ladder.
      Reads /api/ladder, which anyone may read and only officers write.
      ──────────────────────────────────────────────────────────────── */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -414,7 +414,7 @@
       document.getElementById('hist').innerHTML = '';
       return;
     }
-    const L = d.ladder;
+    const L = LADDER = d.ladder;
 
     document.getElementById('notice').innerHTML = L.notice
       ? `<div class="notice">${esc(L.notice)}</div>` : '';
@@ -459,19 +459,7 @@
       </table>`
       : '<div class="quiet">The ladder hasn’t been started yet.</div>';
 
-    /* Real dropdowns rather than a datalist: Safari hides datalist
-       suggestions behind the keyboard and most people never see them.
-       The last option is for somebody challenging their way on, who
-       isn't up there yet. */
-    const opts = '<option value="">Pick a player</option>'
-      + L.players.map(p => `<option value="${esc(p.name)}">#${p.rank} &nbsp;${esc(p.name)}</option>`).join('')
-      + '<option value="__other">Not on the ladder…</option>';
-    ['f-win', 'f-lose'].forEach(id => {
-      const sel = document.getElementById(id);
-      const had = sel.value;
-      sel.innerHTML = opts;
-      if (had && [...sel.options].some(o => o.value === had)) sel.value = had;
-    });
+    fillNames();
 
     document.getElementById('waiting').textContent =
       L.waiting ? `${L.waiting} waiting on an officer` : '';
@@ -510,6 +498,76 @@
             : p.weekStart ? ', week of ' + fmtDate(p.weekStart) : ''}.</span>` : ''}
       </div>`).join('');
     }
+  }
+
+  /* ── who can be picked ─────────────────────────────────────────
+     Real dropdowns rather than a datalist: Safari hides datalist
+     suggestions behind the keyboard and most people never see them.
+     The fifteen come first, then everyone else shooting this season
+     — a challenge can come from off the ladder, and that player
+     shouldn't have to spell their own name to report a win. */
+  const DIV = '6e366095-3e94-426d-ad45-b4ea0013fc17';   /* 8-Ball 2026-27 */
+  let league = [];
+  let LADDER = null;      /* the last ladder drawn, for the pickers */
+
+  function fillNames() {
+    const L = LADDER;
+    if (!L) return;
+    const on = new Set(L.players.map(p => norm(p.name)));
+    const rest = league.filter(n => !on.has(norm(n))).sort();
+    const html = '<option value="">Pick a player</option>'
+      + (L.players.length
+          ? '<optgroup label="On the ladder">'
+            + L.players.map(p => `<option value="${esc(p.name)}">#${p.rank} &nbsp;${esc(p.name)}</option>`).join('')
+            + '</optgroup>'
+          : '')
+      + (rest.length
+          ? '<optgroup label="Everyone else in the league">'
+            + rest.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')
+            + '</optgroup>'
+          : '')
+      + '<option value="__other">Someone else…</option>';
+    ['f-win', 'f-lose'].forEach(id => {
+      const sel = document.getElementById(id);
+      const had = sel.value;
+      sel.innerHTML = html;
+      if (had && [...sel.options].some(o => o.value === had)) sel.value = had;
+    });
+  }
+
+  const norm = s => tidy(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+  /* The report writes "Fox, Jeff S." and carries a rating in brackets. */
+  function tidy(s) {
+    let n = String(s || '').replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+/g, ' ').trim();
+    if (/^[^,]+,\s*.+$/.test(n)) n = n.replace(/^([^,]+),\s*(.+)$/, '$2 $1');
+    return n.trim();
+  }
+
+  /* Read once per visit and kept for the tab. If the report doesn't
+     answer, the form still works — there's just no league list behind
+     "Someone else". */
+  async function loadLeague() {
+    const KEY = 'kpl.ladder.league';
+    try {
+      const held = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+      if (held && Date.now() - held.at < 15 * 60 * 1000 && held.names.length) {
+        league = held.names; fillNames(); return;
+      }
+    } catch (e) { /* no store, read it fresh */ }
+
+    const url = 'https://lms.fargorate.com/PublicReport/GeneratePlayerStandingsReport/' + DIV;
+    const r = await fetch('/proxy?url=' + encodeURIComponent(url));
+    if (!r.ok) throw new Error('report ' + r.status);
+    const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
+    const head = [...doc.querySelectorAll('thead th')].map(th => th.textContent.trim().toUpperCase());
+    let col = head.findIndex(h => /^(NAME|PLAYER)/.test(h));
+    if (col < 0) col = 1;
+    league = [...new Set([...doc.querySelectorAll('tbody tr')]
+      .map(tr => tr.children[col] ? tidy(tr.children[col].textContent) : '')
+      .filter(Boolean))];
+    try { sessionStorage.setItem(KEY, JSON.stringify({ at: Date.now(), names: league })); }
+    catch (e) { /* fine without it */ }
+    fillNames();
   }
 
   /* ── a player reporting their own match ───────────────────────── */
@@ -572,6 +630,7 @@
   });
   $('f-date').value = new Date().toLocaleDateString('en-CA');
   $('f-date').max = $('f-date').value;
+  loadLeague().catch(() => { /* the ladder names are enough to get by */ });
 
   load();
   </script>
