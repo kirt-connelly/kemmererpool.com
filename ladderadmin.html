@@ -148,11 +148,13 @@
           <div class="row">
             <div>
               <label for="winner">Winner</label>
-              <input id="winner" list="names" placeholder="Name" autocomplete="off" />
+              <select id="winner"></select>
+              <input id="winner-other" class="hide" placeholder="Name" autocomplete="off" style="margin-top:8px" />
             </div>
             <div>
               <label for="loser">Loser</label>
-              <input id="loser" list="names" placeholder="Name" autocomplete="off" />
+              <select id="loser"></select>
+              <input id="loser-other" class="hide" placeholder="Name" autocomplete="off" style="margin-top:8px" />
             </div>
             <div>
               <label for="score">Score <span style="color:var(--edge-in)">&mdash; optional</span></label>
@@ -168,7 +170,6 @@
               <input id="mdate" type="date" />
             </div>
           </div>
-          <datalist id="names"></datalist>
           <div class="preview" id="preview"></div>
           <div class="btns">
             <button id="save">Record match</button>
@@ -265,7 +266,7 @@
         <a href="ladder.html">The public page</a> &nbsp;&middot;&nbsp;
         <a href="officers.html">Officers</a> &nbsp;&middot;&nbsp;
         <a href="league.html?lg=8ball&view=players">Players report</a>
-        &nbsp;&middot;&nbsp; ladder admin v1.09
+        &nbsp;&middot;&nbsp; ladder admin v1.10
       </p>
     </div>
   </main>
@@ -274,7 +275,7 @@
   <script src="fargo-match.js?v=1.07"></script>
   <script>
   /* ────────────────────────────────────────────────────────────────
-     ladderadmin.html v1.09 — officers only.
+     ladderadmin.html v1.10 — officers only.
 
      The rules are enforced by /api/ladder; this page shows what a
      match would do before it's saved, and says why when the answer is
@@ -402,8 +403,20 @@
       : { ok: true, html: `<b>${esc(w)}</b> takes #${pl.rank}; <b>${esc(pl.name)}</b> comes off the ladder.` };
   }
 
+  /* Whichever of the two boxes was used. */
+  const picked = id => {
+    const v = $(id).value;
+    return v === '__other' ? $(id + '-other').value.trim() : v.trim();
+  };
+
   function preview() {
-    $('preview').innerHTML = outcome($('winner').value.trim(), $('loser').value.trim()).html;
+    $('preview').innerHTML = outcome(picked('winner'), picked('loser')).html;
+  }
+
+  function clearPick(id) {
+    $(id).value = '';
+    $(id + '-other').value = '';
+    $(id + '-other').classList.add('hide');
   }
 
   /* ── matches players put up themselves ─────────────────────────
@@ -498,11 +511,28 @@
       ? `${free.length} in the league not on the ladder`
       : leagueNote;
 
-    /* The match boxes offer everyone, not just the fifteen — a
-       challenger coming from outside has to be typeable too. */
-    const all = [...new Set([...(L && L.players ? L.players.map(p => p.name) : []),
-                             ...league.map(p => p.name)])].sort();
-    $('names').innerHTML = all.map(n => `<option value="${esc(n)}">`).join('');
+    /* Winner and Loser read the same way as the public page: the
+       fifteen first with their places, then everyone else shooting
+       this season, then a box for a name the report hasn't got. */
+    const rest = league.filter(p => !on.has(key(p.name)))
+                       .sort((a, b) => a.name.localeCompare(b.name));
+    const html = '<option value="">Pick a player</option>'
+      + (L && L.players && L.players.length
+          ? '<optgroup label="On the ladder">'
+            + L.players.map(p => `<option value="${esc(p.name)}">#${p.rank} &nbsp;${esc(p.name)}</option>`).join('')
+            + '</optgroup>' : '')
+      + (rest.length
+          ? '<optgroup label="Everyone else in the league">'
+            + rest.map(p => `<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('')
+            + '</optgroup>' : '')
+      + '<option value="__other">Someone else…</option>';
+    ['winner', 'loser'].forEach(id => {
+      const el = $(id);
+      const had = el.value;
+      el.innerHTML = html;
+      if (had && [...el.options].some(o => o.value === had)) el.value = had;
+      $(id + '-other').classList.toggle('hide', el.value !== '__other');
+    });
   }
 
   /* ── seeding from the league's own numbers ─────────────────── */
@@ -547,25 +577,32 @@
   });
   $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').click(); });
 
-  ['winner', 'loser'].forEach(id => $(id).addEventListener('input', preview));
 
   $('save').addEventListener('click', async () => {
     const d = await api({
-      action: 'match', winner: $('winner').value.trim(), loser: $('loser').value.trim(),
+      action: 'match', winner: picked('winner'), loser: picked('loser'),
       score: $('score').value, date: $('mdate').value || today(), force: $('force').checked,
     });
     say($('say'), d.ok ? d.said : d.error, !d.ok);
-    if (d.ok) { $('winner').value = ''; $('loser').value = ''; $('force').checked = false; preview(); }
+    if (d.ok) { clearPick('winner'); clearPick('loser'); $('force').checked = false; preview(); }
   });
 
   $('forfeit').addEventListener('click', async () => {
-    const challenger = $('winner').value.trim(), holder = $('loser').value.trim();
+    const challenger = picked('winner'), holder = picked('loser');
     if (!challenger || !holder) { say($('say'), 'Put the challenger in Winner and the player who didn’t answer in Loser.', true); return; }
     if (!confirm(`${holder} didn’t answer inside 48 hours — hand the place to ${challenger}?`)) return;
     const d = await api({ action: 'forfeit', challenger, holder, date: $('mdate').value || today(), force: $('force').checked });
     say($('say'), d.ok ? d.said : d.error, !d.ok);
-    if (d.ok) { $('winner').value = ''; $('loser').value = ''; preview(); }
+    if (d.ok) { clearPick('winner'); clearPick('loser'); preview(); }
   });
+
+  ['winner', 'loser'].forEach(id => $(id).addEventListener('change', () => {
+    const other = $(id).value === '__other';
+    $(id + '-other').classList.toggle('hide', !other);
+    if (other) $(id + '-other').focus();
+    preview();
+  }));
+  ['winner-other', 'loser-other'].forEach(id => $(id).addEventListener('input', preview));
 
   $('addpick').addEventListener('change', () => {
     const other = $('addpick').value === '__other';
