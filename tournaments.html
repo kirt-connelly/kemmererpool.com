@@ -191,9 +191,18 @@ main { padding: 22px 0 70px; }
   font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .12em;
   text-transform: uppercase; color: var(--dim);
   grid-column: 2; grid-row: 2; text-align: right;
+  display: flex; flex-wrap: wrap; justify-content: flex-end;
+  align-items: baseline; gap: 2px 0;
 }
 .ev .s.set { color: var(--set); }
 .ev.soft .d { color: var(--dim); }
+/* A line of news under an event — what to do about it, not what it is. */
+.ev .note {
+  grid-column: 1 / -1; grid-row: 3; margin-top: 7px;
+  font-size: 14px; line-height: 1.45; color: var(--dim);
+  border-left: 2px solid rgba(212,161,60,.45); padding-left: 11px;
+}
+.ev .note b { color: var(--bone); }
 /* Our own three weekends, warmed up a shade against the road trips. */
 .ev.tri {
   background: linear-gradient(90deg, rgba(212,161,60,.09), rgba(212,161,60,.02) 60%, transparent);
@@ -364,19 +373,26 @@ a:focus-visible, button:focus-visible {
         <span class="n">Red Short Memorial Tri City</span>
         <span class="w">Kemmerer, WY</span>
         <span class="d">Jan 16&ndash;17, 2027</span>
-        <span class="s set"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button></span>
+        <span class="s set">
+          <a href="tricity.html">Sign up &nearr;</a>
+          <span class="sep">&middot;</span>
+          <button type="button" onclick="openFlyer('images/red-short-memorial-2027.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button>
+          <span class="sep">&middot;</span>
+          <button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Tri City tournaments — handicap and Calcutta')">Calcutta &amp; handicap &nearr;</button>
+        </span>
+        <span class="note">Time to get signed up for the first leg of Tri-City &mdash; <b>$80 per team</b>, sign up with your league officers. The Antler Motel is offering a discount for pool players.</span>
       </div>
       <div class="ev tri" data-ends="2027-02-07">
         <span class="n">Evanston Tri City</span>
         <span class="w">Evanston, WY</span>
         <span class="d">Feb 6&ndash;7, 2027</span>
-        <span class="s set"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Evanston Tri City flyer')">Flyer &nearr;</button></span>
+        <span class="s set"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Tri City tournaments — Evanston')">Flyer &nearr;</button></span>
       </div>
       <div class="ev tri" data-ends="2027-03-07">
         <span class="n">Bridger Valley Tri City</span>
         <span class="w">Bridger Valley, WY</span>
         <span class="d">Mar 6&ndash;7, 2027</span>
-        <span class="s set"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Bridger Valley Tri City flyer')">Flyer &nearr;</button></span>
+        <span class="s set"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Tri City tournaments — Bridger Valley')">Flyer &nearr;</button></span>
       </div>
       <div class="ev" data-ends="2027-03-21">
         <span class="n">AMOW Wyoming State 8-Ball</span>
@@ -458,7 +474,7 @@ a:focus-visible, button:focus-visible {
         <img src="images/bca-pool-league.png" alt="BCA Pool League" loading="lazy">
       </a>
     </div>
-    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.21</div>
+    <div><a href="index.html">Kemmerer Pool League</a> &nbsp;&middot;&nbsp; tournaments v1.23</div>
   </div>
 </footer>
 

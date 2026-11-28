@@ -424,6 +424,13 @@ h2.head {
 .date-row .d { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--brass); white-space: nowrap; }
 .date-row .n { font-weight: 600; font-size: 17px; }
 .date-row .w { color: var(--dim); font-size: 15px; }
+/* A line of news under an event — what to do about it, not what it is. */
+.date-row .note {
+  grid-column: 1 / -1; margin-top: 8px;
+  font-size: 14.5px; line-height: 1.45; color: var(--dim);
+  border-left: 2px solid rgba(212,161,60,.45); padding-left: 11px;
+}
+.date-row .note b { color: var(--bone); }
 .date-row .s {
   font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--dim); text-align: right;
@@ -444,7 +451,11 @@ h2.head {
    word — they say the same thing and give you somewhere to go. So the
    links sit in the status column, not on a line of their own. */
 .date-row .lnks {
-  grid-column: 4; grid-row: 1; text-align: right; white-space: nowrap;
+  /* Two links don't fit the 160px column on one line, so let them
+     wrap under each other rather than running off the edge. */
+  grid-column: 4; grid-row: 1;
+  display: flex; flex-wrap: wrap; justify-content: flex-end;
+  align-items: baseline; gap: 2px 0;
   font-family: 'Space Mono', monospace; font-size: 12px;
   letter-spacing: .1em; text-transform: uppercase;
 }
@@ -746,7 +757,8 @@ a:focus-visible, button:focus-visible {
   .date-row .n { grid-column: 1; grid-row: 2; }
   .date-row .w { grid-column: 1; grid-row: 3; }
   .date-row .s { grid-column: 2; grid-row: 1; }
-  .date-row .lnks { grid-column: 1 / -1; grid-row: 4; text-align: left; white-space: normal; }
+  .date-row .lnks { grid-column: 1 / -1; grid-row: 4; justify-content: flex-start; }
+  .date-row .note { grid-column: 1 / -1; grid-row: 5; }
   .rail-rule { gap: 26px; }
   .mast-in { gap: 14px; }
   .mast nav { gap: 0; }
@@ -1084,19 +1096,26 @@ a:focus-visible, button:focus-visible {
           <span class="d">Jan 16&ndash;17, 2027</span>
           <span class="n">Red Short Memorial Tri City</span>
           <span class="w">Kemmerer</span>
-          <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button></span>
+          <span class="lnks">
+            <a href="tricity.html">Sign up &nearr;</a>
+            <span class="sep">&middot;</span>
+            <button type="button" onclick="openFlyer('images/red-short-memorial-2027.jpg','Red Short Memorial Tri City flyer')">Flyer &nearr;</button>
+            <span class="sep">&middot;</span>
+            <button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Tri City tournaments — handicap and Calcutta')">Tri City &nearr;</button>
+          </span>
+          <span class="note">Time to get signed up for the first leg of Tri-City &mdash; <b>$80 per team</b>, sign up with your league officers. The Antler Motel is offering a discount for pool players.</span>
         </div>
         <div class="date-row tri" data-ends="2027-02-07">
           <span class="d">Feb 6&ndash;7, 2027</span>
           <span class="n">Evanston Tri City</span>
           <span class="w">Evanston</span>
-          <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Evanston Tri City flyer')">Flyer &nearr;</button></span>
+          <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Tri City tournaments — Evanston')">Flyer &nearr;</button></span>
         </div>
         <div class="date-row tri" data-ends="2027-03-07">
           <span class="d">Mar 6&ndash;7, 2027</span>
           <span class="n">Bridger Valley Tri City</span>
           <span class="w">Bridger Valley</span>
-          <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Bridger Valley Tri City flyer')">Flyer &nearr;</button></span>
+          <span class="lnks"><button type="button" onclick="openFlyer('images/tri-city-2027.jpg','Tri City tournaments — Bridger Valley')">Flyer &nearr;</button></span>
         </div>
         <div class="date-row" data-ends="2027-03-21">
           <span class="d">Mar 15&ndash;21, 2027</span>
@@ -1266,7 +1285,7 @@ a:focus-visible, button:focus-visible {
       </div>
       <div class="colophon">
         <span>Kemmerer Pool League &middot; Jenkins Music &amp; Vending</span>
-        <span>v1.83</span>
+        <span>v1.86</span>
       </div>
 
     </div>
